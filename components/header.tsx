@@ -1,11 +1,21 @@
 import Link from 'next/link';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import styles from './header.module.css';
+import { usePromise, useMount } from 'wwhooks';
+import { getUserInfo } from 'api/user';
 
 export default function Header() {
   const { data: session, status } = useSession();
-  const loading = status === 'loading';
+  const se = useSession();
+  console.log(se);
 
+  const loading = status === 'loading';
+  const { data: user } = usePromise(getUserInfo, {
+    manual: false,
+    onError: (err) => {
+      console.log(err);
+    },
+  });
   return (
     <header>
       <noscript>
@@ -22,18 +32,12 @@ export default function Header() {
               <span className={styles.notSignedInText}>
                 You are not signed in
               </span>
-              <a
-                href={`/api/auth/signin`}
-                className={styles.buttonPrimary}
-                onClick={(e) => {
-                  e.preventDefault();
-                  signIn();
-                }}
-              >
-                Sign in
-              </a>
+              <button className={styles.buttonPrimary} onClick={() => signIn()}>
+                登录
+              </button>
             </>
           )}
+          {JSON.stringify(user)}
           {session?.user && (
             <>
               {session.user.image && (
