@@ -1,4 +1,7 @@
+import { useSession } from 'next-auth/react';
 import Layout from '../components/layout';
+import { useRouter } from 'next/router';
+import { useMount } from 'wwhooks';
 
 export default function IndexPage() {
   return (

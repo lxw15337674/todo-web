@@ -1,21 +1,19 @@
 import Link from 'next/link';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import styles from './header.module.css';
-import { usePromise, useMount } from 'wwhooks';
-import { getUserInfo } from 'api/user';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Header() {
   const { data: session, status } = useSession();
-  const se = useSession();
-  console.log(se);
-
   const loading = status === 'loading';
-  const { data: user } = usePromise(getUserInfo, {
-    manual: false,
-    onError: (err) => {
-      console.log(err);
-    },
-  });
+  const router = useRouter();
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/user/login');
+    }
+  }, [router, status]);
+
   return (
     <header>
       <noscript>
@@ -37,7 +35,6 @@ export default function Header() {
               </button>
             </>
           )}
-          {JSON.stringify(user)}
           {session?.user && (
             <>
               {session.user.image && (
