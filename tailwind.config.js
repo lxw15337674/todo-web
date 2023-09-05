@@ -9,7 +9,10 @@ module.exports = {
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      // 垂直水平居中
+     
+    },
   },
   plugins: [],
 };

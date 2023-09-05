@@ -31,7 +31,7 @@ export const handler = NextAuth({
           account: credentials?.email ?? '',
           password: credentials?.password ?? '',
         });
-        
+
         if (user) {
           // 返回的对象将保存才JWT 的用户属性中
           return user;
@@ -47,6 +47,10 @@ export const handler = NextAuth({
   },
   jwt: {
     secret: 'test',
+  },
+  pages: {
+    //自定义界面 ，可配置signIn，signOut，error，verifyRequest，newUser
+    signIn: '/user/login',
   },
   // debug: true,
   callbacks: {
