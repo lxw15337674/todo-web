@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  important: true,
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}', // Note the addition of the `app` directory.
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -10,8 +11,11 @@ module.exports = {
   ],
   theme: {
     extend: {
-      // 垂直水平居中
-     
+      colors: {
+        primary: '#2564cf',
+        white: '#fff',
+        hover: 'rgba(0, 0, 0, 0.02)',
+      },
     },
   },
   plugins: [],

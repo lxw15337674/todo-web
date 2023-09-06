@@ -11,7 +11,7 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "next --turbo ",
+    "dev": "next --turbo -p 8080",
     "build": "next build",
     "start": "next start",
     "type-check": "tsc --noEmit",

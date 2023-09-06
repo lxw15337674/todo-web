@@ -1,3 +1,4 @@
+import { BaseUrl } from './index';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 declare module 'axios' {
@@ -36,9 +37,11 @@ service.interceptors.response.use(
   },
 );
 
-axios.interceptors.request.use((config) => {
+const BaseUrl = 'http://localhost:6060/api';
+
+service.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  config.headers.common['Authorization'] = 'Bearer ' + token;
-  debugger;
+  config.headers.Authorization = 'Bearer ' + token;
+  config.baseURL = BaseUrl;
   return config;
 });

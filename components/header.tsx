@@ -1,6 +1,4 @@
-import Link from 'next/link';
 import { signIn, signOut, useSession } from 'next-auth/react';
-import styles from './header.module.css';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 
@@ -16,77 +14,48 @@ export default function Header() {
 
   return (
     <header>
-      <noscript>
-        <style>{`.nojs-show { opacity: 1; top: 0; }`}</style>
-      </noscript>
-      <div className={styles.signedInStatus}>
-        <p
-          className={`nojs-show ${
-            !session && loading ? styles.loading : styles.loaded
-          }`}
-        >
+      <div
+        className={
+          'h-[48px] leading-[48px] bg-primary text-white flex px-[14px]  '
+        }
+      >
+        <div className="mr-4">
+          <span className="mr-4">切换</span>
+          <span>todo</span>
+        </div>
+        <div className="flex-1">middle</div>
+        <div className="flex items-center">
           {!session && (
             <>
-              <span className={styles.notSignedInText}>
-                You are not signed in
-              </span>
-              <button className={styles.buttonPrimary} onClick={() => signIn()}>
-                登录
-              </button>
+              <span>You are not signed in</span>
+              <button onClick={() => signIn()}>登录</button>
             </>
           )}
           {session?.user && (
             <>
+              <strong className="mr-4">
+                {session.user.email ?? session.user.name}
+              </strong>
               {session.user.image && (
                 <span
                   style={{ backgroundImage: `url('${session.user.image}')` }}
-                  className={styles.avatar}
+                  className="avatar rounded-full h-[32px] w-[32px]  bg-white bg-cover bg-no-repeat inline-block"
                 />
               )}
-              <span className={styles.signedInText}>
-                <small>Signed in as</small>
-                <br />
-                <strong>{session.user.email ?? session.user.name}</strong>
-              </span>
               <a
+                className="ml-4 "
                 href={`/api/auth/signout`}
-                className={styles.button}
                 onClick={(e) => {
                   e.preventDefault();
                   signOut();
                 }}
               >
-                Sign out
+                登出
               </a>
             </>
           )}
-        </p>
+        </div>
       </div>
-      <nav>
-        <ul className={styles.navItems}>
-          <li className={styles.navItem}>
-            <Link href="/">Home</Link>
-          </li>
-          {/* <li className={styles.navItem}> */}
-          {/* <Link href="/client">Client</Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link href="/server">Server</Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link href="/protected">Protected</Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link href="/api-example">API</Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link href="/admin">Admin</Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link href="/me">Me</Link>
-          </li> */}
-        </ul>
-      </nav>
     </header>
   );
 }
