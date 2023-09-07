@@ -1,5 +1,6 @@
 import { IUser, IUserInfo } from './interface';
 import { service } from './index';
+import axios from 'axios';
 
 export function userLogin(user: IUser): Promise<string> {
   return service
@@ -14,9 +15,14 @@ export function userLogin(user: IUser): Promise<string> {
 }
 
 export function getUserInfo(token: string): Promise<IUserInfo> {
-  return service.get('http://localhost:6060/api/user/getInfo', {
-    headers: {
-      Authorization: 'Bearer ' + token,
-    },
-  });
+  return axios
+    .get('http://localhost:6060/api/user/getInfo', {
+      headers: {
+        Authorization: 'Bearer ' + token,
+      },
+    })
+    .then((res) => {
+      console.log(res.data.data);
+      return res.data.data;
+    });
 }

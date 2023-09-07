@@ -15,6 +15,8 @@ module.exports = {
         primary: '#2564cf',
         white: '#fff',
         hover: 'rgba(0, 0, 0, 0.02)',
+        select: '#eff6fc',
+        border: '#e5e7eb',
       },
     },
   },

@@ -1,4 +1,3 @@
-import { BaseUrl } from './index';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 declare module 'axios' {
@@ -28,6 +27,10 @@ service.interceptors.response.use(
     return Promise.reject(new Error(res.data.message || '请求失败，请重试'));
   },
   (err) => {
+    if (err.response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/user/login';
+    }
     Promise.reject(
       new Error(
         (err && err.response && err.response.statusText) ||
@@ -40,7 +43,7 @@ service.interceptors.response.use(
 const BaseUrl = 'http://localhost:6060/api';
 
 service.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage?.getItem('token');
   config.headers.Authorization = 'Bearer ' + token;
   config.baseURL = BaseUrl;
   return config;

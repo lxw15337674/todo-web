@@ -15,7 +15,6 @@ export const handler = NextAuth({
       },
     }),
     CredentialsProvider({
-      // 登录按钮显示 (e.g. "Sign in with Credentials")
       name: 'Credentials',
       credentials: {
         token: { label: 'Token', type: 'text', placeholder: 'Token' },

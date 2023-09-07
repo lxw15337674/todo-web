@@ -47,14 +47,14 @@ const Login = () => {
             </Button>
           </Form.Item>
         </Form>
-        <button
+        {/* <button
           className="w-full bg-black text-white h-10 text-sm"
           onClick={() => {
             signIn('github', { callbackUrl: '/' });
           }}
         >
           Sign in with Github
-        </button>
+        </button> */}
       </div>
     </div>
   );

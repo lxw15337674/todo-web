@@ -16,5 +16,6 @@ div#__next {
   height: 100%;
   width: 100%;
 }
-
- 
+main {
+  height: calc(100vh - 48px);
+}

@@ -13,11 +13,3 @@ export interface IUserInfo {
   updateTime: Date;
 }
 
-
-export interface Task {
-  title: string;
-  remark?: string;
-  type?: string;
-  status?: string;
-  priority?: string;
-}
