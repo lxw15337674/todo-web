@@ -1,6 +1,6 @@
 import { service } from 'api';
 import { Task } from './interface';
-import { useTodoStore } from 'pages/todo/store';
+import { useTodoStore } from 'store/todo';
 
 export function createTask(task: Task): Promise<Task> {
   return service.post('/task/create', task);

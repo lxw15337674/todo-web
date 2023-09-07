@@ -1,4 +1,5 @@
 import { Task } from 'api/todo/interface';
+import _ from 'lodash';
 import { create } from 'zustand';
 import computed from 'zustand-middleware-computed';
 
@@ -16,7 +17,7 @@ export const useTodoStore = create(
       tasks: [],
       selectedTaskId: 0,
       setSelectTaskId: (id: number) => {
-        set({ selectedTaskId: get().selectedTaskId++ });
+        set({ selectedTaskId: id });
       },
     }),
     {

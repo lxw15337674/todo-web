@@ -15,9 +15,13 @@ import {
 } from '@mui/material';
 import TaskInfoDraw from 'components/TaskInfoDraw';
 import { Task } from 'api/todo/interface';
-import { useTodoStore } from './store';
+import { useTodoStore } from '../../store/todo';
+import _ from 'lodash';
+
 export default function IndexPage() {
-  const { tasks, selectedTaskId, setSelectTaskId } = useTodoStore();
+  const store = useTodoStore();
+  const { tasks, selectedTaskId, setSelectTaskId } = store;
+  console.log(store);
   const [newTask, setNewTask] = useObject<Task>({
     title: '',
   });
@@ -45,8 +49,6 @@ export default function IndexPage() {
       reload();
     },
   });
-
-  console.log(selectedTaskId);
 
   return (
     <Layout>
@@ -129,10 +131,6 @@ export default function IndexPage() {
                       <Grid item xs>
                         <ListItemButton
                           onClick={() => {
-                            console.log(
-                              selectedTaskId === task.id ? 0 : task?.id ?? 0,
-                            );
-
                             setSelectTaskId(
                               selectedTaskId === task.id ? 0 : task?.id ?? 0,
                             );
