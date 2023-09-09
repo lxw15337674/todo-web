@@ -12,6 +12,7 @@ import {
   ListItemButton,
   Stack,
   IconButton,
+  TextField,
 } from '@mui/material';
 import TaskInfoDraw from 'components/TaskInfoDraw';
 import { Task } from 'api/todo/interface';
@@ -55,12 +56,13 @@ export default function IndexPage() {
       <div className="flex h-full">
         <div className="flex-1 m-3 flex flex-col ">
           <div className="border mb-4">
-            <Input
-              id="outlined-basic"
+            <TextField
               autoFocus
               fullWidth
+              required
+              variant="standard"
+              className="px-2 py-2"
               multiline
-              className="px-3 py-2"
               value={newTask.title}
               onChange={(e) => {
                 setNewTask({
@@ -73,11 +75,12 @@ export default function IndexPage() {
                 }
               }}
             />
-            <div className="  p-[6px] flex">
+            <div className="shadow-lg  p-[6px] flex">
               <LoadingButton
                 loading={createTaskLoading}
                 size="small"
-                className="ml-auto "
+                className="ml-auto  bg-primary"
+                variant="contained"
                 onClick={() => {
                   createTaskRes(newTask);
                 }}
@@ -86,7 +89,8 @@ export default function IndexPage() {
               </LoadingButton>
             </div>
           </div>
-          <div className="overflow-auto flex-1 ">
+
+          <div className=" overflow-auto flex-1 ">
             <List>
               <Stack spacing={1}>
                 {tasks?.map((task) => (
@@ -98,7 +102,7 @@ export default function IndexPage() {
                         border-r  border-border"
                       >
                         <IconButton className="m-1">
-                          {task.status === 'done' && (
+                          {task?.status === 'done' ? (
                             <StarIcon
                               sx={{
                                 color: '#2564cf',
@@ -112,8 +116,7 @@ export default function IndexPage() {
                                 });
                               }}
                             />
-                          )}
-                          {task.status !== 'done' && (
+                          ) : (
                             <StarBorder
                               sx={{
                                 color: '#2564cf',

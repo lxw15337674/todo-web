@@ -27,15 +27,12 @@ service.interceptors.response.use(
     return Promise.reject(new Error(res.data.message || '请求失败，请重试'));
   },
   (err) => {
-    if (err.response.status === 401) {
+    if (err?.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/user/login';
     }
     Promise.reject(
-      new Error(
-        (err && err.response && err.response.statusText) ||
-          '服务器错误，请重试',
-      ),
+      new Error(err?.response?.statusText || '服务器错误，请重试'),
     );
   },
 );

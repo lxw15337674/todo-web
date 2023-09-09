@@ -7,4 +7,8 @@ export interface Task {
   type?: string;
   status?: Status;
   priority?: string;
+  createTime?: string;
+  finishTime?: string;
+  updateTime?: string;
+  userId?: number;
 }
