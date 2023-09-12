@@ -1,7 +1,6 @@
 import Layout from '../../components/layout';
-import { useObject, usePromise } from 'wwhooks';
+import { useMount, useObject, usePromise } from 'wwhooks';
 import { createTask, getTaskList, updateTask } from 'api/todo/task';
-import StarIcon from '@mui/icons-material/Star';
 import { StarBorder } from '@mui/icons-material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import {
@@ -14,21 +13,23 @@ import {
   IconButton,
   TextField,
 } from '@mui/material';
-import TaskInfoDraw from 'components/TaskInfoDraw';
 import { Task } from 'api/todo/interface';
 import { useTodoStore } from '../../store/todo';
 import _ from 'lodash';
+import TaskInfoDraw from 'components/TaskInfoDraw';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 export default function IndexPage() {
   const store = useTodoStore();
   const { tasks, selectedTaskId, setSelectTaskId } = store;
-  console.log(store);
+
   const [newTask, setNewTask] = useObject<Task>({
     title: '',
   });
 
-  const { reload } = usePromise(getTaskList, {
-    manual: false,
+  useMount(() => {
+    getTaskList();
   });
 
   const { run: createTaskRes, isLoading: createTaskLoading } = usePromise(
@@ -36,7 +37,6 @@ export default function IndexPage() {
     {
       debounceInterval: 300,
       onSuccess: () => {
-        reload();
         setNewTask({
           title: '',
         });
@@ -46,11 +46,7 @@ export default function IndexPage() {
 
   const { run: updateTaskRes } = usePromise(updateTask, {
     debounceInterval: 300,
-    onSuccess: () => {
-      reload();
-    },
   });
-
   return (
     <Layout>
       <div className="flex h-full">
@@ -133,6 +129,7 @@ export default function IndexPage() {
                       </Grid>
                       <Grid item xs>
                         <ListItemButton
+                          className="overflow-hidden w-full "
                           onClick={() => {
                             setSelectTaskId(
                               selectedTaskId === task.id ? 0 : task?.id ?? 0,
@@ -140,7 +137,9 @@ export default function IndexPage() {
                           }}
                           selected={selectedTaskId === task.id}
                         >
-                          <div className="my-1">{task.title}</div>
+                          <span className="my-1 max-w-[100px] 	">
+                            {task.title}
+                          </span>
                         </ListItemButton>
                       </Grid>
                     </Grid>

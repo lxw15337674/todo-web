@@ -2,18 +2,23 @@ import { service } from 'api';
 import { Task } from './interface';
 import { useTodoStore } from 'store/todo';
 
-export function createTask(task: Task): Promise<Task> {
-  return service.post('/task/create', task);
-}
-
-export function updateTask(task: Task): Promise<Task> {
-  return service.patch('/task/update', task);
-}
-
 export function getTaskList(): Promise<Task[]> {
   return service.get('/task/findAll').then((tasks) => {
     useTodoStore.setState({ tasks });
     return tasks;
+  });
+}
+export function createTask(task: Task): Promise<Task> {
+  return service.post('/task/create', task).then(() => {
+    getTaskList();
+    return task;
+  });
+}
+
+export function updateTask(task: Task): Promise<Task> {
+  return service.patch('/task/update', task).then(() => {
+    getTaskList();
+    return task;
   });
 }
 

@@ -1,52 +1,69 @@
 import {
   Autocomplete,
-  Box,
   Checkbox,
-  Chip,
   Divider,
-  FormControl,
-  InputLabel,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  MenuItem,
-  OutlinedInput,
-  Select,
   TextField,
 } from '@mui/material';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTodoStore } from 'store/todo';
 import dayjs from 'dayjs';
 import {
-  DateField,
   DateTimeField,
   DateTimePicker,
   LocalizationProvider,
 } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { MenuProps, theme } from 'antd';
-import { useObject } from 'wwhooks';
+import { useObject, usePromise } from 'wwhooks';
 import { Task } from 'api/todo/interface';
-const names = [
-  'Oliver Hansen',
-  'Van Henry',
-  'April Tucker',
-  'Ralph Hubbard',
-  'Omar Alexander',
-  'Carlos Abbott',
-  'Miriam Wagner',
-  'Bradley Wilkerson',
-  'Virginia Andrews',
-  'Kelly Snyder',
+import { updateTask } from 'api/todo/task';
+import AutoSelect from 'components/AutoSelect';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+
+const TodoTypes = [
+  '工作',
+  '学习',
+  '生活',
+  '娱乐',
+  '运动',
+  '阅读',
+  '写作',
+  '思考',
+  '其他',
 ];
+const PriorityTypes = ['重要紧急', '重要不紧急', '不重要紧急', '不重要不紧急'];
+
 const TaskInfoDraw = () => {
   const { selectedTask } = useTodoStore();
-  const [state, setState] = useObject<Task>({});
+  const [nextTodo, setNextTodo] = useObject<Task>({});
+  const { run: updateTaskRes } = usePromise(
+    (task: Task) =>
+      updateTask({
+        id: selectedTask?.id,
+        ...task,
+      }),
+    {
+      debounceInterval: 500,
+    },
+  );
+  useEffect(() => {
+    setNextTodo({
+      title: selectedTask?.title,
+      type: selectedTask?.type,
+      priority: selectedTask?.priority,
+      remark: selectedTask?.remark,
+    });
+  }, [selectedTask]);
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div className="shadow-2xl ml-2 px-2 bg-slate-50 min-w-[200px] max-w-xs">
+      <div className="shadow-2xl ml-2 px-2 bg-slate-50 w-[300px]">
         <Divider />
         <List>
           {/* {Object.entries(selectedTask).map(([key, string], index) => (
@@ -57,67 +74,88 @@ const TaskInfoDraw = () => {
         ))} */}
 
           <ListItem disablePadding className=" bg-white mb-4">
-            <ListItemButton dense>
-              <ListItemIcon>
-                <Checkbox
-                  edge="start"
-                  checked={selectedTask?.status === 'done'}
-                  tabIndex={-1}
-                  disableRipple
+            <IconButton
+              onClick={() => {
+                updateTaskRes({
+                  status: selectedTask?.status === 'done' ? 'todo' : 'done',
+                });
+              }}
+            >
+              {selectedTask?.status === 'done' ? (
+                <StarIcon
+                  sx={{
+                    color: '#2564cf',
+                  }}
                 />
-              </ListItemIcon>
-              <ListItemText primary={selectedTask?.title} />
-            </ListItemButton>
+              ) : (
+                <StarBorderIcon
+                  sx={{
+                    color: '#2564cf',
+                  }}
+                />
+              )}
+            </IconButton>
+            <ListItemText className="ml-4">
+              <TextField
+                fullWidth
+                multiline
+                maxRows={4}
+                id="standard-basic"
+                variant="standard"
+                value={nextTodo?.title}
+                onChange={(e) => {
+                  setNextTodo({
+                    title: e.target.value,
+                  });
+                }}
+                onBlur={() => {
+                  updateTaskRes({
+                    title: nextTodo.title,
+                  });
+                }}
+              />
+            </ListItemText>
           </ListItem>
 
           <ListItem disablePadding className=" bg-white mb-4">
-            <Autocomplete
+            <AutoSelect
               multiple
-              options={names}
-              size="small"
+              onChange={(value) => {
+                setNextTodo({
+                  type: value,
+                });
+              }}
               disableCloseOnSelect
-              getOptionLabel={(option) => option}
-              style={{ width: 500 }}
-              renderInput={(params) => <TextField {...params} label="类型" />}
+              value={nextTodo?.type ?? undefined}
+              onBlur={() => {
+                updateTaskRes({
+                  type: nextTodo.type,
+                });
+              }}
+              options={TodoTypes}
+              label="类型"
             />
           </ListItem>
 
           <ListItem disablePadding className=" bg-white mb-4">
-            <Autocomplete
+            <AutoSelect
+              fullWidth
               size="small"
-              options={names}
-              disableCloseOnSelect
-              getOptionLabel={(option) => option}
-              style={{ width: 500 }}
-              renderInput={(params) => <TextField {...params} label="优先级" />}
+              value={nextTodo?.priority ?? undefined}
+              options={PriorityTypes}
+              label="优先级"
+              onChange={(value) => {
+                setNextTodo({
+                  priority: value,
+                });
+              }}
+              onBlur={() => {
+                updateTaskRes({
+                  priority: nextTodo.priority,
+                });
+              }}
             />
           </ListItem>
-
-          {/* <ListItem disablePadding className=" bg-white mb-4">
-            <FormControl sx={{ m: 1, width: 300 }}>
-              <InputLabel id="demo-multiple-chip-label">Chip</InputLabel>
-              <Select
-                labelId="demo-multiple-chip-label"
-                id="demo-multiple-chip"
-                multiple
-                defaultValue={state?.type ? (state?.type).split(',') : []}
-                input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
-                renderValue={(selected) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map((value) => (
-                      <Chip key={value} label={value} />
-                    ))}
-                  </Box>
-                )}
-              >
-                {names.map((name) => (
-                  <MenuItem key={name} value={name}>
-                    {name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </ListItem> */}
 
           <ListItem disablePadding className=" bg-white mb-4">
             <TextField
@@ -127,7 +165,17 @@ const TaskInfoDraw = () => {
               multiline
               rows={2}
               id="outlined-multiline-static"
-              defaultValue={selectedTask?.remark}
+              value={nextTodo?.remark ?? ''}
+              onChange={(e) => {
+                setNextTodo({
+                  remark: e.target.value,
+                });
+              }}
+              onBlur={() => {
+                updateTaskRes({
+                  remark: nextTodo.remark,
+                });
+              }}
             />
           </ListItem>
           {selectedTask?.finishTime && (
@@ -143,13 +191,13 @@ const TaskInfoDraw = () => {
             </ListItem>
           )}
 
-          <ListItem disablePadding className=" bg-white mb-4">
+          {/* <ListItem disablePadding className=" bg-white mb-4">
             <DateTimePicker
               label="截止时间"
               className={'w-full'}
               value={dayjs(selectedTask?.createTime)}
             />
-          </ListItem>
+          </ListItem> */}
 
           <ListItem disablePadding className=" bg-white mb-4">
             <DateTimeField
