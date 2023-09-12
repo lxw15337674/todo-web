@@ -10,7 +10,7 @@ import {
   ListItemText,
   TextField,
 } from '@mui/material';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useTodoStore } from 'store/todo';
 import dayjs from 'dayjs';
 import {
@@ -20,27 +20,17 @@ import {
 } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useObject, usePromise } from 'wwhooks';
-import { Task } from 'api/todo/interface';
+import { Task, TaskType } from 'api/todo/interface';
 import { updateTask } from 'api/todo/task';
 import AutoSelect from 'components/AutoSelect';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import { createTaskType } from 'api/todo/taskType';
 
-const TodoTypes = [
-  '工作',
-  '学习',
-  '生活',
-  '娱乐',
-  '运动',
-  '阅读',
-  '写作',
-  '思考',
-  '其他',
-];
 const PriorityTypes = ['重要紧急', '重要不紧急', '不重要紧急', '不重要不紧急'];
 
 const TaskInfoDraw = () => {
-  const { selectedTask } = useTodoStore();
+  const { selectedTask, taskTypes } = useTodoStore();
   const [nextTodo, setNextTodo] = useObject<Task>({});
   const { run: updateTaskRes } = usePromise(
     (task: Task) =>
@@ -60,6 +50,17 @@ const TaskInfoDraw = () => {
       remark: selectedTask?.remark,
     });
   }, [selectedTask]);
+
+  const types = useMemo(() => {
+    return (
+      (nextTodo?.type?.split(',') ?? [])
+        ?.map((item) => {
+          return taskTypes?.find((v) => v.id === item) as TaskType;
+        })
+        .filter((item) => !!item) ?? []
+    );
+  }, [nextTodo?.type, taskTypes]);
+  console.log(types);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -118,26 +119,29 @@ const TaskInfoDraw = () => {
           </ListItem>
 
           <ListItem disablePadding className=" bg-white mb-4">
-            <AutoSelect
+            <AutoSelect<TaskType>
               multiple
+              onAddOption={(v) => {
+                return createTaskType(v);
+              }}
               onChange={(value) => {
                 setNextTodo({
-                  type: value,
+                  type: value.map((v) => v.id).join(','),
                 });
               }}
               disableCloseOnSelect
-              value={nextTodo?.type ?? undefined}
+              value={types}
               onBlur={() => {
                 updateTaskRes({
                   type: nextTodo.type,
                 });
               }}
-              options={TodoTypes}
+              options={taskTypes}
               label="类型"
             />
           </ListItem>
 
-          <ListItem disablePadding className=" bg-white mb-4">
+          {/* <ListItem disablePadding className=" bg-white mb-4">
             <AutoSelect
               fullWidth
               size="small"
@@ -155,7 +159,7 @@ const TaskInfoDraw = () => {
                 });
               }}
             />
-          </ListItem>
+          </ListItem> */}
 
           <ListItem disablePadding className=" bg-white mb-4">
             <TextField

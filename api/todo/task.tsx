@@ -28,8 +28,6 @@ export function getTaskByTitle(title: string): Promise<Task[]> {
   });
 }
 
-export function removeTask(id: string): Promise<Task[]> {
-  return service.post(`/task/remove/${id}`).then((res) => {
-    return res;
-  });
+export function removeTask(id: string): Promise<void> {
+  return service.post(`/task/remove/${id}`);
 }

@@ -12,3 +12,10 @@ export interface Task {
   updateTime?: string;
   userId?: number;
 }
+
+export interface TaskType {
+  id: string;
+  name: string;
+  userId: number;
+  color: string;
+}

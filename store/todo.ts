@@ -1,4 +1,4 @@
-import { Task } from 'api/todo/interface';
+import { Task, TaskType } from 'api/todo/interface';
 import _ from 'lodash';
 import { create } from 'zustand';
 import computed from 'zustand-middleware-computed';
@@ -10,6 +10,7 @@ interface Store {
   tasks?: Task[];
   selectedTaskId?: number;
   setSelectTaskId: (id: number) => void;
+  taskTypes: TaskType[];
 }
 export const useTodoStore = create(
   computed<Store, ComputedState>(
@@ -19,6 +20,7 @@ export const useTodoStore = create(
       setSelectTaskId: (id: number) => {
         set({ selectedTaskId: id });
       },
+      taskTypes: [],
     }),
     {
       selectedTask: (state) => {

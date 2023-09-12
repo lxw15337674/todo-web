@@ -2,67 +2,72 @@ import { Autocomplete, AutocompleteProps, TextField } from '@mui/material';
 import React, { useMemo, useRef, useState } from 'react';
 import { useObject } from 'wwhooks';
 
-const AddTodoType = '_add';
+const AddTodoType = { id: '_add', name: '' };
 
-interface Props
+interface Props<T>
   extends Omit<
-    AutocompleteProps<string, true, false, false>,
+    AutocompleteProps<T, true, false, false>,
     'onChange' | 'value' | 'renderInput'
   > {
-  value: string | undefined;
-  options: string[];
+  value: T[];
+  options: T[];
   label: string;
-  onChange: (value: string) => void;
+  onChange: (value: T[]) => void;
+  onAddOption: (name: string) => Promise<T>;
 }
 
-const AutoSelect = (props: Props) => {
-  const { value, options, label, onChange, ...otherProps } = props;
+function AutoSelect<
+  T extends {
+    id: string;
+    name: string;
+  },
+>(props: Props<T>) {
+  const { value, options, label, onChange, onAddOption, ...otherProps } = props;
   const newOption = useRef('');
-  const mergedOptions = [
-    ...options,
-    ...(value?.split(',')?.filter((v) => !!v) ?? []),
-    AddTodoType,
-  ].filter((value, index, self) => {
-    return self.indexOf(value) === index;
-  });
+  const mergedOptions = [...options, AddTodoType].filter(
+    (value, index, self) => {
+      return self.indexOf(value) === index;
+    },
+  ) as T[];
   return (
     <Autocomplete
       {...otherProps}
       options={mergedOptions}
-      onChange={(e, value) => {
+      onChange={async (e, value) => {
         const nextValue = [...value];
-        const hasAddTodoType = value.includes(AddTodoType);
+        const hasAddTodoType = value.find((v) => v.id === AddTodoType.id);
         if (hasAddTodoType) {
-          if (!props.multiple) {
-            onChange(newOption.current);
-            return;
-          }
-          nextValue[nextValue.length - 1] = newOption.current;
+          onAddOption(newOption.current).then((res) => {
+            nextValue[nextValue.length - 1] = res;
+            if (props.multiple) {
+              onChange(nextValue);
+            } else {
+              onChange([res]);
+            }
+          });
         }
-
         const updatedValue = props.multiple
-          ? nextValue.join(',')
-          : value[value.length - 1];
+          ? nextValue
+          : nextValue.slice(nextValue.length - 1);
         onChange(updatedValue);
       }}
-      value={value?.split(',').filter((v) => !!v) ?? []}
+      value={value}
       filterOptions={(options, state) => {
         const displayOptions = options.filter(
           (option) =>
-            option
-              .toLowerCase()
+            (option?.name ?? '')
+              ?.toLowerCase()
               .trim()
               .includes(state.inputValue.toLowerCase().trim()) ||
-            option === AddTodoType,
+            option.id === AddTodoType.id,
         );
-
         return displayOptions;
       }}
       renderOption={(props, option, state, ownState) => {
-        if (option === AddTodoType) {
+        if (option.id === AddTodoType.id) {
           if (
             state.inputValue &&
-            ownState.options.indexOf(state.inputValue) === -1
+            !options.find((v) => v.name === state.inputValue)
           ) {
             return (
               <li {...props}>
@@ -73,19 +78,16 @@ const AutoSelect = (props: Props) => {
           }
           return null;
         }
-        return <li {...props}>{option}</li>;
+        return <li {...props}>{option.name}</li>;
       }}
       size="small"
       getOptionLabel={(option) => {
-        return option;
+        return option?.name ?? '';
       }}
       fullWidth
       multiple
       isOptionEqualToValue={(option, value) => {
-        if (option === AddTodoType) {
-          return false;
-        }
-        return option === value;
+        return option.name === value?.name;
       }}
       renderInput={(params) => (
         <TextField
@@ -98,5 +100,5 @@ const AutoSelect = (props: Props) => {
       )}
     />
   );
-};
+}
 export default AutoSelect;
