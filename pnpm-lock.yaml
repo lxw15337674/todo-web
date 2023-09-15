@@ -60,8 +60,8 @@ dependencies:
     specifier: 4.4.1
     version: 4.4.1(@types/react@18.2.21)(react@18.2.0)
   zustand-middleware-computed:
-    specifier: 1.1.4
-    version: 1.1.4
+    specifier: 1.2.1
+    version: 1.2.1
 
 devDependencies:
   '@commitlint/cli':
@@ -7131,9 +7131,9 @@ packages:
     resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
     dev: false
 
-  /zustand-middleware-computed@1.1.4:
-    resolution: {integrity: sha512-fP5oKZcRml0U6IHyS6LF+DTjLpYYV/uMxVxn5UcM68A/nLOWbn5wrPQBtjH52anKMGWEq1eiAdXySioTVmNDjw==}
-    engines: {node: ^16}
+  /zustand-middleware-computed@1.2.1:
+    resolution: {integrity: sha512-jj5IqUA12/n5z5F8qqI+TrKudoIEtEZTY+SLYA9jbvLqtQqAWE1V04eDKa2HFJmKeMwInTWtRmgM2XQ8G6r8SQ==}
+    engines: {node: '>=16'}
     dev: false
 
   /zustand@4.4.1(@types/react@18.2.21)(react@18.2.0):

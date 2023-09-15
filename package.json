@@ -44,7 +44,7 @@
     "wwhooks": "2.0.2",
     "www-components": "1.1.0",
     "zustand": "4.4.1",
-    "zustand-middleware-computed": "1.1.4"
+    "zustand-middleware-computed": "1.2.1"
   },
   "devDependencies": {
     "@commitlint/cli": "17.7.1",
