@@ -4,7 +4,6 @@ import { createTask, getTaskList, updateTask } from 'api/todo/task';
 import { StarBorder } from '@mui/icons-material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import {
-  Button,
   Grid,
   List,
   ListItemButton,
@@ -14,16 +13,12 @@ import {
   InputBase,
   Paper,
   InputAdornment,
-  Menu,
-  MenuItem,
 } from '@mui/material';
 import { Task } from 'api/todo/interface';
 import { useTodoStore } from '../../store/todo';
-import _ from 'lodash';
 import TaskInfoDraw from 'components/TaskInfoDraw';
 import StarIcon from '@mui/icons-material/Star';
 import SearchIcon from '@mui/icons-material/Search';
-import SortIcon from '@mui/icons-material/Sort';
 import { useMemo } from 'react';
 import { getTaskTypeList } from 'api/todo/taskType';
 export default function IndexPage() {
@@ -175,7 +170,7 @@ export default function IndexPage() {
                       >
                         <IconButton
                           className="m-1"
-                          onClick={(e) => {
+                          onClick={() => {
                             if (task?.status === 'done') {
                               updateTaskRes({
                                 id: task.id,

@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 
 export default function Header() {
   const { data: session, status } = useSession();
-  const loading = status === 'loading';
+  // const loading = status === 'loading';
   const router = useRouter();
   useEffect(() => {
     if (status === 'unauthenticated') {
