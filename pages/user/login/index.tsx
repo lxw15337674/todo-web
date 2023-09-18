@@ -2,12 +2,10 @@
 import { Button, Form, Input } from 'antd';
 import { IUser } from 'api/interface';
 import { userLogin } from 'api/user';
-import { CtxOrReq } from 'next-auth/client/_utils';
-import { getCsrfToken, signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import React from 'react';
 
 const Login = () => {
-  const { data: session } = useSession();
 
   return (
     <div className="flex-center bg-[#f3f3f3] h-full">
@@ -47,14 +45,14 @@ const Login = () => {
             </Button>
           </Form.Item>
         </Form>
-        {/* <button
+        <button
           className="w-full bg-black text-white h-10 text-sm"
           onClick={() => {
             signIn('github', { callbackUrl: '/' });
           }}
         >
           Sign in with Github
-        </button> */}
+        </button>
       </div>
     </div>
   );

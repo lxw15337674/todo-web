@@ -1,8 +1,7 @@
-import NextAuth, { DefaultSession } from 'next-auth';
+import NextAuth from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { getUserInfo } from 'api/user';
-import { IUserInfo } from 'api/interface';
 
 export const handler = NextAuth({
   // Configure one or more authentication providers
