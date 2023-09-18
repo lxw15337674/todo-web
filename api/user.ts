@@ -3,7 +3,7 @@ import { service } from './index';
 import axios from 'axios';
 
 export function userLogin(user: IUser): Promise<string> {
-  return service.post('/api/user/login', user).then((token) => {
+  return service.post('/user/login', user).then((token) => {
     // 保存token到localStorage
     if (token) {
       localStorage.setItem('token', token);
@@ -15,7 +15,7 @@ export function userLogin(user: IUser): Promise<string> {
 export function getUserInfo(token: string): Promise<IUserInfo> {
   // 这个地方的token是从credentials中获取的
   return axios
-    .get(`${process.env.API_URL}/api/user/getInfo`, {
+    .get(`${process.env.API_URL}/user/getInfo`, {
       headers: {
         Authorization: 'Bearer ' + token,
       },
