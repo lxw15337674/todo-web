@@ -121,7 +121,7 @@ export default function IndexPage() {
             </div>
           </Paper>
           <div className="flex">
-            <div className="flex mb-4 ">
+            {/* <div className="flex mb-4 ">
               <Button
                 variant="outlined"
                 startIcon={<SortIcon fontSize="small" />}
@@ -132,7 +132,7 @@ export default function IndexPage() {
                   });
                 }}
               >
-                筛选
+                排序
               </Button>
               <Menu
                 anchorEl={state.anchorEl}
@@ -147,7 +147,7 @@ export default function IndexPage() {
                 <MenuItem>创建时间</MenuItem>
                 <MenuItem>更新时间</MenuItem>
               </Menu>
-            </div>
+            </div> */}
             <Paper className="ml-auto flex mb-4 flex-center " elevation={2}>
               <InputAdornment position="start" className="m-2">
                 <SearchIcon fontSize="small" />

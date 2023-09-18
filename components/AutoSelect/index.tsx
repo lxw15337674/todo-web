@@ -63,7 +63,7 @@ function AutoSelect<
         );
         return displayOptions;
       }}
-      renderOption={(props, option, state, ownState) => {
+      renderOption={(props, option, state) => {
         if (option.id === AddTodoType.id) {
           if (
             state.inputValue &&

@@ -8,6 +8,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  MenuItem,
+  Select,
   TextField,
 } from '@mui/material';
 import React, { useEffect, useMemo } from 'react';
@@ -60,7 +62,6 @@ const TaskInfoDraw = () => {
         .filter((item) => !!item) ?? []
     );
   }, [nextTodo?.type, taskTypes]);
-  console.log(types);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -141,16 +142,14 @@ const TaskInfoDraw = () => {
             />
           </ListItem>
 
-          {/* <ListItem disablePadding className=" bg-white mb-4">
-            <AutoSelect
+          <ListItem disablePadding className=" bg-white mb-4">
+            <Autocomplete
               fullWidth
               size="small"
               value={nextTodo?.priority ?? undefined}
-              options={PriorityTypes}
-              label="优先级"
-              onChange={(value) => {
+              onChange={(e, v) => {
                 setNextTodo({
-                  priority: value,
+                  priority: v ?? '',
                 });
               }}
               onBlur={() => {
@@ -158,8 +157,10 @@ const TaskInfoDraw = () => {
                   priority: nextTodo.priority,
                 });
               }}
+              options={PriorityTypes}
+              renderInput={(params) => <TextField {...params} label="优先级" />}
             />
-          </ListItem> */}
+          </ListItem>
 
           <ListItem disablePadding className=" bg-white mb-4">
             <TextField

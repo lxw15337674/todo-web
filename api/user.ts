@@ -22,7 +22,6 @@ export function getUserInfo(token: string): Promise<IUserInfo> {
       },
     })
     .then((res) => {
-      console.log(res.data.data);
       return res.data.data;
     });
 }
