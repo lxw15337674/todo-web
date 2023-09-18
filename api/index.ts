@@ -37,11 +37,10 @@ service.interceptors.response.use(
   },
 );
 
-const BaseUrl = 'http://localhost:6060/api';
 
 service.interceptors.request.use((config) => {
   const token = localStorage?.getItem('token');
   config.headers.Authorization = 'Bearer ' + token;
-  config.baseURL = BaseUrl;
+  config.baseURL = process.env.API_URL;
   return config;
 });
