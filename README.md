@@ -39,3 +39,7 @@
 [前端项目地址](https://github.com/lxw15337674/todo-web)
 
 [后端项目地址](https://github.com/lxw15337674/todo-backend)
+
+
+## 一些坑
+[vercel部署next-auth 404](https://github.com/nextauthjs/next-auth/issues/4986)

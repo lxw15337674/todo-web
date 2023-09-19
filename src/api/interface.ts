@@ -12,4 +12,3 @@ export interface IUserInfo {
   createTime: Date;
   updateTime: Date;
 }
-

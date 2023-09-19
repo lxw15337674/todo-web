@@ -1,4 +1,4 @@
-import { service } from 'api';
+import { service } from '..';
 import { TaskType } from './interface';
 import { useTodoStore } from 'store/todo';
 

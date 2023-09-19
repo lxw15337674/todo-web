@@ -37,7 +37,6 @@ service.interceptors.response.use(
   },
 );
 
-
 service.interceptors.request.use((config) => {
   const token = localStorage?.getItem('token');
   config.headers.Authorization = 'Bearer ' + token;

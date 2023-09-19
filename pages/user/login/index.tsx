@@ -1,6 +1,6 @@
 import { Button, Form, Input } from 'antd';
-import { IUser } from 'api/interface';
-import { getUserInfo, userLogin } from 'api/user';
+import { IUser } from 'src/api/interface';
+import { getUserInfo, userLogin } from 'src/api/user';
 import { signIn } from 'next-auth/react';
 import React from 'react';
 
@@ -12,7 +12,7 @@ const Login = () => {
           name="basic"
           layout="vertical"
           autoComplete="off"
-          action={'/api/auth/callback/credentials'}
+          action={'/src/api/auth/callback/credentials'}
           onFinish={(values) => {
             userLogin(values).then((token) => {
               getUserInfo(token ?? '').then((user) => {
