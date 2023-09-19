@@ -1,9 +1,10 @@
-'use-client';
 import { Button, Form, Input } from 'antd';
 import { IUser } from 'api/interface';
-import { userLogin } from 'api/user';
+import { getUserInfo, userLogin } from 'api/user';
 import { signIn } from 'next-auth/react';
 import React from 'react';
+import type { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { getCsrfToken } from "next-auth/react"
 
 const Login = () => {
   return (
@@ -13,9 +14,12 @@ const Login = () => {
           name="basic"
           layout="vertical"
           autoComplete="off"
+          action={'/api/auth/callback/credentials'}
           onFinish={(values) => {
             userLogin(values).then((token) => {
-              signIn('credentials', { callbackUrl: '/', token });
+              getUserInfo(token ?? '').then((user) => {
+                signIn('credentials', { ...user, callbackUrl: '/' });
+              })
             });
           }}
         >
@@ -56,4 +60,5 @@ const Login = () => {
     </div>
   );
 };
+
 export default Login;
