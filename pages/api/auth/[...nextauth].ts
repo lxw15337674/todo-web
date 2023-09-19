@@ -1,9 +1,9 @@
-import NextAuth from 'next-auth';
+import NextAuth, { NextAuthOptions } from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 // https://next-auth.js.org/configuration/initialization#simple-initialization
-export const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID || '',
@@ -46,7 +46,6 @@ export const handler = NextAuth({
       return { ...token, ...user };
     },
   },
-});
+};
 
-// export { handler as GET, handler as POST };
-export default handler;
+export default NextAuth(authOptions);
