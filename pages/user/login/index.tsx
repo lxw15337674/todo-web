@@ -3,8 +3,6 @@ import { IUser } from 'api/interface';
 import { getUserInfo, userLogin } from 'api/user';
 import { signIn } from 'next-auth/react';
 import React from 'react';
-import type { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { getCsrfToken } from "next-auth/react"
 
 const Login = () => {
   return (
@@ -19,7 +17,7 @@ const Login = () => {
             userLogin(values).then((token) => {
               getUserInfo(token ?? '').then((user) => {
                 signIn('credentials', { ...user, callbackUrl: '/' });
-              })
+              });
             });
           }}
         >
