@@ -6,6 +6,7 @@ export default function Header() {
   const { data: session, status } = useSession();
   // const loading = status === 'loading';
   const router = useRouter();
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/user/login');
@@ -47,6 +48,7 @@ export default function Header() {
                 href={`/api/auth/signout`}
                 onClick={(e) => {
                   e.preventDefault();
+                  localStorage.removeItem('token');
                   signOut({
                     callbackUrl: '/user/login',
                   });

@@ -43,8 +43,17 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     jwt: async ({ token, user }) => {
+      console.log('jwt');
       return { ...token, ...user };
     },
+    // signIn: async (info: any) => {
+    //   console.log('signIn');
+    //   await oauthUser({
+    //     email: info.email,
+    //     name: info.name,
+    //   });
+    //   return true;
+    // },
   },
 };
 
