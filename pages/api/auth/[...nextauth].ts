@@ -2,6 +2,7 @@ import NextAuth from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
+// https://next-auth.js.org/configuration/initialization#simple-initialization
 export const handler = NextAuth({
   providers: [
     GithubProvider({
@@ -47,4 +48,5 @@ export const handler = NextAuth({
   },
 });
 
-export { handler as GET, handler as POST };
+// export { handler as GET, handler as POST };
+export default handler;
