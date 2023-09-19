@@ -17,7 +17,7 @@ export function getUserInfo(token: string): Promise<IUserInfo> {
   return axios
     .get(`${process.env.API_URL}/user/getInfo`, {
       headers: {
-        Authorization: 'Bearer' + token,
+        Authorization: 'Bearer ' + token,
       },
     })
     .then((res) => {
