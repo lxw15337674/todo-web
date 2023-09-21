@@ -111,7 +111,7 @@ export default function IndexPage() {
                   createTaskRes(newTask);
                 }}
               >
-                发送
+                提交
               </LoadingButton>
             </div>
           </Paper>
