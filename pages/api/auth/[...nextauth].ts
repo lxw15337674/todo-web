@@ -1,6 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { oauthUser } from '@/api/user';
 
 // https://next-auth.js.org/configuration/initialization#simple-initialization
 export const authOptions: NextAuthOptions = {
@@ -9,7 +10,7 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GITHUB_ID || '',
       clientSecret: process.env.GITHUB_SECRET || '',
       httpOptions: {
-        timeout: 50000,
+        timeout: 40000,
       },
     }),
     CredentialsProvider({
@@ -42,18 +43,18 @@ export const authOptions: NextAuthOptions = {
     signIn: '/user/login',
   },
   callbacks: {
-    jwt: async ({ token, user }) => {
-      console.log('jwt');
+    jwt: async (info) => {
+      const { token, user } = info;
       return { ...token, ...user };
     },
-    // signIn: async (info: any) => {
-    //   console.log('signIn');
-    //   await oauthUser({
-    //     email: info.email,
-    //     name: info.name,
-    //   });
-    //   return true;
-    // },
+    async signIn({ account }) {
+      if (account?.type === 'credentials') {
+        return true;
+      }
+
+      await oauthUser(account?.access_token as string);
+      return true;
+    },
   },
 };
 

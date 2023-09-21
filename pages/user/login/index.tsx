@@ -1,5 +1,5 @@
 import { Button, Form, Input } from 'antd';
-import { IUser } from 'src/api/interface';
+import { IUser } from '@/api/user/interface';
 import { getUserInfo, userLogin } from 'src/api/user';
 import { signIn } from 'next-auth/react';
 import React from 'react';

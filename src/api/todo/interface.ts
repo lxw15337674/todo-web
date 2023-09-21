@@ -16,6 +16,6 @@ export interface Task {
 export interface TaskType {
   id: string;
   name: string;
-  userId: number;
+  userId: string;
   color: string;
 }
