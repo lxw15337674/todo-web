@@ -1,4 +1,4 @@
-import { addCount, resetCount } from '@/api/count/count';
+import { addCount, removeCount, resetCount } from '@/api/count/count';
 import { CountMeta } from '@/api/count/interface';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -21,7 +21,7 @@ import { useCountStore } from 'store/count';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import EditIcon from '@mui/icons-material/Edit';
 import BarChartIcon from '@mui/icons-material/BarChart';
-
+import DeleteIcon from '@mui/icons-material/Delete';
 interface Props {
   data: CountMeta;
 }
@@ -31,6 +31,7 @@ const CountCard = ({ data }: Props) => {
     resetCount(data.id),
   );
   const [open, setOpen] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const { setSelectCountId, setStore } = useCountStore((state) => ({
     setSelectCountId: state.setSelectCountId,
     setStore: state.setStore,
@@ -68,6 +69,40 @@ const CountCard = ({ data }: Props) => {
             }}
           >
             重置
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        maxWidth="xs"
+        TransitionProps={{
+          onEntering: () => {
+            setOpenDelete(true);
+          },
+        }}
+        open={openDelete}
+      >
+        <DialogTitle>确定删除</DialogTitle>
+        <DialogContent>
+          <Typography gutterBottom>删除后无法恢复</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            autoFocus
+            onClick={() => {
+              setOpenDelete(false);
+            }}
+          >
+            取消
+          </Button>
+          <Button
+            color="error"
+            onClick={() => {
+              removeCount(data.id).then(() => {
+                setOpenDelete(false);
+              });
+            }}
+          >
+            删除
           </Button>
         </DialogActions>
       </Dialog>
@@ -141,17 +176,6 @@ const CountCard = ({ data }: Props) => {
             }}
           >
             <ButtonGroup variant="text">
-              {data.counts.length > 0 && (
-                <IconButton
-                  className="border-0"
-                  onClick={() => {
-                    setOpen(true);
-                  }}
-                  color="warning"
-                >
-                  <RestartAltIcon />
-                </IconButton>
-              )}
               <IconButton
                 className="border-0"
                 color="info"
@@ -164,6 +188,15 @@ const CountCard = ({ data }: Props) => {
               >
                 <EditIcon />
               </IconButton>
+              <IconButton
+                className="border-0"
+                color="error"
+                onClick={() => {
+                  setOpenDelete(true);
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
               {data.counts.length > 0 && (
                 <IconButton
                   className="border-0"
@@ -173,6 +206,17 @@ const CountCard = ({ data }: Props) => {
                   color="success"
                 >
                   <BarChartIcon />
+                </IconButton>
+              )}
+              {data.counts.length > 0 && (
+                <IconButton
+                  className="border-0"
+                  onClick={() => {
+                    setOpen(true);
+                  }}
+                  color="warning"
+                >
+                  <RestartAltIcon />
                 </IconButton>
               )}
             </ButtonGroup>

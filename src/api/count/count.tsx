@@ -34,8 +34,11 @@ export function getCountByTitle(title: string): Promise<CountMeta[]> {
   });
 }
 
-export function removeCount(id: string): Promise<void> {
-  return service.post(`/count/remove/${id}`);
+export async function removeCount(id: string): Promise<void> {
+  await service.delete(`/count/remove`, {
+    data: { id },
+  });
+  getCountList();
 }
 
 export async function addCount(countId: string): Promise<void> {
