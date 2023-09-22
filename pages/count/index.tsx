@@ -1,5 +1,5 @@
 import Layout from 'src/components/layout';
-import { useDebounceFn, useMount, useObject, useTitle } from 'wwhooks';
+import { useDebounceFn, useMount, useObject } from 'wwhooks';
 import {
   Grid,
   List,
@@ -22,8 +22,6 @@ export default function IndexPage() {
     counts: state.counts,
     setStore: state.setStore,
   }));
-
-  useTitle('计数器');
 
   const [state, setState] = useObject({
     search: '',
@@ -76,7 +74,7 @@ export default function IndexPage() {
               <InputBase
                 fullWidth
                 className="mr-4 w-60"
-                placeholder="筛选(支持标题、简介、类型)"
+                placeholder="筛选"
                 onChange={(e) => {
                   onFilter(e.target.value);
                 }}

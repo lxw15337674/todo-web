@@ -11,7 +11,7 @@ const APPS = [
     url: '/todo',
   },
   {
-    name: '计数',
+    name: '计数器',
     url: '/count',
   },
 ];
@@ -24,9 +24,15 @@ export default function Header() {
     }
   }, [session]);
   const router = useRouter();
+
+  const currentApp = APPS.find((app) => app.url === router.pathname);
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/user/login');
+    }
+    if (currentApp?.name && document.title) {
+      document.title = currentApp?.name;
     }
   }, [router, status]);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -36,7 +42,6 @@ export default function Header() {
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const currentApp = APPS.find((app) => app.url === router.pathname);
   return (
     <header>
       <div
