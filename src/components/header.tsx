@@ -18,13 +18,7 @@ const APPS = [
 
 export default function Header() {
   const { data: session, status } = useSession();
-  useEffect(() => {
-    if (session?.accessToken) {
-      localStorage.setItem('token', session?.accessToken);
-    }
-  }, [session]);
   const router = useRouter();
-
   const currentApp = APPS.find((app) => app.url === router.pathname);
 
   useEffect(() => {
