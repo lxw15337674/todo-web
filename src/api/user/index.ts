@@ -32,11 +32,7 @@ export function oauthUser(access_token: string): Promise<string> {
         access_token,
       },
     })
-    .then((token) => {
-      // 保存token到localStorage
-      if (token) {
-        localStorage.setItem('token', token);
-      }
-      return token;
+    .then((res) => {
+      return res.data.data;
     });
 }

@@ -21,7 +21,14 @@ function AutoSelect<
     name: string;
   },
 >(props: Props<T>) {
-  const { value, options, label, onChange, onAddOption, ...otherProps } = props;
+  const {
+    value,
+    options = [],
+    label,
+    onChange,
+    onAddOption,
+    ...otherProps
+  } = props;
   const newOption = useRef('');
   const mergedOptions = [...options, AddTodoType].filter(
     (value, index, self) => {

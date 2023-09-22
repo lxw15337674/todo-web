@@ -10,5 +10,9 @@ declare module 'next-auth' {
       image: string;
     };
     expires: string;
+    accessToken: string;
+  }
+  interface User extends DefaultUser {
+    accessToken?: string;
   }
 }

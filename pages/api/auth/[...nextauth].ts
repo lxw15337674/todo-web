@@ -19,6 +19,7 @@ export const authOptions: NextAuthOptions = {
         name: { label: 'name', type: 'text' },
         account: { label: 'Account', type: 'text' },
         id: { label: 'id', type: 'text' },
+        accessToken: { label: 'accessToken', type: 'text' },
       },
       async authorize(credentials) {
         if (credentials?.name) {
@@ -42,17 +43,25 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/user/login',
   },
+  // debug: true,
   callbacks: {
     jwt: async (info) => {
       const { token, user } = info;
       return { ...token, ...user };
     },
-    async signIn({ account }) {
-      if (account?.type === 'credentials') {
+    async session({ session, token }) {
+      // console.log('session ', session, token, user);
+      session.user.id = token.id as string;
+      session.accessToken = token.accessToken as string;
+      return session;
+    },
+    async signIn(user) {
+      if (user.account?.type === 'credentials') {
         return true;
       }
-
-      await oauthUser(account?.access_token as string);
+      user.user.accessToken = await oauthUser(
+        user.account?.access_token as string,
+      );
       return true;
     },
   },
