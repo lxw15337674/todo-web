@@ -97,9 +97,8 @@ const CountCard = ({ data }: Props) => {
           <Button
             color="error"
             onClick={() => {
-              removeCount(data.id).then(() => {
-                setOpenDelete(false);
-              });
+              removeCount(data.id);
+              setOpenDelete(false);
             }}
           >
             删除
