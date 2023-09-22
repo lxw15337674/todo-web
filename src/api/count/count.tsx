@@ -18,6 +18,7 @@ export function getCountList(): Promise<CountMeta[]> {
 export function createCount(count: CreateCountMeta): Promise<CountMeta> {
   return service.post('/count/createType', count).then((res) => {
     getCountList();
+    useNotificationStore.getState().notification(`新建${count.name}类型成功`);
     return res;
   });
 }
@@ -25,6 +26,7 @@ export function createCount(count: CreateCountMeta): Promise<CountMeta> {
 export function updateCount(count: UpdateCountMeta): Promise<void> {
   return service.patch('/count/update', count).then(() => {
     getCountList();
+    useNotificationStore.getState().notification(`编辑${count.name}类型成功`);
   });
 }
 
@@ -38,6 +40,7 @@ export async function removeCount(id: string): Promise<void> {
   await service.delete(`/count/remove`, {
     data: { id },
   });
+  useNotificationStore.getState().notification(`删除成功`);
   getCountList();
 }
 
@@ -51,5 +54,6 @@ export async function addCount(countId: string): Promise<void> {
 
 export async function resetCount(countId: string): Promise<void> {
   await service.post(`/count/resetCount`, { countId });
+  useNotificationStore.getState().notification(`重置成功`);
   await getCountList();
 }
