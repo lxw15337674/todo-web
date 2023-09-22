@@ -10,6 +10,7 @@ import { Autocomplete, Stack } from '@mui/material';
 import { createCount, updateCount } from '@/api/count/count';
 import { useCountStore } from 'store/count';
 import { UpdateCountMeta } from '@/api/count/interface';
+import { LoadingButton } from '@mui/lab';
 
 export const CountTypes = [
   {
@@ -46,6 +47,8 @@ export default function CountForm() {
     remark: '',
   });
 
+  const [error, setError] = useBoolean(false);
+  const [loading, setLoading] = useBoolean(false);
   useUpdateEffect(() => {
     if (editCount) {
       setForm({
@@ -62,9 +65,9 @@ export default function CountForm() {
         id: undefined,
       });
     }
+    setLoading(false);
+    setError(false);
   }, [editFormVisible]);
-
-  const [error, setError] = useBoolean(false);
 
   const handleClose = () => {
     setStore({
@@ -77,6 +80,7 @@ export default function CountForm() {
       setError(true);
       return;
     }
+    setLoading(true);
     if (form?.id) {
       await updateCount(form as UpdateCountMeta);
     } else {
@@ -155,13 +159,14 @@ export default function CountForm() {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>取消</Button>
-        <Button
+        <LoadingButton
+          loading={loading}
           onClick={() => {
             submit();
           }}
         >
           提交
-        </Button>
+        </LoadingButton>
       </DialogActions>
     </Dialog>
   );
