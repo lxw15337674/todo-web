@@ -11,6 +11,8 @@ export default function IndexPage() {
   useEffect(() => {
     if (session?.accessToken && status === 'authenticated') {
       localStorage.setItem('token', session?.accessToken);
+    }
+    if (localStorage.getItem('token')) {
       router.push('/count');
     }
   }, [session]);
