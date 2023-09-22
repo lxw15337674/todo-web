@@ -6,7 +6,7 @@ export default function IndexPage() {
   //  自动重定向到todo
   const router = useRouter();
   useEffect(() => {
-    router.push('/todo');
+    router.push('/count');
   }, [router]);
   return <Layout>首頁</Layout>;
 }

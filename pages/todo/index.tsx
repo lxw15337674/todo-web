@@ -1,5 +1,11 @@
 import Layout from 'src/components/layout';
-import { useDebounceFn, useMount, useObject, usePromise } from 'wwhooks';
+import {
+  useDebounceFn,
+  useMount,
+  useObject,
+  usePromise,
+  useTitle,
+} from 'wwhooks';
 import { createTask, getTaskList, updateTask } from 'src/api/todo/task';
 import { StarBorder } from '@mui/icons-material';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -16,12 +22,13 @@ import {
 } from '@mui/material';
 import { Task } from 'src/api/todo/interface';
 import { useTodoStore } from '../../store/todo';
-import TaskInfoDraw from 'src/components/TaskInfoDraw';
+import TaskInfoDraw from '@/components/Todo/TaskInfoDraw';
 import StarIcon from '@mui/icons-material/Star';
 import SearchIcon from '@mui/icons-material/Search';
 import { useMemo } from 'react';
 import { getTaskTypeList } from 'src/api/todo/taskType';
 export default function IndexPage() {
+  useTitle('待办事项');
   const { tasks, selectedTaskId, setSelectTaskId } = useTodoStore((state) => ({
     tasks: state.tasks,
     selectedTaskId: state.selectedTaskId,

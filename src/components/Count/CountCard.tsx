@@ -1,6 +1,5 @@
 import { addCount, resetCount } from '@/api/count/count';
 import { CountMeta } from '@/api/count/interface';
-import { StarBorder } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Button,
@@ -11,15 +10,12 @@ import {
   DialogTitle,
   Divider,
   IconButton,
-  ListItemButton,
   Paper,
-  Rating,
   Typography,
 } from '@mui/material';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
 import { usePromise } from 'wwhooks';
-import StarIcon from '@mui/icons-material/Star';
 import { CountTypes } from './CountFormDialog';
 import { useCountStore } from 'store/count';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
@@ -75,66 +71,68 @@ const CountCard = ({ data }: Props) => {
           </Button>
         </DialogActions>
       </Dialog>
-      <ListItemButton
-        className="overflow-hidden w-full p-0 h-full"
-        onClick={() => {
-          run();
-        }}
-      >
+      <div className="overflow-hidden p-0 h-full">
         <div className="w-full h-full flex flex-col">
-          <div className="px-2 py-2 flex">
-            <div title={data.name} className="truncate text-black  flex-1">
-              {data.name}
+          <Button
+            className=" px-2 py-2 block"
+            onClick={() => {
+              run();
+            }}
+          >
+            <div className="flex w-[45vw] text-left">
+              <span title={data.name} className="truncate text-black flex-1">
+                {data.name}
+              </span>
+              <LoadingButton
+                loading={isLoading || resetLoading}
+                className="w-[20px] "
+              />
             </div>
-            <LoadingButton
-              loading={isLoading || resetLoading}
-              className="w-[30px]"
-            />
-          </div>
-          <Divider />
-          <div className="px-2 py-2 text-[#00000073] flex-1">
-            <Typography variant="subtitle1" className="truncate text-black ">
-              累计{data.counts.length}次
-            </Typography>
-            <Typography
-              variant="subtitle1"
-              title={CountTypes.find((v) => v.key === data.type)?.name}
-              className="truncate text-black "
-            >
-              {CountTypes.find((v) => v.key === data.type)?.name}
-            </Typography>
-            <Typography
-              variant="body2"
-              title={dayjs(data.updateTime).format('YYYY-MM-DD HH:mm:ss')}
-              className="truncate "
-            >
-              {dayjs(data.updateTime).format('YYYY-MM-DD HH:mm:ss')}
-            </Typography>
+            <Divider />
+            <div className=" py-2 text-[#00000073] block text-left">
+              <Typography variant="subtitle1" className="truncate text-black ">
+                累计{data.counts.length}次
+              </Typography>
+              <Typography
+                variant="subtitle1"
+                title={CountTypes.find((v) => v.key === data.type)?.name}
+                className="truncate text-black "
+              >
+                {CountTypes.find((v) => v.key === data.type)?.name}
+              </Typography>
+              <Typography
+                variant="body2"
+                title={dayjs(data.updateTime).format('YYYY-MM-DD HH:mm:ss')}
+                className="truncate "
+              >
+                {dayjs(data.updateTime).format('YYYY-MM-DD HH:mm:ss')}
+              </Typography>
 
-            <Typography title={data.remark} variant="body2">
-              {data?.remark === '' ? '无备注' : data.remark}
-            </Typography>
-            <Rating
-              className="mt-2"
-              readOnly
-              icon={
-                <StarIcon
-                  sx={{
-                    color: '#2564cf',
-                  }}
-                />
-              }
-              emptyIcon={
-                <StarBorder
-                  sx={{
-                    color: '#2564cf',
-                  }}
-                />
-              }
-              defaultValue={2}
-              max={5}
-            />
-          </div>
+              <Typography title={data.remark} variant="body2">
+                {data?.remark === '' ? '无备注' : data.remark}
+              </Typography>
+              {/* <Rating
+                className="mt-2"
+                readOnly
+                icon={
+                  <StarIcon
+                    sx={{
+                      color: '#2564cf',
+                    }}
+                  />
+                }
+                emptyIcon={
+                  <StarBorder
+                    sx={{
+                      color: '#2564cf',
+                    }}
+                  />
+                }
+                defaultValue={2}
+                max={5}
+              /> */}
+            </div>
+          </Button>
           <Divider />
           <div
             onClick={(e) => {
@@ -180,7 +178,7 @@ const CountCard = ({ data }: Props) => {
             </ButtonGroup>
           </div>
         </div>
-      </ListItemButton>
+      </div>
     </Paper>
   );
 };

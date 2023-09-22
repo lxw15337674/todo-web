@@ -19,7 +19,6 @@ export const authOptions: NextAuthOptions = {
         name: { label: 'name', type: 'text' },
         account: { label: 'Account', type: 'text' },
         id: { label: 'id', type: 'text' },
-        accessToken: { label: 'accessToken', type: 'text' },
       },
       async authorize(credentials) {
         if (credentials?.name) {

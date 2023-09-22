@@ -1,6 +1,12 @@
 import { useCountStore } from 'store/count';
 import { service } from '..';
-import { CountMeta, CreateCountMeta, UpdateCountMeta } from './interface';
+import {
+  CountItem,
+  CountMeta,
+  CreateCountMeta,
+  UpdateCountMeta,
+} from './interface';
+import { useNotificationStore } from 'store/notification';
 
 export function getCountList(): Promise<CountMeta[]> {
   return service.get('/count/findAll').then((counts) => {
@@ -33,8 +39,11 @@ export function removeCount(id: string): Promise<void> {
 }
 
 export async function addCount(countId: string): Promise<void> {
-  await service.post(`/count/addCount`, { countId });
+  const count = await service.post<CountItem>(`/count/addCount`, { countId });
   await getCountList();
+  useNotificationStore
+    .getState()
+    .notification(`${count.countMeta.name}计数成功`);
 }
 
 export async function resetCount(countId: string): Promise<void> {

@@ -4,10 +4,17 @@ import {
   ListItem,
   ListItemText,
   SwipeableDrawer,
+  Typography,
 } from '@mui/material';
-import React, { Fragment } from 'react';
-import { formatDate } from '../../utils/date';
+import React, { Fragment, useEffect } from 'react';
 import { useCountStore } from '../../../store/count';
+import Calendar from './Calendar';
+import { useObject } from 'wwhooks';
+import dayjs from 'dayjs';
+
+interface State {
+  selectedDate: dayjs.Dayjs;
+}
 
 const CountInfoDrawer = () => {
   const { setSelectCountId, selectedCountId, selectedCount } = useCountStore(
@@ -17,6 +24,19 @@ const CountInfoDrawer = () => {
       selectedCount: state.selectedCount,
     }),
   );
+  const [state, setState] = useObject<State>({
+    // 默认为今天
+    selectedDate: dayjs(),
+  });
+
+  const filteredCounts =
+    selectedCount?.counts.filter((count) => {
+      return dayjs(count.createTime).isSame(state.selectedDate, 'day');
+    }) ?? [];
+
+  useEffect(() => {
+    setState({ selectedDate: dayjs() });
+  }, [setSelectCountId]);
 
   return (
     <SwipeableDrawer
@@ -27,21 +47,61 @@ const CountInfoDrawer = () => {
       }}
       onOpen={() => {}}
     >
-      <List sx={{ bgcolor: 'background.paper' }}>
-        {selectedCount?.counts.map((count, index) => {
-          return (
-            <Fragment key={count.id}>
-              <ListItem>
-                <ListItemText
-                  primary={formatDate(count.createTime)}
-                  secondary={`第${index + 1}次`}
-                />
-              </ListItem>
-              <Divider />
-            </Fragment>
-          );
-        })}
-      </List>
+      <>
+        <List className="flex flex-col h-full">
+          <ListItem>
+            <ListItemText
+              primary={
+                <Typography variant="h6" color={'primary'} className="strong">
+                  {selectedCount?.name}
+                </Typography>
+              }
+            />
+          </ListItem>
+          <Divider />
+          <ListItem>
+            <Calendar
+              value={state.selectedDate}
+              onChange={(date) => {
+                setState({ selectedDate: date ?? undefined });
+              }}
+              selectedDate={
+                selectedCount?.counts.map((count) => count.createTime) ?? []
+              }
+            />
+          </ListItem>
+          <Divider />
+          <ListItem>
+            <ListItemText
+              color="primary"
+              primary={`${state.selectedDate.format('YYYY-MM-DD')} 统计`}
+            />
+          </ListItem>
+          <div className="overflow-auto flex-1">
+            {filteredCounts?.map((count, index) => {
+              return (
+                <Fragment key={count.id}>
+                  <ListItem>
+                    <ListItemText
+                      primary={
+                        <div className="flex justify-between">
+                          <div>
+                            {dayjs(count.createTime).format('HH:mm:ss')}
+                          </div>
+                          <span className="text-[#00000073]">
+                            第{filteredCounts.length - index}次
+                          </span>
+                        </div>
+                      }
+                    />
+                  </ListItem>
+                  <Divider />
+                </Fragment>
+              );
+            })}
+          </div>
+        </List>
+      </>
     </SwipeableDrawer>
   );
 };

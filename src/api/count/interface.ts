@@ -21,5 +21,5 @@ export interface CountItem {
   remark: string;
   createTime: Date;
   updateTime: Date;
-  countId: CountMeta;
+  countMeta: CountMeta;
 }
