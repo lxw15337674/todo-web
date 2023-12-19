@@ -6,11 +6,12 @@ import {
   SwipeableDrawer,
   Typography,
 } from '@mui/material';
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useMemo } from 'react';
 import { useCountStore } from '../../../store/count';
 import Calendar from './Calendar';
-import { useObject } from 'wwhooks';
+import { useObject, usePromise } from 'wwhooks';
 import dayjs from 'dayjs';
+import { getTypeCounts } from '@/api/count/count';
 
 interface State {
   selectedDate: dayjs.Dayjs;
@@ -24,19 +25,40 @@ const CountInfoDrawer = () => {
       selectedCount: state.selectedCount,
     }),
   );
+  const { data: counts, run } = usePromise(
+    () => getTypeCounts(selectedCountId!),
+    {
+      initialData: [],
+    },
+  );
+
   const [state, setState] = useObject<State>({
     // 默认为今天
     selectedDate: dayjs(),
   });
 
-  const filteredCounts =
-    selectedCount?.counts.filter((count) => {
-      return dayjs(count.createTime).isSame(state.selectedDate, 'day');
-    }) ?? [];
+  const filteredCounts = useMemo(() => {
+    return (
+      counts.filter((count) => {
+        console.log(
+          count.createTime,
+          state.selectedDate,
+          dayjs(count.createTime).isSame(state.selectedDate, 'day'),
+        );
+        return dayjs(count.createTime).isSame(state.selectedDate, 'day');
+      }) ?? []
+    );
+  }, [counts, state.selectedDate]);
 
   useEffect(() => {
     setState({ selectedDate: dayjs() });
   }, [setSelectCountId]);
+
+  useEffect(() => {
+    if (selectedCountId) {
+      run();
+    }
+  }, [selectedCountId]);
 
   return (
     <SwipeableDrawer
@@ -65,9 +87,7 @@ const CountInfoDrawer = () => {
               onChange={(date) => {
                 setState({ selectedDate: date ?? undefined });
               }}
-              selectedDate={
-                selectedCount?.counts.map((count) => count.createTime) ?? []
-              }
+              selectedDate={counts.map((count) => count.createTime) ?? []}
             />
           </ListItem>
           <Divider />

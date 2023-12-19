@@ -11,7 +11,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import { useMemo } from 'react';
 import { useCountStore } from 'store/count';
-import { getCountList } from '@/api/count/count';
+import { findAllWithCounter } from '@/api/count/count';
 import AddIcon from '@mui/icons-material/Add';
 import CountForm from '@/components/Count/CountFormDialog';
 import CountCard from '@/components/Count/CountCard';
@@ -29,7 +29,7 @@ export default function IndexPage() {
     newCountType: '',
   });
   useMount(() => {
-    getCountList();
+    findAllWithCounter();
   });
   const [onFilter] = useDebounceFn((v) => {
     setState({

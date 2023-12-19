@@ -1,4 +1,4 @@
-export interface CountMeta {
+export interface Counter {
   id: string;
   name: string;
   type: string;
@@ -6,15 +6,19 @@ export interface CountMeta {
   createTime: Date;
   updateTime: Date;
   userId: string;
+}
+
+export interface CountMeta extends Counter {
+  count: number;
+}
+
+export interface CountDetail extends Counter {
   counts: CountItem[];
 }
 
-export type CreateCountMeta = Pick<CountMeta, 'type' | 'remark' | 'name'>;
+export type CreateCountMeta = Pick<Counter, 'type' | 'remark' | 'name'>;
 
-export type UpdateCountMeta = Pick<
-  CountMeta,
-  'type' | 'remark' | 'name' | 'id'
->;
+export type UpdateCountMeta = Pick<Counter, 'type' | 'remark' | 'name' | 'id'>;
 
 export interface CountItem {
   id: string;

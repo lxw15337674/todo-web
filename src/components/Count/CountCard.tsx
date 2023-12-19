@@ -36,7 +36,7 @@ const CountCard = ({ data }: Props) => {
     setSelectCountId: state.setSelectCountId,
     setStore: state.setStore,
   }));
-
+  console.log(data);
   return (
     <Paper className="border mr-2 h-full " elevation={1}>
       <Dialog
@@ -125,7 +125,7 @@ const CountCard = ({ data }: Props) => {
             <Divider />
             <div className=" py-2 text-[#00000073] block text-left">
               <Typography variant="subtitle1" className="truncate text-black ">
-                累计{data.counts.length}次
+                累计{data.count}次
               </Typography>
               <Typography
                 variant="subtitle1"
@@ -145,26 +145,6 @@ const CountCard = ({ data }: Props) => {
               <Typography title={data.remark} variant="body2">
                 {data?.remark === '' ? '无备注' : data.remark}
               </Typography>
-              {/* <Rating
-                className="mt-2"
-                readOnly
-                icon={
-                  <StarIcon
-                    sx={{
-                      color: '#2564cf',
-                    }}
-                  />
-                }
-                emptyIcon={
-                  <StarBorder
-                    sx={{
-                      color: '#2564cf',
-                    }}
-                  />
-                }
-                defaultValue={2}
-                max={5}
-              /> */}
             </div>
           </Button>
           <Divider />
@@ -196,7 +176,7 @@ const CountCard = ({ data }: Props) => {
               >
                 <DeleteIcon />
               </IconButton>
-              {data.counts.length > 0 && (
+              {data.count > 0 && (
                 <IconButton
                   className="border-0"
                   onClick={() => {
@@ -207,7 +187,7 @@ const CountCard = ({ data }: Props) => {
                   <BarChartIcon />
                 </IconButton>
               )}
-              {data.counts.length > 0 && (
+              {data.count > 0 && (
                 <IconButton
                   className="border-0"
                   onClick={() => {
