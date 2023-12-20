@@ -1,5 +1,5 @@
 import Layout from 'src/components/layout';
-import { useDebounceFn, useMount, useObject } from 'wwhooks';
+import { useDebounceFn, useMount, useObject, useTitle } from 'wwhooks';
 import {
   Grid,
   List,
@@ -22,7 +22,7 @@ export default function IndexPage() {
     counts: state.counts,
     setStore: state.setStore,
   }));
-
+  useTitle('计数器');
   const [state, setState] = useObject({
     search: '',
     anchorEl: null as (EventTarget & HTMLButtonElement) | null,

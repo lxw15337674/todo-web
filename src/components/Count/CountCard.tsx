@@ -36,7 +36,6 @@ const CountCard = ({ data }: Props) => {
     setSelectCountId: state.setSelectCountId,
     setStore: state.setStore,
   }));
-  console.log(data);
   return (
     <Paper className="border mr-2 h-full " elevation={1}>
       <Dialog

@@ -40,11 +40,6 @@ const CountInfoDrawer = () => {
   const filteredCounts = useMemo(() => {
     return (
       counts.filter((count) => {
-        console.log(
-          count.createTime,
-          state.selectedDate,
-          dayjs(count.createTime).isSame(state.selectedDate, 'day'),
-        );
         return dayjs(count.createTime).isSame(state.selectedDate, 'day');
       }) ?? []
     );
