@@ -7,11 +7,11 @@ import {
   Typography,
 } from '@mui/material';
 import React, { Fragment, useEffect, useMemo } from 'react';
-import { useCountStore } from '../../../store/count';
+import { useCountStore } from '../../../store/counter';
 import Calendar from './Calendar';
 import { useObject, usePromise } from 'wwhooks';
 import dayjs from 'dayjs';
-import { getTypeCounts } from '@/api/count/count';
+import { getTypeCounts } from '@/api/counter';
 
 interface State {
   selectedDate: dayjs.Dayjs;

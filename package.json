@@ -3,11 +3,10 @@
   "description": "A TypeScript starter for Next.js that includes all you need to build amazing projects",
   "version": "1.0.0",
   "private": true,
-  "author": "João Pedro Schmitz <hey@joaopedro.dev> (@jpedroschmitz)",
+  "author": "",
   "license": "MIT",
   "keywords": [
     "nextjs",
-    "starter",
     "typescript"
   ],
   "scripts": {

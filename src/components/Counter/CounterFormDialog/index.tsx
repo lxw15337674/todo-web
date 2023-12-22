@@ -7,9 +7,9 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useBoolean, useObject, useUpdateEffect } from 'wwhooks';
 import { Autocomplete, Stack } from '@mui/material';
-import { createCount, updateCount } from '@/api/count/count';
-import { useCountStore } from 'store/count';
-import { UpdateCountMeta } from '@/api/count/interface';
+import { createCount, updateCount } from '@/api/counter';
+import { useCountStore } from 'store/counter';
+import { UpdateCountMeta } from '@/api/counter/interface';
 import { LoadingButton } from '@mui/lab';
 
 export const CountTypes = [

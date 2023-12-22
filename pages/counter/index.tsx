@@ -1,5 +1,5 @@
 import Layout from 'src/components/layout';
-import { useDebounceFn, useMount, useObject, useTitle } from 'wwhooks';
+import { useDebounceFn, useMount, useObject } from 'wwhooks';
 import {
   Grid,
   List,
@@ -10,19 +10,18 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { useMemo } from 'react';
-import { useCountStore } from 'store/count';
-import { findAllWithCounter } from '@/api/count/count';
+import { useCountStore } from 'store/counter';
+import { findAllWithCounter } from '@/api/counter';
 import AddIcon from '@mui/icons-material/Add';
-import CountForm from '@/components/Count/CountFormDialog';
-import CountCard from '@/components/Count/CountCard';
-import CountInfoDrawer from '@/components/Count/CountInfoDrawer';
+import CountForm from '@/components/Counter/CounterFormDialog';
+import CountCard from '@/components/Counter/CounterCard';
+import CountInfoDrawer from '@/components/Counter/CounterInfoDrawer';
 
 export default function IndexPage() {
   const { counts, setStore } = useCountStore((state) => ({
     counts: state.counts,
     setStore: state.setStore,
   }));
-  useTitle('计数器');
   const [state, setState] = useObject({
     search: '',
     anchorEl: null as (EventTarget & HTMLButtonElement) | null,

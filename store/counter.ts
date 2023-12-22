@@ -1,4 +1,4 @@
-import { CountMeta } from 'src/api/count/interface';
+import { CountMeta } from '@/api/counter/interface';
 import { create } from 'zustand';
 import computed from 'zustand-middleware-computed';
 

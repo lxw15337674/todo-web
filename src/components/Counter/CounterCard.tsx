@@ -1,5 +1,5 @@
-import { addCount, removeCount, resetCount } from '@/api/count/count';
-import { CountMeta } from '@/api/count/interface';
+import { addCount, removeCount, resetCount } from '@/api/counter';
+import { CountMeta } from '@/api/counter/interface';
 import { LoadingButton } from '@mui/lab';
 import {
   Button,
@@ -16,8 +16,8 @@ import {
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
 import { usePromise } from 'wwhooks';
-import { CountTypes } from './CountFormDialog';
-import { useCountStore } from 'store/count';
+import { CountTypes } from './CounterFormDialog';
+import { useCountStore } from 'store/counter';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import EditIcon from '@mui/icons-material/Edit';
 import BarChartIcon from '@mui/icons-material/BarChart';

@@ -13,7 +13,7 @@ export default function IndexPage() {
       localStorage.setItem('token', session?.accessToken);
     }
     if (localStorage.getItem('token')) {
-      router.push('/count');
+      router.push('/counter');
     }
   }, [session]);
   return (

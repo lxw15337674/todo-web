@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { IconButton, Menu, MenuItem } from '@mui/material';
 import React from 'react';
 import AppsIcon from '@mui/icons-material/Apps';
+import Head from 'next/head';
 
 const APPS = [
   {
@@ -12,7 +13,7 @@ const APPS = [
   },
   {
     name: '计数器',
-    url: '/count',
+    url: '/counter',
   },
 ];
 
@@ -38,6 +39,10 @@ export default function Header() {
   };
   return (
     <header>
+      <Head>
+        <title>{currentApp?.name}</title>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
       <div
         className={
           'h-[48px] leading-[48px] bg-primary text-white flex px-[14px]  '

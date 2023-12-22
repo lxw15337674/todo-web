@@ -1,4 +1,4 @@
-import { useCountStore } from 'store/count';
+import { useCountStore } from 'store/counter';
 import { service } from '..';
 import {
   CountDetail,
