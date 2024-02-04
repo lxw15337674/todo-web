@@ -15,6 +15,10 @@ const APPS = [
     name: '计数器',
     url: '/counter',
   },
+  {
+    name: '聊天室',
+    url: '/chat',
+  },
 ];
 
 export default function Header() {
