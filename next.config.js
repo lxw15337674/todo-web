@@ -11,9 +11,14 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
-  // server: {
-  //   host: '0.0.0.0',
-  // },
+  rewrites: async () => {
+    return [
+      {
+        source: '/moyu',
+        destination: `https://moyu.awsl.icu/api/moyu_json`,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

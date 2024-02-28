@@ -19,6 +19,10 @@ const APPS = [
     name: '聊天室',
     url: '/chat',
   },
+  {
+    name: '摸鱼办',
+    url: '/fishingTime',
+  },
 ];
 
 export default function Header() {
