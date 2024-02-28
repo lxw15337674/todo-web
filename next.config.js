@@ -17,6 +17,10 @@ const nextConfig = {
         source: '/moyu',
         destination: `https://moyu.awsl.icu/api/moyu_json`,
       },
+      {
+        source: '/moyu/img',
+        destination: 'https://api.vvhan.com/api/moyu',
+      },
     ];
   },
 };

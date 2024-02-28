@@ -11,7 +11,9 @@ const Chat = () => {
   });
   return (
     <Layout>
-      <Markdown>{data?.data}</Markdown>
+      <div style={{ margin: '10px' }}>
+        <Markdown>{data?.data}</Markdown>
+      </div>
     </Layout>
   );
 };
