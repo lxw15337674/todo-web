@@ -1,18 +1,18 @@
 import Layout from '@/components/layout';
-import axios from 'axios';
 import React from 'react';
 import { usePromise } from 'wwhooks';
-import Markdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
+import { getFishingTime } from '@/api/fishingTime';
 
 const Chat = () => {
-  const { data } = usePromise(() => axios.get(`/moyu`), {
+  const { data } = usePromise(getFishingTime, {
     manual: false,
     initialData: '',
   });
   return (
     <Layout>
       <div style={{ margin: '10px' }}>
-        <Markdown>{data?.data}</Markdown>
+        <ReactMarkdown>{data}</ReactMarkdown>
       </div>
     </Layout>
   );
