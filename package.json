@@ -47,8 +47,6 @@
     "zustand-middleware-computed": "1.2.1"
   },
   "devDependencies": {
-    "@commitlint/cli": "17.7.1",
-    "@commitlint/config-conventional": "17.7.0",
     "@types/lodash": "4.14.198",
     "@types/node": "18.17.11",
     "@types/react": "18.2.21",
@@ -56,7 +54,6 @@
     "@typescript-eslint/eslint-plugin": "6.4.1",
     "@typescript-eslint/parser": "6.4.1",
     "autoprefixer": "10.4.15",
-    "cz-conventional-changelog": "3.3.0",
     "eslint": "8.48.0",
     "eslint-config-next": "13.4.19",
     "eslint-config-prettier": "9.0.0",
@@ -69,10 +66,5 @@
     "prettier": "3.0.2",
     "tailwindcss": "3.3.3",
     "typescript": "5.2.2"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
   }
 }

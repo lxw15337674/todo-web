@@ -11,8 +11,10 @@ const Chat = () => {
   });
   return (
     <Layout>
-      <div style={{ margin: '10px' }}>
-        <ReactMarkdown>{data}</ReactMarkdown>
+      <div style={{ margin: '20px' }}>
+        <ReactMarkdown className="[&_*]:whitespace-pre-wrap break-words">
+          {data}
+        </ReactMarkdown>
       </div>
     </Layout>
   );
