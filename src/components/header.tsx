@@ -8,6 +8,10 @@ import Head from 'next/head';
 
 const APPS = [
   {
+    name: '摸鱼办',
+    url: '/fishingTime',
+  },
+  {
     name: '待办事项',
     url: '/todo',
   },
@@ -18,10 +22,6 @@ const APPS = [
   {
     name: '聊天室',
     url: '/chat',
-  },
-  {
-    name: '摸鱼办',
-    url: '/fishingTime',
   },
 ];
 

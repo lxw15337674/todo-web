@@ -1,6 +1,6 @@
 import Layout from '@/components/layout';
 import { Button, Input } from '@mui/material';
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Socket, io } from 'socket.io-client';
 import { useArray } from 'wwhooks';
 
@@ -13,7 +13,7 @@ const Chat = () => {
     ws.current?.emit('findAllChatSocket', text);
   };
   //启动
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (ws.current) {
       return;
     }

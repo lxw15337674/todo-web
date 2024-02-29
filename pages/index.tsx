@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Box, CircularProgress } from '@mui/material';
 
 export default function IndexPage() {
-  //  自动重定向到todo
+  //  自动重定向到fishingTime
   const router = useRouter();
   const { data: session, status } = useSession();
   useEffect(() => {
@@ -13,7 +13,7 @@ export default function IndexPage() {
       localStorage.setItem('token', session?.accessToken);
     }
     if (localStorage.getItem('token')) {
-      router.push('/counter');
+      router.push('/fishingTime');
     }
   }, [session]);
   return (
