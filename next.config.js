@@ -11,18 +11,14 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
-  // rewrites: async () => {
-  //   return [
-  //     {
-  //       source: '/moyu',
-  //       destination: `https://moyu.awsl.icu/api/moyu_json`,
-  //     },
-  //     {
-  //       source: '/moyu/img',
-  //       destination: 'https://api.vvhan.com/api/moyu',
-  //     },
-  //   ];
-  // },
+  rewrites: async () => {
+    return [
+      {
+        source: '/todayInHistory',
+        destination: `https://www.ipip5.com/today/api.php?type=json`,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
