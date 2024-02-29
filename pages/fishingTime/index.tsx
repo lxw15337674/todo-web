@@ -43,12 +43,11 @@ const Chat = () => {
           <div className="m-2">
             <h1 className="text-lg">【工资】</h1>
             <ul>
-              <li>距离【月底发工资】: {data.salaryday1} 天</li>
               <li>距离【05号发工资】: {data.salaryday5} 天</li>
               <li>距离【09号发工资】: {data.salaryday9} 天</li>
-              <li>距离【10号发工资】: {data.salaryday10} 天</li>
               <li>距离【15号发工资】: {data.salaryday15} 天</li>
               <li>距离【20号发工资】: {data.salaryday20} 天</li>
+              <li>距离【月底发工资】: {data.salaryday1} 天</li>
             </ul>
           </div>
           <div className="m-2">
@@ -68,7 +67,7 @@ const Chat = () => {
           {todayInHistoryData.map((item, index) => {
             return (
               <div key={index}>
-                - {item.year}年：{item.title}
+                {item.year}年：{item.title}
               </div>
             );
           })}

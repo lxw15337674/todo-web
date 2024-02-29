@@ -20,7 +20,7 @@ interface FishingTime {
     nextHolidayDate: string;
     rest: number;
   };
-  nextHolidayDate: Date;
+  nextHolidayDate: string;
 }
 
 export function getFishingTime(): Promise<FishingTime> {
