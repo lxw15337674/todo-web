@@ -63,7 +63,12 @@ const Chat = () => {
     manual: false,
   });
 
-  if (isLoading || !data) return <div>loading...</div>;
+  if (isLoading || !data)
+    return (
+      <Layout>
+        <div>loading...</div>
+      </Layout>
+    );
   return (
     <Layout>
       <div>
@@ -111,14 +116,12 @@ const Chat = () => {
                 if (!item.start || !item.end) {
                   return (
                     <li key={index}>
-                      {' '}
                       距离【{item.name}】，还有 {restDays} 天。
                     </li>
                   );
                 }
                 return (
                   <li key={index}>
-                    {' '}
                     距离【{item.name}】，还有 {restDays} 天。
                     {item.start} 至 {item.end} 放假调休, 共
                     {calculateDaysDifference(item.start, item.end)}天。
