@@ -5,7 +5,6 @@ import {
   englishToday,
   getFishingTime,
   holiday,
-  poems,
   todayInHistory,
 } from '@/api/fishingTime';
 import Countdown from './Countdown';
@@ -52,9 +51,6 @@ const Chat = () => {
   const { data: todayInHistoryData } = usePromise(todayInHistory, {
     manual: false,
     initialData: [],
-  });
-  const { data: poemsData } = usePromise(poems, {
-    manual: false,
   });
   const { data: englishTodayData } = usePromise(englishToday, {
     manual: false,
@@ -130,17 +126,6 @@ const Chat = () => {
               })}
             </ul>
           </div>
-        </div>
-        <div className="m-2">
-          <h1 className="text-lg">【每日一诗】</h1>
-          <p className="text-[20px]">{poemsData.title} </p>
-          <p className="text-[14px]">
-            {poemsData.author}({poemsData.dynasty})
-          </p>
-          {poemsData.content.map((item, index) => {
-            return <p key={index}>{item}</p>;
-          })}
-          <h2></h2>
         </div>
         <div className="m-2">
           <h1 className="text-lg">【每日一句】</h1>
