@@ -23,6 +23,9 @@ dependencies:
   '@mui/x-date-pickers':
     specifier: 6.13.0
     version: 6.13.0(@emotion/react@11.11.1)(@emotion/styled@11.11.0)(@mui/material@5.14.8)(@mui/system@5.15.12)(@types/react@18.2.21)(dayjs@1.11.9)(react-dom@18.2.0)(react@18.2.0)
+  '@vercel/speed-insights':
+    specifier: 1.0.10
+    version: 1.0.10(next@14.1.0)(react@18.2.0)
   antd:
     specifier: 5.8.6
     version: 5.8.6(react-dom@18.2.0)(react@18.2.0)
@@ -1348,6 +1351,34 @@ packages:
 
   /@ungap/structured-clone@1.2.0:
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
+    dev: false
+
+  /@vercel/speed-insights@1.0.10(next@14.1.0)(react@18.2.0):
+    resolution: {integrity: sha512-4uzdKB0RW6Ff2FkzshzjZ+RlJfLPxgm/00i0XXgxfMPhwnnsk92YgtqsxT9OcPLdJUyVU1DqFlSWWjIQMPkh0g==}
+    requiresBuild: true
+    peerDependencies:
+      '@sveltejs/kit': ^1 || ^2
+      next: '>= 13'
+      react: ^18 || ^19
+      svelte: ^4
+      vue: ^3
+      vue-router: ^4
+    peerDependenciesMeta:
+      '@sveltejs/kit':
+        optional: true
+      next:
+        optional: true
+      react:
+        optional: true
+      svelte:
+        optional: true
+      vue:
+        optional: true
+      vue-router:
+        optional: true
+    dependencies:
+      next: 14.1.0(react-dom@18.2.0)(react@18.2.0)
+      react: 18.2.0
     dev: false
 
   /acorn-jsx@5.3.2(acorn@8.11.3):

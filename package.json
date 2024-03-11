@@ -31,6 +31,7 @@
     "@mui/lab": "5.0.0-alpha.143",
     "@mui/material": "5.14.8",
     "@mui/x-date-pickers": "6.13.0",
+    "@vercel/speed-insights": "1.0.10",
     "antd": "5.8.6",
     "axios": "1.6.0",
     "dayjs": "1.11.9",

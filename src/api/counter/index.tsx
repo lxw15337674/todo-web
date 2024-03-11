@@ -55,9 +55,11 @@ export async function removeCount(id: string): Promise<void> {
 export async function addCount(countId: string): Promise<void> {
   const count = await service.post<CountItem>(`/count/addCount`, { countId });
   await findAllWithCounter();
+  console.log(count.countMeta);
+  debugger;
   useNotificationStore
     .getState()
-    .notification(`${count.countMeta.name}计数成功`);
+    .notification(`${count.countMeta?.name}计数成功`);
 }
 
 export async function resetCount(countId: string): Promise<void> {
