@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 declare module 'axios' {
@@ -28,9 +29,12 @@ service.interceptors.response.use(
   },
   (err) => {
     if (err?.response?.status === 401) {
+      message.error('没有权限，请重新登录');
       localStorage.removeItem('token');
       window.location.href = '/user/login';
+      return;
     }
+    message.error('服务器错误，请重试');
     Promise.reject(
       new Error(err?.response?.statusText || '服务器错误，请重试'),
     );
