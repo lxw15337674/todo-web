@@ -156,7 +156,7 @@ const Chat = () => {
               。
             </p>
             <p>
-              今年已经过去 {data.passdays} 天、{data.passhours} 小时
+              今年已经过去 {data.passdays} 天，共{data.passhours} 小时
             </p>
           </div>
           <div className="m-2">
