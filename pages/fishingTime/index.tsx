@@ -163,8 +163,8 @@ const Chat = () => {
             <h1 className="text-lg">【下班】</h1>
             <ul>
               <li>
-                距离【6点下班】：
-                <Countdown targetTime={new Date().setHours(18, 0, 0, 0)} />
+                距离【7点下班】：
+                <Countdown targetTime={new Date().setHours(19, 0, 0, 0)} />
               </li>
             </ul>
           </div>
@@ -185,7 +185,7 @@ const Chat = () => {
                 <Progress percent={percentageCompletedOfMonth} />
                 <li>距离【本年结束】还有 {daysUntilEndOfYear} 天</li>
                 <Progress percent={percentageCompletedOfYear} />
-                <li>距离【70岁寿命结束】还有 {daysToLive} 天</li>
+                <li>距离【70岁结束】还有 {daysToLive} 天</li>
                 <Progress percent={percentage} />
               </div>
             </ul>
