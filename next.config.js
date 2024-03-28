@@ -30,6 +30,14 @@ const nextConfig = {
         destination:
           'https://s3.cn-north-1.amazonaws.com.cn/general.lesignstatic.com/config/jiaqi.json',
       },
+      {
+        source:'/routing/tftVersionConfig',
+        destination:'https://lol.qq.com/zmtftzone/public-lib/versionconfig.json'
+      },
+      {
+        source: '/routing/game/:path*',
+        destination: 'https://game.gtimg.cn/:path*'
+      }
     ];
   },
 };
