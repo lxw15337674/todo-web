@@ -12,15 +12,26 @@
 
 @layer components {
   .card {
-    background-color: theme('colors.gray.800');
-    border: 1px solid theme('colors.gray.600');
-    height:  3rem;
+    background-color: #424242;
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    height: 3rem;
     width: 20rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    color:white;
+    color: white;
   }
+
+  .white-icon {
+    filter: contrast(.1) brightness(10);
+  }
+
+  /* .flex-center{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  } */
 }
 
 html,
