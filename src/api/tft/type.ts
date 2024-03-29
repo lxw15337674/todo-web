@@ -1,4 +1,4 @@
-import { JobColor } from '@/components/tft/model/RaceJob';
+import { JobColor } from '@/api/tft/model/RaceJob';
 
 // 英雄基础数据类型
 /**

@@ -2,10 +2,12 @@
 import {
   ISeasonInfo,
   getChessData,
+  getEquipData,
   getJobData,
   getRaceData,
   getVersionConfig,
 } from '@/api/tft';
+import EquipmentBox from '@/components/tft/EquipmentBox';
 import RaceJobChessItem from '@/components/tft/RaceJobChessItem';
 import RaceJobItem from '@/components/tft/RaceJobItem';
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
@@ -33,6 +35,10 @@ export default function IndexPage() {
   const { data: races, run: getRaceDataRes } = usePromise(getRaceData, {
     initialData: [],
   });
+
+  const { data: equips, run: getEquipDataRes } = usePromise(getEquipData, {
+    initialData: new Map([]),
+  });
   useMount(() => {
     updateTaskRes();
   });
@@ -42,6 +48,7 @@ export default function IndexPage() {
       getChessDataRes(currentVersion.urlChessData);
       getJobDataRes(currentVersion.urlJobData);
       getRaceDataRes(currentVersion.urlRaceData);
+      getEquipDataRes(currentVersion.urlEquipData);
     }
   }, [version]);
 
@@ -66,30 +73,44 @@ export default function IndexPage() {
             })}
           </Select>
         </FormControl>
-        <div className="flex flex-col mt-3">
+        <div className="flex flex-col mt-3 border border-gray-950">
           {races?.map((race, rowIndex) => {
             return (
               <div key={rowIndex} className="flex flex-auto">
                 {jobs?.map((job, colIndex) => {
-                  const content = () => {
-                    if (rowIndex === 0 && colIndex === 0) {
-                      return <span className={'min-w-[10rem]'}></span>;
-                    }
-                    if (rowIndex === 0) {
-                      return (
-                        <span>
-                          <RaceJobItem raceJob={job} />
-                        </span>
-                      );
-                    }
-                    if (colIndex === 0) {
-                      return (
-                        <span className={'min-w-[10rem]'}>
-                          <RaceJobItem raceJob={race} />
-                        </span>
-                      );
-                    }
+                  if (rowIndex === 0 && colIndex === 0) {
                     return (
+                      <span
+                        className="card flex-auto min-w-[10rem]  border-gray-950"
+                        key={colIndex + colIndex}
+                      ></span>
+                    );
+                  }
+                  if (rowIndex === 0) {
+                    return (
+                      <span
+                        className="card flex-auto   border-l     border-gray-950"
+                        key={colIndex + colIndex}
+                      >
+                        <RaceJobItem raceJob={job} />
+                      </span>
+                    );
+                  }
+                  if (colIndex === 0) {
+                    return (
+                      <span
+                        className="card flex-auto border-t  min-w-[10rem] border-gray-950"
+                        key={colIndex + colIndex}
+                      >
+                        <RaceJobItem raceJob={race} />
+                      </span>
+                    );
+                  }
+                  return (
+                    <span
+                      className="card flex-auto  border-l border-t border-gray-950"
+                      key={colIndex + colIndex}
+                    >
                       <RaceJobChessItem
                         version={currentVersion!}
                         races={races}
@@ -98,11 +119,6 @@ export default function IndexPage() {
                         job={job}
                         chesses={chesses}
                       />
-                    );
-                  };
-                  return (
-                    <span className="card flex-auto" key={colIndex + colIndex}>
-                      {content()}
                     </span>
                   );
                 })}
@@ -110,6 +126,7 @@ export default function IndexPage() {
             );
           })}
         </div>
+        <EquipmentBox equipsByType={equips} />
       </div>
     </Layout>
   );

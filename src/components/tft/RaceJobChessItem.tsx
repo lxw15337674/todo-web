@@ -1,6 +1,10 @@
 import React from 'react';
-import { ChessImageType, getBorderColor, getChessImage } from './model/Chess';
-import { Descriptions, Popover } from 'antd';
+import {
+  ChessImageType,
+  getBorderColor,
+  getChessImage,
+} from '../../api/tft/model/Chess';
+import { Descriptions, Popover, Image } from 'antd';
 import { TFTChess, TFTCard } from '@/api/tft/type';
 import { ISeasonInfo } from '@/api/tft';
 
@@ -31,7 +35,7 @@ const RaceJobChessItem: React.FC<Props> = ({
   });
 
   const renderChessCard = (chess: TFTChess) => {
-    const imageWidth = 360;
+    const imageWidth = 500;
     const raceJobs: TFTCard[] = [];
     for (const id of chess.raceIds.split(',')) {
       const race = races.find((race) => race.id === id);
@@ -47,45 +51,23 @@ const RaceJobChessItem: React.FC<Props> = ({
       }
     }
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: 8,
-          width: imageWidth,
-        }}
-      >
+      <div className={`flex overflow-hidden height-[${imageWidth / 2}px]`}>
         <div
           style={{
             position: 'relative',
             width: imageWidth,
-            aspectRatio: 624 / 318,
           }}
         >
-          <img
+          <Image
             src={getChessImage(
               version.idSeason,
               chess.TFTID,
               ChessImageType.full,
             )}
-            style={{
-              position: 'absolute',
-              width: imageWidth,
-              aspectRatio: 624 / 318,
-              borderTopLeftRadius: 8,
-              borderTopRightRadius: 8,
-            }}
+            preview={false}
+            width={imageWidth}
+            height={'100%'}
           />
-          <div
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 56,
-              background: 'linear-gradient(#0000, #000A)',
-            }}
-          ></div>
           <div
             style={{
               position: 'absolute',
@@ -129,49 +111,46 @@ const RaceJobChessItem: React.FC<Props> = ({
             </span>
           </div>
         </div>
-        <Descriptions
-          layout={'vertical'}
-          column={3}
-          bordered
-          size={'small'}
-          style={{ margin: 16, width: imageWidth - 32 }}
-          labelStyle={{
-            fontSize: 12,
-            fontWeight: 'bold',
-            color: '#9e9e9e',
-            textAlign: 'center',
-          }}
-          contentStyle={{ fontSize: 13, color: '#212121' }}
-          items={[
-            { label: '生命', children: chess.life },
-            { label: '护甲', children: chess.armor },
-            { label: '魔抗', children: chess.spellBlock },
-            { label: '攻击', children: chess.attack },
-            { label: '攻速', children: chess.attackSpeed },
-            { label: '暴击', children: chess.crit },
-            { label: '攻击距离', children: chess.attackRange },
-            { label: '初始法力值', children: chess.startMagic || '0' },
-            { label: '最大法力值', children: chess.magic || '0' },
-          ]}
-        />
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            paddingLeft: 16,
-            paddingRight: 16,
-            marginBottom: 16,
-          }}
-        >
-          <div
-            style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}
-          >
+        <div className="w-[40rem] p-2">
+          <Descriptions
+            column={3}
+            bordered
+            size={'small'}
+            labelStyle={{
+              fontSize: 13,
+              fontWeight: 'bold',
+              color: '#9e9e9e',
+              textAlign: 'center',
+              padding: 0,
+            }}
+            contentStyle={{
+              fontSize: 13,
+              color: '#212121',
+              padding: '4px 0 4px 8px',
+              minWidth: '4rem',
+              fontWeight: 'bold',
+            }}
+            items={[
+              { label: '生命', children: chess.lifeData },
+              { label: '护甲', children: chess.armor },
+              { label: '魔抗', children: chess.spellBlock },
+              { label: '攻击', children: chess.attackData },
+              { label: '攻速', children: chess.attackSpeed },
+              { label: '暴击', children: chess.crit },
+              { label: '攻击距离', children: chess.attackRange },
+              { label: '初始法力值', children: chess.startMagic || '0' },
+              { label: '最大法力值', children: chess.magic || '0' },
+            ]}
+          />
+          <div className="flex items-center my-2 ">
             <img
               src={chess.originalImage}
               style={{ width: 24, height: 24, marginRight: 8 }}
             />
+
             <span
-              style={{ fontSize: 20, fontWeight: 'bold', color: '#212121' }}
+              className="text-lg"
+              style={{ fontWeight: 'bold', color: '#212121' }}
             >
               {chess.skillName}
             </span>
@@ -197,9 +176,12 @@ const RaceJobChessItem: React.FC<Props> = ({
         const marginLeft = index === 0 ? 0 : 4;
         return (
           <Popover
+            key={chess.id}
             content={renderChessCard(chess)}
             overlayInnerStyle={{ padding: 0 }}
-            key={chess.id}
+            // getPopupContainer={(triggerNode) => triggerNode}
+            // key={chess.id}
+            // open={chess.chessId === '77'}
           >
             <img
               src={getChessImage(

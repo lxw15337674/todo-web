@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   getRaceJobLevelBorderColor,
   getRaceJobLevelColor,
-} from './model/RaceJob';
+} from '../../api/tft/model/RaceJob';
 import { Popover } from 'antd';
 import { TFTCard } from '@/api/tft/type';
 
