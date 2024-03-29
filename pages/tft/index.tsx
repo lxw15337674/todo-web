@@ -66,51 +66,50 @@ export default function IndexPage() {
             })}
           </Select>
         </FormControl>
-      </div>
-
-      <div className="flex flex-col ">
-        {races?.map((race, rowIndex) => {
-          return (
-            <div key={rowIndex} className="flex flex-auto">
-              {jobs?.map((job, colIndex) => {
-                const content = () => {
-                  if (rowIndex === 0 && colIndex === 0) {
-                    return <span className={'min-w-[10rem]'}></span>;
-                  }
-                  if (rowIndex === 0) {
+        <div className="flex flex-col mt-3">
+          {races?.map((race, rowIndex) => {
+            return (
+              <div key={rowIndex} className="flex flex-auto">
+                {jobs?.map((job, colIndex) => {
+                  const content = () => {
+                    if (rowIndex === 0 && colIndex === 0) {
+                      return <span className={'min-w-[10rem]'}></span>;
+                    }
+                    if (rowIndex === 0) {
+                      return (
+                        <span>
+                          <RaceJobItem raceJob={job} />
+                        </span>
+                      );
+                    }
+                    if (colIndex === 0) {
+                      return (
+                        <span className={'min-w-[10rem]'}>
+                          <RaceJobItem raceJob={race} />
+                        </span>
+                      );
+                    }
                     return (
-                      <span>
-                        <RaceJobItem raceJob={job} />
-                      </span>
+                      <RaceJobChessItem
+                        version={currentVersion!}
+                        races={races}
+                        jobs={jobs}
+                        race={race}
+                        job={job}
+                        chesses={chesses}
+                      />
                     );
-                  }
-                  if (colIndex === 0) {
-                    return (
-                      <span className={'min-w-[10rem]'}>
-                        <RaceJobItem raceJob={race} />
-                      </span>
-                    );
-                  }
+                  };
                   return (
-                    <RaceJobChessItem
-                      version={currentVersion!}
-                      races={races}
-                      jobs={jobs}
-                      race={race}
-                      job={job}
-                      chesses={chesses}
-                    />
+                    <span className="card flex-auto" key={colIndex + colIndex}>
+                      {content()}
+                    </span>
                   );
-                };
-                return (
-                  <span className="card flex-auto" key={colIndex + colIndex}>
-                    {content()}
-                  </span>
-                );
-              })}
-            </div>
-          );
-        })}
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </Layout>
   );
