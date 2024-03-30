@@ -22,10 +22,11 @@ const APPS = [
   {
     name: '聊天室',
     url: '/chat',
-  }, {
+  },
+  {
     name: '云顶之弈一图流',
-    url: 'tft'
-  }
+    url: '/tft',
+  },
 ];
 
 export default function Header() {

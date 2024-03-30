@@ -20,14 +20,7 @@
         "jsx": "never"
       }
     ],
-    "jsx-a11y/anchor-is-valid": [
-      "warn",
-      {
-        "components": ["Link"],
-        "specialLink": ["hrefLeft", "hrefRight"],
-        "aspects": ["invalidHref", "preferButton"]
-      }
-    ]
+    "jsx-a11y/anchor-is-valid": "off"
   },
   "overrides": [
     {

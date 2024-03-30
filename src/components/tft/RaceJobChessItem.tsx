@@ -4,7 +4,7 @@ import {
   getBorderColor,
   getChessImage,
 } from '../../api/tft/model/Chess';
-import { Descriptions, Popover, Image, Avatar } from 'antd';
+import { Descriptions, Popover,  Avatar } from 'antd';
 import { TFTChess, TFTCard } from '@/api/tft/type';
 import { ISeasonInfo } from '@/api/tft';
 import { Desc } from './Desc';
@@ -66,16 +66,6 @@ const RaceJobChessItem: React.FC<Props> = ({
             chess.TFTID,
             ChessImageType.full,
           )} />
-          <div
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 56,
-              background: 'linear-gradient(#0000, #000A)',
-            }}
-          ></div>
           <div
             style={{
               position: 'absolute',

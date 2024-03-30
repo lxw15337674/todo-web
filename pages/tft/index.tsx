@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Layout from 'src/components/layout';
 import { useMount, usePromise } from 'wwhooks';
 import { Typography } from 'antd';
+import { getFetter } from '@/utils/tftf';
 import { TFTCard, TFTChess } from '@/api/tft/type';
 
 const { Title } = Typography;

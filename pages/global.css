@@ -13,8 +13,6 @@
 @layer components {
   .card {
     background-color: #424242;
-    border-right: 1px solid black;
-    border-bottom: 1px solid black;
     height: 3rem;
     width: 20rem;
     display: flex;
