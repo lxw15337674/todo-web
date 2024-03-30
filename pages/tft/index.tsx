@@ -14,6 +14,9 @@ import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import { useEffect, useState } from 'react';
 import Layout from 'src/components/layout';
 import { useMount, usePromise } from 'wwhooks';
+import { Typography } from 'antd';
+
+const { Title } = Typography;
 
 export default function IndexPage() {
   const [versionData, setVersionData] = useState<ISeasonInfo[]>([]);
@@ -51,7 +54,6 @@ export default function IndexPage() {
       getEquipDataRes(currentVersion.urlEquipData);
     }
   }, [version]);
-
   return (
     <Layout>
       <div className="m-3">
@@ -126,7 +128,10 @@ export default function IndexPage() {
             );
           })}
         </div>
-        <EquipmentBox equipsByType={equips} />
+        <div className="mt-2">
+          <Title level={2}>装备公式</Title>
+          <EquipmentBox equipsByType={equips} />
+        </div>
       </div>
     </Layout>
   );
