@@ -57,8 +57,8 @@ export default function IndexPage() {
     }
   }, [version]);
   const items = useMemo(() => {
-    return getFetter([...jobs, ...races], chesses)
-  }, [jobs, races, chesses])
+    return getFetter(jobs, races, chesses);
+  }, [jobs, races, chesses]);
 
   return (
     <Layout>
@@ -89,7 +89,7 @@ export default function IndexPage() {
                   if (rowIndex === 0 && colIndex === 0) {
                     return (
                       <span
-                        className="card flex-auto min-w-[10rem]  border-gray-950"
+                        className="card flex-auto   border-gray-950 min-w-[10rem]"
                         key={colIndex + colIndex}
                       ></span>
                     );
@@ -97,7 +97,7 @@ export default function IndexPage() {
                   if (rowIndex === 0) {
                     return (
                       <span
-                        className="card flex-auto   border-l     border-gray-950"
+                        className="card flex-auto   border-l     border-gray-950 min-w-[6rem]"
                         key={colIndex + colIndex}
                       >
                         <RaceJobItem raceJob={item as TFTCard} />
@@ -107,7 +107,7 @@ export default function IndexPage() {
                   if (colIndex === 0) {
                     return (
                       <span
-                        className="card flex-auto border-t  min-w-[10rem] border-gray-950"
+                        className="card flex-auto border-t  border-gray-950 min-w-[10rem]"
                         key={colIndex + colIndex}
                       >
                         <RaceJobItem raceJob={item as TFTCard} />
@@ -116,7 +116,7 @@ export default function IndexPage() {
                   }
                   return (
                     <span
-                      className="card flex-auto  border-l border-t border-gray-950"
+                      className="card flex-auto  border-l border-t border-gray-950 min-w-[6rem]"
                       key={colIndex + colIndex}
                     >
                       <RaceJobChessItem
