@@ -71,3 +71,9 @@ export async function getTypeCounts(countId: string): Promise<CountItem[]> {
     params: { countId },
   });
 }
+
+export async function removeCounter(id: string): Promise<void> {
+  await service.delete(`/count/removeCount/${id}`);
+  useNotificationStore.getState().notification(`删除成功`);
+  await findAllWithCounter();
+}

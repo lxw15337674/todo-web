@@ -1,4 +1,5 @@
 import {
+  Button,
   Divider,
   List,
   ListItem,
@@ -11,7 +12,7 @@ import { useCountStore } from '../../../store/counter';
 import Calendar from './Calendar';
 import { useObject, usePromise } from 'wwhooks';
 import dayjs from 'dayjs';
-import { getTypeCounts } from '@/api/counter';
+import { getTypeCounts, removeCounter } from '@/api/counter';
 
 interface State {
   selectedDate: dayjs.Dayjs;
@@ -106,6 +107,16 @@ const CountInfoDrawer = () => {
                           <span className="text-[#00000073]">
                             第{filteredCounts.length - index}次
                           </span>
+                          <Button
+                            onClick={() =>
+                              removeCounter(count.id).then(() => {
+                                run();
+                              })
+                            }
+                            size="small"
+                          >
+                            删除
+                          </Button>
                         </div>
                       }
                     />
