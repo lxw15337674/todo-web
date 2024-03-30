@@ -152,8 +152,8 @@ const RaceJobChessItem: React.FC<Props> = ({
             style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}
           >
             <Avatar
-              src={chess.originalImage}
-              size={24}
+              src={chess.skillImage}
+              size={30}
               shape="square"
               className="mr-2"
             />
