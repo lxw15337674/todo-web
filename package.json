@@ -10,9 +10,9 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "next --turbo -p 8080 ",
+    "dev": "next  -p 8080 ",
     "build": "next build ",
-    "start": "next --turbo -p 8080",
+    "start": "next  -p 8080",
     "type-check": "tsc --noEmit",
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",

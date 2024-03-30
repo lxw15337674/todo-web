@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { JobType, RaceType, TFTCard, TFTChess } from './type';
+import { EquipsByType, TFTEquip } from './model/Equipment';
 
 export interface ISeasonInfo {
   booleanPreVersion: boolean;
@@ -74,4 +75,12 @@ export function getRaceData(url: string): Promise<TFTCard[]> {
       };
     });
   });
+}
+
+// 装备
+export async function getEquipData(url: string): Promise<EquipsByType> {
+  const res = await axios.get(routingGame(url));
+  return res.data.data.reduce((acc: EquipsByType, equip: TFTEquip) => {
+    return acc.set(equip.type, (acc.get(equip.type) || []).concat(equip));
+  }, new Map());
 }

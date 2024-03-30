@@ -1,35 +1,27 @@
 import React from 'react';
-import { ChessImageType, getBorderColor, getChessImage } from './model/Chess';
-import { Descriptions, Popover } from 'antd';
+import {
+  ChessImageType,
+  getBorderColor,
+  getChessImage,
+} from '../../api/tft/model/Chess';
+import { Descriptions, Popover, Image, Avatar } from 'antd';
 import { TFTChess, TFTCard } from '@/api/tft/type';
 import { ISeasonInfo } from '@/api/tft';
+import { Desc } from './Desc';
 
 interface Props {
-  race: TFTCard;
-  job: TFTCard;
-  chesses: TFTChess[];
   races: TFTCard[];
   jobs: TFTCard[];
+  chesses: TFTChess[];
   version: ISeasonInfo;
-  // width: number;
-  // height: number;
-  // backgroundColor: string;
 }
 
 const RaceJobChessItem: React.FC<Props> = ({
-  race,
-  job,
   chesses,
   races,
   jobs,
   version,
 }) => {
-  const matchedChesses = chesses?.filter((chess) => {
-    const raceIds = chess.raceIds.split(',');
-    const jobIds = chess.jobIds.split(',');
-    return raceIds.includes(race.id) && jobIds.includes(job.id);
-  });
-
   const renderChessCard = (chess: TFTChess) => {
     const imageWidth = 360;
     const raceJobs: TFTCard[] = [];
@@ -62,20 +54,18 @@ const RaceJobChessItem: React.FC<Props> = ({
             aspectRatio: 624 / 318,
           }}
         >
-          <img
-            src={getChessImage(
-              version.idSeason,
-              chess.TFTID,
-              ChessImageType.full,
-            )}
+          <Avatar 
+            shape="square" 
             style={{
-              position: 'absolute',
-              width: imageWidth,
-              aspectRatio: 624 / 318,
-              borderTopLeftRadius: 8,
-              borderTopRightRadius: 8,
+              height:'100%',
+              width:'100%',
+              border:0
             }}
-          />
+          src={getChessImage(
+            version.idSeason,
+            chess.TFTID,
+            ChessImageType.full,
+          )} />
           <div
             style={{
               position: 'absolute',
@@ -177,7 +167,7 @@ const RaceJobChessItem: React.FC<Props> = ({
             </span>
           </div>
           <span style={{ fontSize: 13, color: '#212121' }}>
-            {chess.skillDetail}
+            <Desc text={chess.skillDetail}/>
           </span>
         </div>
       </div>
@@ -192,29 +182,25 @@ const RaceJobChessItem: React.FC<Props> = ({
         justifyContent: 'center',
       }}
     >
-      {matchedChesses.map((chess, index) => {
+      {chesses?.map((chess, index) => {
         const borderColor = getBorderColor(chess.price);
-        const marginLeft = index === 0 ? 0 : 4;
         return (
           <Popover
             content={renderChessCard(chess)}
             overlayInnerStyle={{ padding: 0 }}
-            key={chess.id}
           >
-            <img
+            <Avatar
               src={getChessImage(
                 version.idSeason,
                 chess.TFTID,
                 ChessImageType.head,
               )}
-              width={34}
-              height={34}
+              shape="square" size="large"
+              className='cursor-pointer ml-1'
               style={{
-                borderRadius: 18,
                 borderWidth: 2,
                 borderColor,
                 borderStyle: 'solid',
-                marginLeft,
               }}
             />
           </Popover>

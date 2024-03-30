@@ -2,16 +2,22 @@
 import {
   ISeasonInfo,
   getChessData,
+  getEquipData,
   getJobData,
   getRaceData,
   getVersionConfig,
 } from '@/api/tft';
+import EquipmentBox from '@/components/tft/EquipmentBox';
 import RaceJobChessItem from '@/components/tft/RaceJobChessItem';
 import RaceJobItem from '@/components/tft/RaceJobItem';
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Layout from 'src/components/layout';
 import { useMount, usePromise } from 'wwhooks';
+import { Typography } from 'antd';
+import { TFTCard, TFTChess } from '@/api/tft/type';
+
+const { Title } = Typography;
 
 export default function IndexPage() {
   const [versionData, setVersionData] = useState<ISeasonInfo[]>([]);
@@ -33,6 +39,10 @@ export default function IndexPage() {
   const { data: races, run: getRaceDataRes } = usePromise(getRaceData, {
     initialData: [],
   });
+
+  const { data: equips, run: getEquipDataRes } = usePromise(getEquipData, {
+    initialData: new Map([]),
+  });
   useMount(() => {
     updateTaskRes();
   });
@@ -42,8 +52,12 @@ export default function IndexPage() {
       getChessDataRes(currentVersion.urlChessData);
       getJobDataRes(currentVersion.urlJobData);
       getRaceDataRes(currentVersion.urlRaceData);
+      getEquipDataRes(currentVersion.urlEquipData);
     }
   }, [version]);
+  const items = useMemo(() => {
+    return getFetter([...jobs, ...races], chesses)
+  }, [jobs, races, chesses])
 
   return (
     <Layout>
@@ -66,51 +80,61 @@ export default function IndexPage() {
             })}
           </Select>
         </FormControl>
-      </div>
-
-      <div className="flex flex-col ">
-        {races?.map((race, rowIndex) => {
-          return (
-            <div key={rowIndex} className="flex flex-auto">
-              {jobs?.map((job, colIndex) => {
-                const content = () => {
+        <div className="flex flex-col mt-3 border border-gray-950">
+          {items?.map((rows, rowIndex) => {
+            return (
+              <div key={rowIndex} className="flex flex-auto">
+                {rows?.map((item, colIndex) => {
                   if (rowIndex === 0 && colIndex === 0) {
-                    return <span className={'min-w-[10rem]'}></span>;
+                    return (
+                      <span
+                        className="card flex-auto min-w-[10rem]  border-gray-950"
+                        key={colIndex + colIndex}
+                      ></span>
+                    );
                   }
                   if (rowIndex === 0) {
                     return (
-                      <span>
-                        <RaceJobItem raceJob={job} />
+                      <span
+                        className="card flex-auto   border-l     border-gray-950"
+                        key={colIndex + colIndex}
+                      >
+                        <RaceJobItem raceJob={item as TFTCard} />
                       </span>
                     );
                   }
                   if (colIndex === 0) {
                     return (
-                      <span className={'min-w-[10rem]'}>
-                        <RaceJobItem raceJob={race} />
+                      <span
+                        className="card flex-auto border-t  min-w-[10rem] border-gray-950"
+                        key={colIndex + colIndex}
+                      >
+                        <RaceJobItem raceJob={item as TFTCard} />
                       </span>
                     );
                   }
                   return (
-                    <RaceJobChessItem
-                      version={currentVersion!}
-                      races={races}
-                      jobs={jobs}
-                      race={race}
-                      job={job}
-                      chesses={chesses}
-                    />
+                    <span
+                      className="card flex-auto  border-l border-t border-gray-950"
+                      key={colIndex + colIndex}
+                    >
+                      <RaceJobChessItem
+                        version={currentVersion!}
+                        races={races}
+                        jobs={jobs}
+                        chesses={item as TFTChess[]}
+                      />
+                    </span>
                   );
-                };
-                return (
-                  <span className="card flex-auto" key={colIndex + colIndex}>
-                    {content()}
-                  </span>
-                );
-              })}
-            </div>
-          );
-        })}
+                })}
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-2">
+          <Title level={2}>装备公式</Title>
+          <EquipmentBox equipsByType={equips} />
+        </div>
       </div>
     </Layout>
   );
