@@ -12,7 +12,7 @@
 
 @layer components {
   .card {
-    background-color: #424242;
+    background-color: #2f2f2f;
     height: 3rem;
     width: 20rem;
     display: flex;
