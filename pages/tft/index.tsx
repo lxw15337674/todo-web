@@ -17,6 +17,8 @@ import { useMount, usePromise } from 'wwhooks';
 import { Typography } from 'antd';
 import { getFetter } from '@/utils/tftf';
 import { TFTCard, TFTChess } from '@/api/tft/type';
+import Equipment from '@/components/tft/Equipment';
+import { EquipmentType, TFTEquip } from '@/api/tft/model/Equipment';
 
 const { Title } = Typography;
 
@@ -81,15 +83,16 @@ export default function IndexPage() {
             })}
           </Select>
         </FormControl>
+        <Title level={2}>羁绊公式</Title>
         <div className="flex flex-col mt-3 border border-gray-950">
           {items?.map((rows, rowIndex) => {
             return (
-              <div key={rowIndex} className="flex flex-auto">
+              <div key={rowIndex} className="flex">
                 {rows?.map((item, colIndex) => {
                   if (rowIndex === 0 && colIndex === 0) {
                     return (
                       <span
-                        className="card flex-auto   border-gray-950 min-w-[10rem]"
+                        className="card    border-gray-950 min-w-[10rem]"
                         key={colIndex + colIndex}
                       ></span>
                     );
@@ -97,7 +100,7 @@ export default function IndexPage() {
                   if (rowIndex === 0) {
                     return (
                       <span
-                        className="card flex-auto   border-l     border-gray-950 min-w-[6rem]"
+                        className="card    border-l     border-gray-950 min-w-[6rem]"
                         key={colIndex + colIndex}
                       >
                         <RaceJobItem raceJob={item as TFTCard} />
@@ -107,7 +110,7 @@ export default function IndexPage() {
                   if (colIndex === 0) {
                     return (
                       <span
-                        className="card flex-auto border-t  border-gray-950 min-w-[10rem]"
+                        className="card  border-t  border-gray-950 min-w-[10rem]"
                         key={colIndex + colIndex}
                       >
                         <RaceJobItem raceJob={item as TFTCard} />
@@ -116,7 +119,7 @@ export default function IndexPage() {
                   }
                   return (
                     <span
-                      className="card flex-auto  border-l border-t border-gray-950 min-w-[6rem]"
+                      className="card   border-l border-t border-gray-950 min-w-[6rem]"
                       key={colIndex + colIndex}
                     >
                       <RaceJobChessItem
@@ -136,6 +139,46 @@ export default function IndexPage() {
           <Title level={2}>装备公式</Title>
           <EquipmentBox equipsByType={equips} />
         </div>
+        {equips.get(EquipmentType['ink']) && (
+          <div className="mt-2">
+            <Title level={2}>额外装备</Title>
+            {equips.get(EquipmentType['ink'])?.map((equip: TFTEquip) => {
+              return <Equipment equip={equip} key={equip.equipId} />;
+            })}
+          </div>
+        )}
+        {equips.get(EquipmentType['job']) && (
+          <div className="mt-2">
+            <Title level={2}>无法合成的特殊转职纹章</Title>
+            {equips.get(EquipmentType['job'])?.map((equip: TFTEquip) => {
+              return <Equipment equip={equip} key={equip.equipId} />;
+            })}
+          </div>
+        )}
+        {equips.get(EquipmentType['ornn']) && (
+          <div className="mt-2">
+            <Title level={2}>奥恩神器</Title>
+            {equips.get(EquipmentType['ornn'])?.map((equip: TFTEquip) => {
+              return <Equipment equip={equip} key={equip.equipId} />;
+            })}
+          </div>
+        )}
+        {equips.get(EquipmentType['golden']) && (
+          <div className="mt-2">
+            <Title level={2}>金鳞龙装备</Title>
+            {equips.get(EquipmentType['golden'])?.map((equip: TFTEquip) => {
+              return <Equipment equip={equip} key={equip.equipId} />;
+            })}
+          </div>
+        )}
+        {equips.get(EquipmentType['support']) && (
+          <div className="mt-2">
+            <Title level={2}>辅助装备</Title>
+            {equips.get(EquipmentType['support'])?.map((equip: TFTEquip) => {
+              return <Equipment equip={equip} key={equip.equipId} />;
+            })}
+          </div>
+        )}
       </div>
     </Layout>
   );

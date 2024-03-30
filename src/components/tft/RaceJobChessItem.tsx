@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import {
   ChessImageType,
   getBorderColor,
   getChessImage,
 } from '../../api/tft/model/Chess';
-import { Descriptions, Popover,  Avatar } from 'antd';
+import { Descriptions, Popover, Avatar } from 'antd';
 import { TFTChess, TFTCard } from '@/api/tft/type';
 import { ISeasonInfo } from '@/api/tft';
 import { Desc } from './Desc';
@@ -23,7 +23,7 @@ const RaceJobChessItem: React.FC<Props> = ({
   version,
 }) => {
   const renderChessCard = (chess: TFTChess) => {
-    const imageWidth = 360;
+    const imageWidth = 420;
     const raceJobs: TFTCard[] = [];
     for (const id of chess.raceIds.split(',')) {
       const race = races.find((race) => race.id === id);
@@ -54,18 +54,19 @@ const RaceJobChessItem: React.FC<Props> = ({
             aspectRatio: 624 / 318,
           }}
         >
-          <Avatar 
-            shape="square" 
+          <Avatar
+            shape="square"
             style={{
-              height:'100%',
-              width:'100%',
-              border:0
+              height: '100%',
+              width: '100%',
+              border: 0,
             }}
-          src={getChessImage(
-            version.idSeason,
-            chess.TFTID,
-            ChessImageType.full,
-          )} />
+            src={getChessImage(
+              version.idSeason,
+              chess.TFTID,
+              ChessImageType.full,
+            )}
+          />
           <div
             style={{
               position: 'absolute',
@@ -110,26 +111,30 @@ const RaceJobChessItem: React.FC<Props> = ({
           </div>
         </div>
         <Descriptions
-          layout={'vertical'}
           column={3}
           bordered
           size={'small'}
-          style={{ margin: 16, width: imageWidth - 32 }}
+          className="m-2"
           labelStyle={{
             fontSize: 12,
             fontWeight: 'bold',
-            color: '#9e9e9e',
             textAlign: 'center',
+            padding: '2px',
           }}
-          contentStyle={{ fontSize: 13, color: '#212121' }}
+          contentStyle={{
+            fontSize: 13,
+            color: '#212121',
+            padding: '4px 12px',
+            fontWeight: 'bold',
+          }}
           items={[
-            { label: '生命', children: chess.life },
+            { label: '生命', children: chess.lifeData },
             { label: '护甲', children: chess.armor },
             { label: '魔抗', children: chess.spellBlock },
-            { label: '攻击', children: chess.attack },
+            { label: '攻击', children: chess.attackData },
+            { label: '攻击距离', children: chess.attackRange },
             { label: '攻速', children: chess.attackSpeed },
             { label: '暴击', children: chess.crit },
-            { label: '攻击距离', children: chess.attackRange },
             { label: '初始法力值', children: chess.startMagic || '0' },
             { label: '最大法力值', children: chess.magic || '0' },
           ]}
@@ -146,18 +151,20 @@ const RaceJobChessItem: React.FC<Props> = ({
           <div
             style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}
           >
-            <img
+            <Avatar
               src={chess.originalImage}
-              style={{ width: 24, height: 24, marginRight: 8 }}
+              size={24}
+              shape="square"
+              className="mr-2"
             />
             <span
-              style={{ fontSize: 20, fontWeight: 'bold', color: '#212121' }}
+              style={{ fontSize: 18, fontWeight: 'bold', color: '#212121' }}
             >
               {chess.skillName}
             </span>
           </div>
           <span style={{ fontSize: 13, color: '#212121' }}>
-            <Desc text={chess.skillDetail}/>
+            <Desc text={chess.skillDetail} />
           </span>
         </div>
       </div>
@@ -172,28 +179,31 @@ const RaceJobChessItem: React.FC<Props> = ({
         justifyContent: 'center',
       }}
     >
-      {chesses?.map((chess, index) => {
+      {chesses?.map((chess) => {
         const borderColor = getBorderColor(chess.price);
         return (
-          <Popover
-            content={renderChessCard(chess)}
-            overlayInnerStyle={{ padding: 0 }}
-          >
-            <Avatar
-              src={getChessImage(
-                version.idSeason,
-                chess.TFTID,
-                ChessImageType.head,
-              )}
-              shape="square" size="large"
-              className='cursor-pointer ml-1'
-              style={{
-                borderWidth: 2,
-                borderColor,
-                borderStyle: 'solid',
-              }}
-            />
-          </Popover>
+          <Fragment key={chess.TFTID}>
+            <Popover
+              content={renderChessCard(chess)}
+              overlayInnerStyle={{ padding: 0 }}
+            >
+              <Avatar
+                src={getChessImage(
+                  version.idSeason,
+                  chess.TFTID,
+                  ChessImageType.head,
+                )}
+                shape="square"
+                size="large"
+                className="cursor-pointer ml-1"
+                style={{
+                  borderWidth: 2,
+                  borderColor,
+                  borderStyle: 'solid',
+                }}
+              />
+            </Popover>
+          </Fragment>
         );
       })}
     </div>

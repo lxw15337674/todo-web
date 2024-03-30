@@ -1,7 +1,7 @@
 import React from 'react';
-import { TFTEquip } from '@/api/tft/model/Equipment';
 import { Avatar, Popover } from 'antd';
 import { Desc } from './Desc';
+import { TFTEquip } from '@/api/tft/model/Equipment';
 
 interface Props {
   equip: TFTEquip;
@@ -21,7 +21,7 @@ const Equipment: React.FC<Props> = ({ equip }) => {
   };
 
   return (
-    <Popover content={renderCard()} mouseLeaveDelay={0.5}>
+    <Popover content={renderCard()}>
       <Avatar
         shape="square"
         size={48}

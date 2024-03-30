@@ -43,7 +43,7 @@ export const getFetter = (
       }
       array[i][j] = chesses.filter((chess) => {
         const ids = chess.raceIds.split(',').concat(chess.jobIds.split(','));
-        return ids.includes(race.TFTID) && ids.includes(job.TFTID);
+        return ids.includes(race?.TFTID) && ids.includes(job?.TFTID);
       });
     }
   }

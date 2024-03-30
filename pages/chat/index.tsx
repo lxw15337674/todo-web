@@ -29,20 +29,23 @@ const Chat = () => {
 
   return (
     <Layout>
-      聊天室
-      <div>
-        <Input
-          onChange={(e) => {
-            setText(e.target.value);
-          }}
-        ></Input>
-        <Button onClick={sendMessage}>提交</Button>
+      <div className="m-2">
+        聊天室
         <div>
-          消息：
-          {messages.map((item, index) => {
-            return <div key={index}>{item}</div>;
-          })}
+          <Input
+            onChange={(e) => {
+              setText(e.target.value);
+            }}
+          ></Input>
+          <Button onClick={sendMessage}>提交</Button>
+          <div>
+            消息：
+            {messages.map((item, index) => {
+              return <div key={index}>{item}</div>;
+            })}
+          </div>
         </div>
+        <div></div>
       </div>
     </Layout>
   );
