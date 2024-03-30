@@ -5,7 +5,7 @@ import {
   TFTEquip,
 } from '@/api/tft/model/Equipment';
 import Equipment from './Equipment';
-
+import { Title } from 'antd';
 interface Props {
   equipsByType: EquipsByType;
 }
