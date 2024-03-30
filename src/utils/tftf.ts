@@ -64,7 +64,7 @@ export const getFetter = (
         return pre;
       }
       for (let i = 1; i < array.length; i++) {
-        if (array[i][index]) {
+        if ((array[i][index] as TFTChess[]).length > 0) {
           pre.push(index);
           break;
         }
