@@ -27,6 +27,10 @@ const APPS = [
     name: '云顶之弈一图流',
     url: '/tft',
   },
+  {
+    name: '每日热点',
+    url: '/dailyhot',
+  }
 ];
 
 export default function Header() {
