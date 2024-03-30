@@ -4,11 +4,14 @@ import { Desc } from './Desc';
 import { TFTEquip } from '@/api/tft/model/Equipment';
 
 interface Props {
-  equip: TFTEquip;
+  equip: TFTEquip | null;
 }
 
 const Equipment: React.FC<Props> = ({ equip }) => {
   const renderCard = () => {
+    if (!equip) {
+      return null;
+    }
     return (
       <div>
         <div className="flex items-center">
@@ -25,8 +28,8 @@ const Equipment: React.FC<Props> = ({ equip }) => {
       <Avatar
         shape="square"
         size={48}
-        src={equip.imagePath}
-        className="cursor-pointer"
+        src={equip?.imagePath}
+        className="cursor-pointer m-1"
       />
     </Popover>
   );

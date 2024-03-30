@@ -5,7 +5,6 @@ import {
   TFTEquip,
 } from '@/api/tft/model/Equipment';
 import Equipment from './Equipment';
-import { Avatar } from 'antd';
 
 interface Props {
   equipsByType: EquipsByType;
@@ -61,12 +60,8 @@ const EquipmentBox: React.FC<Props> = ({ equipsByType }) => {
           <div key={index}>
             {row.map((equip, index) => {
               return (
-                <div className=" inline-block p-1  " key={index}>
-                  {equip ? (
-                    <Equipment equip={equip} />
-                  ) : (
-                    <Avatar shape="square" size={48} />
-                  )}
+                <div className=" inline-block  " key={index}>
+                  <Equipment equip={equip} />
                 </div>
               );
             })}

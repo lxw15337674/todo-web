@@ -92,9 +92,7 @@ const RaceJobChessItem: React.FC<Props> = ({
                     src={raceJob.imagePath}
                     style={{ width: 16, height: 16, marginRight: 4 }}
                   />
-                  <span style={{ fontSize: 15, color: 'white' }}>
-                    {raceJob.name}
-                  </span>
+                  <span style={{ fontSize: 15 }}>{raceJob.name}</span>
                 </div>
               );
             })}
@@ -102,7 +100,6 @@ const RaceJobChessItem: React.FC<Props> = ({
               style={{
                 fontSize: 20,
                 fontWeight: 'bold',
-                color: 'white',
                 marginTop: 8,
               }}
             >
@@ -123,7 +120,6 @@ const RaceJobChessItem: React.FC<Props> = ({
           }}
           contentStyle={{
             fontSize: 13,
-            color: '#212121',
             padding: '4px 12px',
             fontWeight: 'bold',
           }}
@@ -157,13 +153,11 @@ const RaceJobChessItem: React.FC<Props> = ({
               shape="square"
               className="mr-2"
             />
-            <span
-              style={{ fontSize: 18, fontWeight: 'bold', color: '#212121' }}
-            >
+            <span style={{ fontSize: 18, fontWeight: 'bold' }}>
               {chess.skillName}
             </span>
           </div>
-          <span style={{ fontSize: 13, color: '#212121' }}>
+          <span style={{ fontSize: 13 }}>
             <Desc text={chess.skillDetail} />
           </span>
         </div>
