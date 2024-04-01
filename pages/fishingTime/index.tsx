@@ -73,18 +73,19 @@ function daysAndPercentageRemaining(): {
   );
 
   // 获取本年结束日期
-  const endOfYear = new Date();
-  endOfYear.setFullYear(endOfYear.getFullYear() + 1);
-  endOfYear.setDate(0);
-
-  // 计算距离本年结束的天数和百分比
-  const daysUntilEndOfYear = Math.floor(
-    (endOfYear.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-  );
+  // 距离本年结束的天数
+  const today = new Date();
+  const endOfYear = new Date(today.getFullYear(), 11, 31);
+  const diffTime = Math.abs(endOfYear.getTime() - now.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const daysUntilEndOfYear = Math.floor(diffDays);
+  const year = today.getFullYear();
+  const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  const daysInYear = isLeapYear ? 366 : 365;
+  // 已经过去的百分比
   const percentageCompletedOfYear = Math.round(
-    ((365 - daysUntilEndOfYear) / 365) * 100,
+    ((daysInYear - daysUntilEndOfYear) / daysInYear) * 100,
   );
-
   return {
     daysUntilEndOfWeek,
     percentageCompletedOfWeek,
