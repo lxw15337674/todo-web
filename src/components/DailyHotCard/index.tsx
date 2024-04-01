@@ -47,7 +47,7 @@ const DailyHotCard = ({ data }: Props) => {
       dataSource={data.children}
       bordered
       size="small"
-      className="h-full  [&_.ant-list-items]:scroll-container   [&_.ant-list-items]:max-h-[16rem]"
+      className="h-full  [&_.ant-list-items]:scroll-container   [&_.ant-list-items]:h-[16rem]"
       loading={data.children.length === 0}
       renderItem={(item, index) => (
         <List.Item className="justify-start ">
