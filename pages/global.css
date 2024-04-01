@@ -25,11 +25,16 @@
     filter: contrast(.1) brightness(10);
   }
 
-  /* .flex-center{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  } */
+  .scroll-container {
+    overflow: hidden;
+    padding-right: 15px;
+
+  }
+
+  .scroll-container:hover {
+    overflow: auto;
+    padding-right: 0;
+  }
 }
 
 html,

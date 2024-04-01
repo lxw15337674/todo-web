@@ -1,40 +1,33 @@
+'use Client';
 import Layout from '@/components/layout';
-import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
-import Grid from '@mui/material/Grid';
-import React, { useState } from 'react';
+import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
+import React from 'react';
 import DailyHotCard from '@/components/DailyHotCard';
 import { getHotLists } from '@/api/dailyhot';
 import useDailyHotStore from 'store/dailyhot';
-import { useMount, usePromise } from 'wwhooks';
-
-export async function getServerSideProps() {
-    // Fetch data from external API
-    const res = await fetch(`https://.../data`)
-    const data = await res.json()
-
-    // Pass data to the page via props
-    return { props: { data } }
-}
+import { useMount } from 'wwhooks';
 
 const DailyHot = () => {
-    const { hotLists } = useDailyHotStore()
-    useMount(async () => {
-        for (let item of hotLists) {
-            await getHotLists(item.name)
-        }
-    })
-    return <Layout>
+  const { hotLists } = useDailyHotStore();
+  useMount(async () => {
+    for (const item of hotLists) {
+      getHotLists(item.name);
+    }
+  });
+  return (
+    <Layout>
+      <div className="m-2">
         <Grid container spacing={2}>
-            {hotLists.map(item => {
-                if (item.children.length === 0) {
-                    return null
-                }
-                return <Grid item xs={6} key={item.name}>
-                    <DailyHotCard data={item} />
-                </Grid>
-            })}
+          {hotLists.map((item) => {
+            return (
+              <Grid xs={4} key={item.name}>
+                <DailyHotCard data={item} />
+              </Grid>
+            );
+          })}
         </Grid>
+      </div>
     </Layout>
-}
+  );
+};
 export default DailyHot;
