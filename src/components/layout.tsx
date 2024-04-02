@@ -9,9 +9,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       <Header />
-      <main>
-        <NoSSR>{children}</NoSSR>
-      </main>
+      <main>{children}</main>
       <Snackbar
         open={open}
         autoHideDuration={6000}

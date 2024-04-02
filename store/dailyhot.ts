@@ -159,34 +159,27 @@ interface HotStore {
   setHotLists: (type: string, hotLists: IRootObject) => void;
 }
 const useDailyHotStore = create(
-  devtools(
-    persist<HotStore>(
-      (set, get) => ({
-        hotLists: news.map((item) => {
+  devtools<HotStore>((set, get) => ({
+    hotLists: news.map((item) => {
+      return {
+        ...item,
+        children: [],
+      };
+    }),
+    setHotLists: (type, data) => {
+      const newHotLists = get().hotLists.map((item) => {
+        if (item.name === type) {
           return {
             ...item,
-            children: [],
+            subtitle: data.subtitle,
+            updateTime: data.updateTime,
+            children: data.data ?? [],
           };
-        }),
-        setHotLists: (type, data) => {
-          const newHotLists = get().hotLists.map((item) => {
-            if (item.name === type) {
-              return {
-                ...item,
-                subtitle: data.subtitle,
-                updateTime: data.updateTime,
-                children: data.data ?? [],
-              };
-            }
-            return item;
-          });
-          set({ hotLists: newHotLists });
-        },
-      }),
-      {
-        name: 'daily-hot', // name of the item in the storage (must be unique)
-      },
-    ),
-  ),
+        }
+        return item;
+      });
+      set({ hotLists: newHotLists });
+    },
+  })),
 );
 export default useDailyHotStore;
