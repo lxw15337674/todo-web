@@ -13,24 +13,24 @@ export interface HotType {
 }
 
 const news = [
-  {
-    label: '哔哩哔哩',
-    name: 'bilibili',
-    order: 0,
-    show: true,
-  },
+  // {
+  //   label: '哔哩哔哩',
+  //   name: 'bilibili',
+  //   order: 0,
+  //   show: true,
+  // },
   {
     label: '微博',
     name: 'weibo',
     order: 1,
     show: true,
   },
-  {
-    label: '抖音',
-    name: 'douyin',
-    order: 2,
-    show: true,
-  },
+  // {
+  //   label: '抖音',
+  //   name: 'douyin',
+  //   order: 2,
+  //   show: true,
+  // },
   {
     label: '知乎',
     name: 'zhihu',
