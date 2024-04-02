@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { service } from '..';
 
-interface FishingTime {
+export interface FishingTime {
   year: number;
   month: number;
   day: number;
@@ -24,7 +24,9 @@ interface FishingTime {
 }
 
 export function getFishingTime(): Promise<FishingTime> {
-  return service.get('/fishingTime');
+  return axios.get(`${process.env.API_URL}/fishingTime`).then((res) => {
+    return res.data.data;
+  });
 }
 
 interface HistoricalEvent {
