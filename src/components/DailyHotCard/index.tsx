@@ -44,7 +44,7 @@ const DailyHotCard = ({ data }: Props) => {
         )
       }
       itemLayout="horizontal"
-      dataSource={data.children.slice(0, 20)}
+      dataSource={data.children}
       bordered
       size="small"
       className="h-full  [&_.ant-list-items]:scroll-container   [&_.ant-list-items]:h-[16rem]"

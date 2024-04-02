@@ -24,13 +24,14 @@ export interface IRootObject {
 
 export const getHotLists = (type: string) => {
   return axios
-    .get(`/routing/dailyHot/${type}`)
+    .get(`https://daily-hot-api-chi-topaz.vercel.app/${type}`)
     .then((res) => {
       if (res.data.data) {
         useDailyHotStore.getState().setHotLists(type, res.data as IRootObject);
       }
+      return res.data;
     })
     .catch((res) => {
-      message.error(res.message);
+      console.error(res.message);
     });
 };

@@ -1,19 +1,24 @@
-'use Client';
 import Layout from '@/components/layout';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import React from 'react';
 import DailyHotCard from '@/components/DailyHotCard';
 import { getHotLists } from '@/api/dailyhot';
-import useDailyHotStore from 'store/dailyhot';
-import { useMount } from 'wwhooks';
+import useDailyHotStore, { HotType } from 'store/dailyhot';
 
-const DailyHot = () => {
-  const { hotLists } = useDailyHotStore();
-  useMount(async () => {
-    for (const item of hotLists) {
-      getHotLists(item.name);
-    }
-  });
+export async function getStaticProps() {
+  const { hotLists } = useDailyHotStore.getState();
+  for (const item of hotLists) {
+    await getHotLists(item.name);
+  }
+  return {
+    props: { hotLists: useDailyHotStore.getState().hotLists },
+    revalidate: 3600,
+  };
+}
+interface Props {
+  hotLists: HotType[];
+}
+const DailyHot = ({ hotLists }: Props) => {
   return (
     <Layout>
       <div className="m-2">

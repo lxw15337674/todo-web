@@ -13,9 +13,6 @@
       "request": "launch",
       "url": "http://localhost:8080",
       "sourceMaps": true,
-      "sourceMapPathOverrides": {
-        "/turbopack/[project]/*": "${webRoot}/*"
-      }
     },
     {
       "name": "Next.js: debug full stack",
@@ -23,9 +20,6 @@
       "request": "launch",
       "command": "pnpm run dev",
       "sourceMaps": true,
-      "sourceMapPathOverrides": {
-        "/turbopack/[project]/*": "${webRoot}/*"
-      },
       "serverReadyAction": {
         "pattern": "- Local:.+(https?://.+)",
         "uriFormat": "%s",

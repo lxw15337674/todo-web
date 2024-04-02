@@ -173,7 +173,7 @@ const useDailyHotStore = create(
             ...item,
             subtitle: data.subtitle,
             updateTime: data.updateTime,
-            children: data.data ?? [],
+            children: data.data.slice(0, 20) ?? [],
           };
         }
         return item;
