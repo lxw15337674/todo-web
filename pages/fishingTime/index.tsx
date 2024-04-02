@@ -34,7 +34,7 @@ function calculateDaysDifference(startDate: string, endDate: string): number {
     Math.abs((start.getTime() - end.getTime()) / oneDay),
   );
 
-  return diffDays;
+  return diffDays + 1;
 }
 function daysAndPercentageRemaining(): {
   daysUntilEndOfWeek: number;
