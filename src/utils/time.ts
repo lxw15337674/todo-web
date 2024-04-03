@@ -95,7 +95,45 @@ function lifeStats(birthDate: string, lifeExpectancy: number) {
 }
 
 export const { daysToLive, percentage } = lifeStats('1994-11-08', 70);
-// 示例用法
+
+export const getTime = () => {
+  const year = new Date().getFullYear();
+  const month = new Date().getMonth() + 1;
+  const day = new Date().getDate();
+  const lastDayOfMonth = new Date(year, month, 0).getDate();
+  const weekday = ['日', '一', '二', '三', '四', '五', '六'][
+    new Date().getDay()
+  ];
+  const passdays = Math.floor(
+    (+new Date() - +new Date(year, 0, 0)) / (1000 * 60 * 60 * 24),
+  );
+  const passhours = Math.floor(
+    (+new Date() - +new Date(year, 0, 0)) / (1000 * 60 * 60),
+  );
+  const salaryday1 = lastDayOfMonth - day;
+  const salaryday9 = day <= 9 ? 9 - day : lastDayOfMonth - day + 9;
+  const salaryday5 = day <= 5 ? 5 - day : lastDayOfMonth - day + 5;
+  const salaryday10 = day <= 10 ? 10 - day : lastDayOfMonth - day + 10;
+  const salaryday15 = day <= 15 ? 15 - day : lastDayOfMonth - day + 15;
+  const salaryday20 = day <= 20 ? 20 - day : lastDayOfMonth - day + 20;
+  const day_to_weekend = 6 - new Date().getDay();
+  return {
+    year,
+    month,
+    day,
+    weekday,
+    passdays,
+    passhours,
+    salaryday1,
+    salaryday5,
+    salaryday9,
+    salaryday10,
+    salaryday15,
+    salaryday20,
+    day_to_weekend,
+  };
+};
+
 export const {
   daysUntilEndOfWeek,
   percentageCompletedOfWeek,
@@ -104,3 +142,15 @@ export const {
   daysUntilEndOfYear,
   percentageCompletedOfYear,
 } = daysAndPercentageRemaining();
+
+// 计算距离下一个假期的间隔天数, 传入假期日期,如果假期已经过去, 返回-1，否则返回间隔天数
+export const calculateRestDays = (dateString: string) => {
+  const date = new Date(dateString);
+  const currentTime = new Date().getTime();
+  const targetTime = date.getTime();
+  const difference = targetTime - currentTime + 1000 * 60 * 60 * 24;
+  if (difference <= 0) {
+    return -1;
+  }
+  return Math.floor(difference / 1000 / 60 / 60 / 24);
+};

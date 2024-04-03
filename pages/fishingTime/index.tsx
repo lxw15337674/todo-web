@@ -1,13 +1,7 @@
 import Layout from '@/components/layout';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { usePromise } from 'wwhooks';
-import {
-  FishingTime,
-  englishToday,
-  getFishingTime,
-  holiday,
-  todayInHistory,
-} from '@/api/fishingTime';
+import { englishToday, holiday, todayInHistory } from '@/api/fishingTime';
 import Countdown from './Countdown';
 import { Progress } from 'antd';
 import {
@@ -20,36 +14,12 @@ import {
   daysToLive,
   percentage,
   calculateDaysDifference,
+  calculateRestDays,
+  getTime,
 } from '@/utils/time';
 import NoSSR from '@/components/NoSSR';
 
-// 计算距离下一个假期的间隔天数, 传入假期日期,如果假期已经过去, 返回-1，否则返回间隔天数
-const calculateRestDays = (dateString: string) => {
-  const date = new Date(dateString);
-  const currentTime = new Date().getTime();
-  const targetTime = date.getTime();
-  const difference = targetTime - currentTime;
-  if (difference <= 0) {
-    return -1;
-  }
-  return Math.floor(difference / 1000 / 60 / 60 / 24);
-};
-
-interface Props {
-  fishingTime: FishingTime;
-}
-
-export async function getStaticProps() {
-  const fishingTime = await getFishingTime();
-  return {
-    props: {
-      fishingTime,
-    },
-    revalidate: 60,
-  };
-}
-
-const Chat = ({ fishingTime }: Props) => {
+const Chat = () => {
   const { data: todayInHistoryData } = usePromise(todayInHistory, {
     manual: false,
     initialData: [],
@@ -60,6 +30,8 @@ const Chat = ({ fishingTime }: Props) => {
   const { data: nextHolidayData } = usePromise(holiday, {
     manual: false,
   });
+
+  const fishingTime = useMemo(() => getTime(), []);
 
   return (
     <Layout>
@@ -121,13 +93,13 @@ const Chat = ({ fishingTime }: Props) => {
                 if (!item.start || !item.end) {
                   return (
                     <li key={index}>
-                      距离【{item.name}】，还有 {restDays} 天。
+                      距离【{item.name}】还有 {restDays} 天。
                     </li>
                   );
                 }
                 return (
                   <li key={index}>
-                    距离【{item.name}】，还有 {restDays} 天。
+                    距离【{item.name}】还有 {restDays} 天。
                     {item.start} 至 {item.end} 放假调休, 共
                     {calculateDaysDifference(item.start, item.end)}天。
                   </li>
