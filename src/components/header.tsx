@@ -1,7 +1,7 @@
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { IconButton, Menu, MenuItem } from '@mui/material';
+import { Divider, IconButton, Menu, MenuItem } from '@mui/material';
 import React from 'react';
 import AppsIcon from '@mui/icons-material/Apps';
 import Head from 'next/head';
@@ -30,7 +30,14 @@ const APPS = [
   {
     name: '每日热点',
     url: '/dailyhot',
-  }
+  },
+];
+
+const Links = [
+  {
+    name: 'AI聊天 - LobeChat',
+    url: 'https://lobe-chat-omega-lac.vercel.app',
+  },
 ];
 
 export default function Header() {
@@ -84,6 +91,20 @@ export default function Header() {
                 <MenuItem
                   onClick={() => {
                     router.push(app.url);
+                    handleClose();
+                  }}
+                  key={app.name}
+                >
+                  {app.name}
+                </MenuItem>
+              );
+            })}
+            <Divider />
+            {Links.map((app) => {
+              return (
+                <MenuItem
+                  onClick={() => {
+                    window.open(app.url);
                     handleClose();
                   }}
                   key={app.name}
