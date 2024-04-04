@@ -12,12 +12,13 @@ export async function getStaticProps() {
   }
   return {
     props: { hotLists: useDailyHotStore.getState().hotLists },
+    revalidate: 3600,
   };
 }
 interface Props {
   hotLists: HotType[];
 }
-const DailyHot = ({ hotLists }: Props) => {
+const DailyHot = ({ hotLists = [] }: Props) => {
   return (
     <Layout>
       <div className="m-2">
