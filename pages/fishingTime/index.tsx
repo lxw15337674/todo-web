@@ -43,10 +43,7 @@ const Chat = () => {
               今天是 {fishingTime.year}年{fishingTime.month}月{fishingTime.day}
               日, 星期{fishingTime.weekday}。
             </p>
-            <p>
-              今年已经过去 {fishingTime.passdays} 天，共{fishingTime.passhours}{' '}
-              小时
-            </p>
+            <p>小时</p>
           </div>
           <div className="m-2">
             <h1 className="text-lg">【下班】</h1>
