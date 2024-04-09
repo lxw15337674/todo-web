@@ -33,7 +33,7 @@ const DailyHotCard = ({ data }: Props) => {
               {data?.label}
             </Typography.Title>
           </div>
-          <Typography.Title level={5} style={{ marginRight: 15 }}>
+          <Typography.Title level={5} className="mb-0 mr-[15px]">
             {data?.subtitle}
           </Typography.Title>
         </div>
@@ -47,7 +47,7 @@ const DailyHotCard = ({ data }: Props) => {
       dataSource={data.children}
       bordered
       size="small"
-      className="h-full  [&_.ant-list-items]:scroll-container   [&_.ant-list-items]:h-[16rem]"
+      className="h-full  [&_.ant-list-items]:scroll-container   [&_.ant-list-items]:h-[22rem]"
       loading={data.children.length === 0}
       renderItem={(item, index) => (
         <List.Item className="justify-start ">
