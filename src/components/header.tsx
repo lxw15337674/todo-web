@@ -65,6 +65,10 @@ export default function Header() {
       <Head>
         <title>{currentApp?.name}</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+        <link
+          rel="icon"
+          href="https://img.xwyue.com/i/2024/04/09/6614d9bedb545.png"
+        />
       </Head>
       <div
         className={
