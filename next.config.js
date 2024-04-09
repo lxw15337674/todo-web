@@ -11,6 +11,9 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  experimental: {
+    largePageDataBytes: 512 * 100000,
+  },
   rewrites: async () => {
     return [
       {
@@ -32,16 +35,17 @@ const nextConfig = {
       },
       {
         source: '/routing/tftVersionConfig',
-        destination: 'https://lol.qq.com/zmtftzone/public-lib/versionconfig.json'
+        destination:
+          'https://lol.qq.com/zmtftzone/public-lib/versionconfig.json',
       },
       {
         source: '/routing/game/:path*',
-        destination: 'https://game.gtimg.cn/:path*'
+        destination: 'https://game.gtimg.cn/:path*',
       },
       {
         source: '/routing/dailyHot/:path*',
-        destination: 'https://daily-hot-api-chi-topaz.vercel.app/:path*'
-      }
+        destination: 'https://daily-hot-api-chi-topaz.vercel.app/:path*',
+      },
     ];
   },
 };
