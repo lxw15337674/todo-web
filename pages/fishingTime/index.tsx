@@ -48,9 +48,9 @@ const Chat = () => {
             <h1 className="text-lg">【下班】</h1>
             <ul>
               <li>
-                距离【7点下班】：
+                距离【6点下班】：
                 <NoSSR>
-                  <Countdown targetTime={new Date().setHours(19, 0, 0, 0)} />
+                  <Countdown targetTime={new Date().setHours(18, 0, 0, 0)} />
                 </NoSSR>
               </li>
             </ul>
