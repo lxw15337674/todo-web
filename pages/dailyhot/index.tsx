@@ -8,7 +8,7 @@ import useDailyHotStore, { HotType } from 'store/dailyhot';
 export async function getStaticProps() {
   const { hotLists } = useDailyHotStore.getState();
   for (const item of hotLists) {
-    await getHotLists(item.name);
+    getHotLists(item.name);
   }
   return {
     props: { hotLists: useDailyHotStore.getState().hotLists },
