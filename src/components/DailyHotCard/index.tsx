@@ -52,16 +52,15 @@ const DailyHotCard = ({ data }: Props) => {
       renderItem={(item, index) => (
         <List.Item className="justify-start ">
           <Badge count={index + 1} color={textColor[index] ?? '#bfbfbf'} />
-          <Text
-            ellipsis={true}
-            className="text-base mx-2 cursor-pointer hover:text-primary flex-1"
+          <a
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-base mx-2 cursor-pointer hover:text-primary flex-1 visited:text-purple-800 truncate"
             title={item.title}
-            onClick={() => {
-              window.open(item.url);
-            }}
           >
             {item.title}
-          </Text>
+          </a>
           <Text className="ml-auto" title={item.hot?.toString()}>
             {item.hot}
           </Text>
