@@ -7,9 +7,7 @@ import useDailyHotStore, { HotType } from 'store/dailyhot';
 
 export async function getStaticProps() {
   const { hotLists } = useDailyHotStore.getState();
-  for (const item of hotLists) {
-    getHotLists(item.name);
-  }
+  await Promise.all(hotLists.map((item) => getHotLists(item.name)));
   return {
     props: { hotLists: useDailyHotStore.getState().hotLists },
     revalidate: 60,
