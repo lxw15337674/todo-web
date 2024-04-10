@@ -58,8 +58,7 @@ const Chat = () => {
           <div className="m-2">
             <h1 className="text-lg">【工资】</h1>
             <ul>
-              <li>距离【09号发工资】: {fishingTime.salaryday9} 天</li>
-              <li>距离【20号发工资】: {fishingTime.salaryday20} 天</li>
+              <li>距离【12号发工资】: {fishingTime.salaryday12} 天</li>
             </ul>
           </div>
           <div className="m-2">

@@ -111,9 +111,9 @@ export const getTime = () => {
     (+new Date() - +new Date(year, 0, 0)) / (1000 * 60 * 60),
   );
   const salaryday1 = lastDayOfMonth - day;
-  const salaryday9 = day <= 9 ? 9 - day : lastDayOfMonth - day + 9;
   const salaryday5 = day <= 5 ? 5 - day : lastDayOfMonth - day + 5;
   const salaryday10 = day <= 10 ? 10 - day : lastDayOfMonth - day + 10;
+  const salaryday12 = day <= 12 ? 12 - day : lastDayOfMonth - day + 12;
   const salaryday15 = day <= 15 ? 15 - day : lastDayOfMonth - day + 15;
   const salaryday20 = day <= 20 ? 20 - day : lastDayOfMonth - day + 20;
   const day_to_weekend = 6 - new Date().getDay();
@@ -126,7 +126,7 @@ export const getTime = () => {
     passhours,
     salaryday1,
     salaryday5,
-    salaryday9,
+    salaryday12,
     salaryday10,
     salaryday15,
     salaryday20,
