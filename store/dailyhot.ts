@@ -49,30 +49,30 @@ const news = [
   //     order: 5,
   //     show: true,
   // },
-  {
-    label: '少数派',
-    name: 'sspai',
-    order: 6,
-    show: true,
-  },
+  // {
+  //   label: '少数派',
+  //   name: 'sspai',
+  //   order: 6,
+  //   show: true,
+  // },
   // {
   //     label: "IT之家",
   //     name: "ithome",
   //     order: 7,
   //     show: true,
   // },
-  {
-    label: '澎湃新闻',
-    name: 'thepaper',
-    order: 8,
-    show: true,
-  },
-  {
-    label: '今日头条',
-    name: 'toutiao',
-    order: 9,
-    show: true,
-  },
+  // {
+  //   label: '澎湃新闻',
+  //   name: 'thepaper',
+  //   order: 8,
+  //   show: true,
+  // },
+  // {
+  //   label: '今日头条',
+  //   name: 'toutiao',
+  //   order: 9,
+  //   show: true,
+  // },
   // {
   //     label: "百度贴吧",
   //     name: "tieba",
@@ -85,12 +85,12 @@ const news = [
     order: 11,
     show: true,
   },
-  {
-    label: '腾讯新闻',
-    name: 'newsqq',
-    order: 12,
-    show: true,
-  },
+  // {
+  //   label: '腾讯新闻',
+  //   name: 'newsqq',
+  //   order: 12,
+  //   show: true,
+  // },
   {
     label: '豆瓣',
     name: 'douban_new',
