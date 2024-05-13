@@ -7,13 +7,14 @@ import useDailyHotStore, { HotType } from 'store/dailyhot';
 
 export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
   const { hotLists } = useDailyHotStore.getState();
   for (const item of hotLists) {
     await getHotLists(item.name);
   }
   return {
     props: { hotLists: useDailyHotStore.getState().hotLists },
+    revalidate: 10,
   };
 }
 interface Props {
