@@ -32,7 +32,7 @@ export async function getStaticProps() {
   const hotLists = await Promise.all(requests);
   return {
     props: { hotLists },
-    revalidate: 10,
+    revalidate: 3600,
   };
 }
 interface Props {
