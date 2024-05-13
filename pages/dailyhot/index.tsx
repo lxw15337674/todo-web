@@ -5,6 +5,8 @@ import DailyHotCard from '@/components/DailyHotCard';
 import { getHotLists } from '@/api/dailyhot';
 import useDailyHotStore, { HotType } from 'store/dailyhot';
 
+export const maxDuration = 60; // This function can run for a maximum of 5 seconds
+
 export async function getServerSideProps() {
   const { hotLists } = useDailyHotStore.getState();
   for (const item of hotLists) {
