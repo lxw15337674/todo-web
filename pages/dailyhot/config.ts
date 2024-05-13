@@ -1,18 +1,4 @@
-import { IData, IRootObject } from '@/api/dailyhot';
-import { create } from 'zustand';
-import { persist, devtools } from 'zustand/middleware';
-
-export interface HotType {
-  label: string;
-  name: string;
-  order: number;
-  show: boolean;
-  subtitle?: string;
-  updateTime?: string;
-  children: IData[];
-}
-
-const news = [
+export const news = [
   // {
   //   label: '哔哩哔哩',
   //   name: 'bilibili',
@@ -154,32 +140,3 @@ const news = [
     show: true,
   },
 ];
-interface HotStore {
-  hotLists: HotType[];
-  setHotLists: (type: string, hotLists: IRootObject) => void;
-}
-const useDailyHotStore = create(
-  devtools<HotStore>((set, get) => ({
-    hotLists: news.map((item) => {
-      return {
-        ...item,
-        children: [],
-      };
-    }),
-    setHotLists: (type, data) => {
-      const newHotLists = get().hotLists.map((item) => {
-        if (item.name === type) {
-          return {
-            ...item,
-            subtitle: data.subtitle,
-            updateTime: data.updateTime,
-            children: data.data.slice(0, 20) ?? [],
-          };
-        }
-        return item;
-      });
-      set({ hotLists: newHotLists });
-    },
-  })),
-);
-export default useDailyHotStore;

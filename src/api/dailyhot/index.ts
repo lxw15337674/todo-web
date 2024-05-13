@@ -26,9 +26,6 @@ export const getHotLists = (type: string) => {
   return axios
     .get(`https://daily-hot-api-chi-topaz.vercel.app/${type}`)
     .then((res) => {
-      if (res.data.data) {
-        useDailyHotStore.getState().setHotLists(type, res.data as IRootObject);
-      }
       return res.data;
     })
     .catch((res) => {

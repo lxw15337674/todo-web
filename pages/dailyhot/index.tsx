@@ -3,17 +3,25 @@ import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import React from 'react';
 import DailyHotCard from '@/components/DailyHotCard';
 import { getHotLists } from '@/api/dailyhot';
-import useDailyHotStore, { HotType } from 'store/dailyhot';
+import { news } from './config';
+import { HotType } from './type';
 
 export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
 export async function getStaticProps() {
-  const { hotLists } = useDailyHotStore.getState();
-  for (const item of hotLists) {
-    await getHotLists(item.name);
-  }
+  const requests = news.map((item) =>
+    getHotLists(item.name).then((res) => {
+      return {
+        ...item,
+        subtitle: res.subtitle,
+        updateTime: res.updateTime,
+        children: res.data ?? [],
+      };
+    }),
+  );
+  const hotLists = await Promise.all(requests);
   return {
-    props: { hotLists: useDailyHotStore.getState().hotLists },
+    props: { hotLists },
     revalidate: 10,
   };
 }
