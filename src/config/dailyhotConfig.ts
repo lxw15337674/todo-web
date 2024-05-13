@@ -71,12 +71,12 @@ export const news = [
     order: 11,
     show: true,
   },
-  // {
-  //   label: '腾讯新闻',
-  //   name: 'newsqq',
-  //   order: 12,
-  //   show: true,
-  // },
+  {
+    label: '腾讯新闻',
+    name: 'newsqq',
+    order: 12,
+    show: true,
+  },
   {
     label: '豆瓣',
     name: 'douban_new',
