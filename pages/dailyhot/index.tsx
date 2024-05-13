@@ -5,14 +5,13 @@ import DailyHotCard from '@/components/DailyHotCard';
 import { getHotLists } from '@/api/dailyhot';
 import useDailyHotStore, { HotType } from 'store/dailyhot';
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
   const { hotLists } = useDailyHotStore.getState();
   for (const item of hotLists) {
     await getHotLists(item.name);
   }
   return {
     props: { hotLists: useDailyHotStore.getState().hotLists },
-    revalidate: 60,
   };
 }
 interface Props {
