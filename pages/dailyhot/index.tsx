@@ -3,8 +3,18 @@ import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import React from 'react';
 import DailyHotCard from '@/components/DailyHotCard';
 import { getHotLists } from '@/api/dailyhot';
-import { news } from './config';
-import { HotType } from './type';
+import { news } from '../../src/config/dailyhotConfig';
+import { IData } from '@/api/dailyhot';
+
+export interface HotType {
+  label: string;
+  name: string;
+  order: number;
+  show: boolean;
+  subtitle?: string;
+  updateTime?: string;
+  children: IData[];
+}
 
 export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
