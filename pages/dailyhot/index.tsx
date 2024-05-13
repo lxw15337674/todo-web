@@ -12,7 +12,7 @@ export async function getStaticProps() {
   }
   return {
     props: { hotLists: useDailyHotStore.getState().hotLists },
-    revalidate: 3600,
+    revalidate: 60,
   };
 }
 interface Props {
