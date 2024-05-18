@@ -76,7 +76,7 @@ export default function Header() {
     <header>
       <Head>
         <title>{currentApp?.name}</title>
-        <link rel="icon" href="/icons/icon-384.png" />
+        <link rel="icon" href="./icons/icon-384.png" />
         <meta name="description" content="description" />
 
         <meta
