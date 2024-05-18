@@ -24,7 +24,7 @@ export async function getStaticProps() {
       return {
         ...item,
         subtitle: res?.subtitle ?? '',
-        updateTime: res?.updateTime ?? '',
+        updateTime: res?.updateTime ?? Date.now().toString(),
         children: res?.data ?? [],
       };
     }),
