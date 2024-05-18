@@ -23,14 +23,20 @@ const DailyHotCard = ({ data }: Props) => {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${year}/${month}/${day} ${hours}:${minutes}`;
   }, [data.updateTime]);
-
   return (
     <List
       header={
         <div className="flex justify-between  items-center">
           <div className="flex items-center">
             <Avatar
-              src={<Image src={`logo/${data.name}.png`} alt="avatar" />}
+              src={
+                <Image
+                  src={`/logo/${data.name}.png`}
+                  alt="avatar"
+                  width={30}
+                  height={30}
+                />
+              }
             />
             <Typography.Title level={5} style={{ margin: '0 5px' }}>
               {data?.label}
