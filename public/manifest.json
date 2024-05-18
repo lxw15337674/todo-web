@@ -3,17 +3,17 @@
     "short_name": "便捷工具",
     "icons": [
         {
-            "sizes": "./icons/icon-194.png",
+            "sizes": "./public/icons/icon-194.png",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "./icons/icon-384.png",
+            "src": "./public/icons/icon-384.png",
             "sizes": "384x384",
             "type": "image/png"
         },
         {
-            "src": "./icons/icon-512.png",
+            "src": "./public/icons/icon-512.png",
             "sizes": "512x512",
             "type": "image/png"
         }
