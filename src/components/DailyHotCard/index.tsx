@@ -1,6 +1,6 @@
 import { Avatar, Badge, List, Typography } from 'antd';
+import { HotType } from 'pages/dailyhot';
 import React, { useMemo } from 'react';
-import { HotType } from 'store/dailyhot';
 const { Text } = Typography;
 
 interface Props {
@@ -47,7 +47,7 @@ const DailyHotCard = ({ data }: Props) => {
       dataSource={data.children}
       bordered
       size="small"
-      className="h-full  [&_.ant-list-items]:scroll-container   [&_.ant-list-items]:h-[22rem]"
+      className="h-full  [&_.ant-list-items]:scroll-container   [&_.ant-list-items]:h-[22rem] w-full"
       loading={data.children.length === 0}
       renderItem={(item, index) => (
         <List.Item className="justify-start ">

@@ -42,15 +42,15 @@ const DailyHot = ({ hotLists = [] }: Props) => {
   return (
     <Layout>
       <div className="m-2">
-        <Grid container spacing={2}>
+        <div className="grid md:grid-cols-3 gap-4 ">
           {hotLists.map((item) => {
             return (
-              <Grid xs={4} key={item.name}>
+              <div className="w-full overflow-auto" key={item.name}>
                 <DailyHotCard data={item} />
-              </Grid>
+              </div>
             );
           })}
-        </Grid>
+        </div>
       </div>
     </Layout>
   );
