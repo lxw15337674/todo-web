@@ -23,7 +23,7 @@ export async function getStaticProps() {
     getHotLists(item.name).then((res) => {
       return {
         ...item,
-        subtitle: res?.subtitle,
+        subtitle: res?.subtitle ?? '',
         updateTime: res?.updateTime,
         children: res?.data ?? [],
       };
