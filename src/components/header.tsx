@@ -38,6 +38,18 @@ const Links = [
     name: 'AI聊天 - LobeChat',
     url: 'https://lobe-chat-omega-lac.vercel.app',
   },
+  {
+    name: '个人博客',
+    url: 'https://bhwa233-blog.vercel.app',
+  },
+  {
+    name: '个人笔记本',
+    url: 'https://noiton-next-memos.vercel.app',
+  },
+  {
+    name: '网站剪藏',
+    url: 'https://omnivore.app/',
+  },
 ];
 
 export default function Header() {
