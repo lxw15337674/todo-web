@@ -88,7 +88,7 @@ export default function Header() {
           name="viewport"
           content="width=device-width,initial-scale=1.0,minimum-scale=1,maximum-scale=1,user-scalable=no"
         />
-        <meta name="theme-color" content="#6768ab" />
+        <meta name="theme-color" content="#fffff" />
         <link rel="manifest" href="/manifest.json" />
       </Head>
       <div
