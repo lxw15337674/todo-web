@@ -78,7 +78,6 @@ export default function Header() {
         <title>{currentApp?.name}</title>
         <link rel="icon" href="./icons/icon-384.png" />
         <meta name="description" content="description" />
-
         <meta
           name="keywords"
           content="HTML5, CSS3, JavaScript, TypeScript, Vue, React, 前端, 个人博客"
@@ -88,7 +87,7 @@ export default function Header() {
           name="viewport"
           content="width=device-width,initial-scale=1.0,minimum-scale=1,maximum-scale=1,user-scalable=no"
         />
-        <meta name="theme-color" content="#fffff" />
+        <meta name="theme-color" content="#2564cf" />
         <link rel="manifest" href="/manifest.json" />
       </Head>
       <div
