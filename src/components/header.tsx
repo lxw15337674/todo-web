@@ -47,6 +47,10 @@ const Links = [
     url: 'https://noiton-next-memos.vercel.app',
   },
   {
+    name: '微博热搜榜历史',
+    url: 'https://weibo-trending-hot-history.vercel.app',
+  },
+  {
     name: '网站剪藏',
     url: 'https://omnivore.app/',
   },
