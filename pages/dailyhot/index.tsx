@@ -1,5 +1,4 @@
 import Layout from '@/components/layout';
-import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import React from 'react';
 import DailyHotCard from '@/components/DailyHotCard';
 import { getHotLists } from '@/api/dailyhot';
@@ -15,8 +14,6 @@ export interface HotType {
   updateTime?: string;
   children: IData[];
 }
-
-export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
 export async function getStaticProps() {
   const requests = news.map((item) =>
