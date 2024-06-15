@@ -52,10 +52,6 @@ const nextConfig = withPWA({
         source: '/routing/game/:path*',
         destination: 'https://game.gtimg.cn/:path*',
       },
-      {
-        source: '/routing/dailyHot/:path*',
-        destination: 'https://daily-hot-api-chi-topaz.vercel.app/:path*',
-      },
     ];
   },
 });

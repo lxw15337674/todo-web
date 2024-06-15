@@ -11,12 +11,12 @@ export const news = [
     order: 1,
     show: true,
   },
-  // {
-  //   label: '抖音',
-  //   name: 'douyin',
-  //   order: 2,
-  //   show: true,
-  // },
+  {
+    label: '抖音',
+    name: 'douyin',
+    order: 2,
+    show: true,
+  },
   {
     label: '知乎',
     name: 'zhihu',
@@ -41,18 +41,18 @@ export const news = [
   //   order: 6,
   //   show: true,
   // },
-  // {
-  //     label: "IT之家",
-  //     name: "ithome",
-  //     order: 7,
-  //     show: true,
-  // },
-  // {
-  //   label: '澎湃新闻',
-  //   name: 'thepaper',
-  //   order: 8,
-  //   show: true,
-  // },
+  {
+    label: 'IT之家',
+    name: 'ithome',
+    order: 7,
+    show: true,
+  },
+  {
+    label: '澎湃新闻',
+    name: 'thepaper',
+    order: 8,
+    show: true,
+  },
   // {
   //   label: '今日头条',
   //   name: 'toutiao',
@@ -65,20 +65,20 @@ export const news = [
   //     order: 10,
   //     show: true,
   // },
+  // {
+  //   label: '稀土掘金',
+  //   name: 'juejin',
+  //   order: 11,
+  //   show: true,
+  // },
+  // {
+  //   label: '腾讯新闻',
+  //   name: 'newsqq',
+  //   order: 12,
+  //   show: true,
+  // },
   {
-    label: '稀土掘金',
-    name: 'juejin',
-    order: 11,
-    show: true,
-  },
-  {
-    label: '腾讯新闻',
-    name: 'newsqq',
-    order: 12,
-    show: true,
-  },
-  {
-    label: '豆瓣',
+    label: '豆瓣电影',
     name: 'douban_new',
     order: 13,
     show: true,
@@ -107,12 +107,12 @@ export const news = [
     order: 18,
     show: true,
   },
-  {
-    label: '豆瓣讨论小组',
-    name: 'douban_group',
-    order: 19,
-    show: true,
-  },
+  // {
+  //   label: '豆瓣讨论小组',
+  //   name: 'douban_group',
+  //   order: 19,
+  //   show: true,
+  // },
   // {
   //     label: "网易云音乐",
   //     name: "netease_music_toplist",
