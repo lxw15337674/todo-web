@@ -12,6 +12,18 @@ export const news = [
     show: true,
   },
   {
+    label: 'NGA',
+    name: 'ngabbs',
+    order: 22,
+    show: true,
+  },
+  {
+    label: 'V2EX',
+    name: 'v2ex',
+    order: 23,
+    show: true,
+  },
+  {
     label: '抖音',
     name: 'douyin',
     order: 2,
@@ -83,12 +95,12 @@ export const news = [
     order: 13,
     show: true,
   },
-  {
-    label: 'LOL',
-    name: 'lol',
-    order: 15,
-    show: true,
-  },
+  // {
+  //   label: 'LOL',
+  //   name: 'lol',
+  //   order: 15,
+  //   show: true,
+  // },
   // {
   //     label: "快手",
   //     name: "kuaishou",
@@ -107,12 +119,12 @@ export const news = [
     order: 18,
     show: true,
   },
-  // {
-  //   label: '豆瓣讨论小组',
-  //   name: 'douban_group',
-  //   order: 19,
-  //   show: true,
-  // },
+  {
+    label: '豆瓣讨论小组',
+    name: 'douban_group',
+    order: 19,
+    show: true,
+  },
   // {
   //     label: "网易云音乐",
   //     name: "netease_music_toplist",
@@ -127,16 +139,4 @@ export const news = [
   //     order: 21,
   //     show: true,
   // },
-  {
-    label: 'NGA',
-    name: 'ngabbs',
-    order: 22,
-    show: true,
-  },
-  {
-    label: 'V2EX',
-    name: 'v2ex',
-    order: 23,
-    show: true,
-  },
 ];
