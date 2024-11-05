@@ -1,7 +1,7 @@
 import { Avatar, Badge, List, Typography } from 'antd';
 import { HotType } from 'pages/dailyhot';
 import Image from 'next/image';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 const { Text } = Typography;
 
 interface Props {
@@ -11,6 +11,14 @@ interface Props {
 const textColor = ['#ea444d', '#ed702d', '#eead3f'];
 
 const DailyHotCard = ({ data }: Props) => {
+  const [imageExists, setImageExists] = useState(true);
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = `/logo/${data.name}.png`;
+    img.onload = () => setImageExists(true);
+    img.onerror = () => setImageExists(false);
+  }, [data.name]);
+
   const date = useMemo(() => {
     if (!data.updateTime) {
       return '';
@@ -28,16 +36,20 @@ const DailyHotCard = ({ data }: Props) => {
       header={
         <div className="flex justify-between  items-center">
           <div className="flex items-center">
-            <Avatar
-              src={
-                <Image
-                  src={`/logo/${data.name}.png`}
-                  alt="avatar"
-                  width={30}
-                  height={30}
+            {
+              imageExists && (
+                <Avatar
+                  src={
+                    <Image
+                      src={`/logo/${data.name}.png`}
+                      alt="avatar"
+                      width={30}
+                      height={30}
+                    />
+                  }
                 />
-              }
-            />
+              )
+            }
             <Typography.Title level={5} style={{ margin: '0 5px' }}>
               {data?.label}
             </Typography.Title>

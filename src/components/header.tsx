@@ -57,18 +57,15 @@ const Links = [
 ];
 
 export default function Header() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const currentApp = APPS.find((app) => app.url === router.pathname);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/user/login');
-    }
     if (currentApp?.name && document.title) {
       document.title = currentApp?.name;
     }
-  }, [router, status]);
+  }, [router]);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);

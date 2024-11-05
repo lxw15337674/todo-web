@@ -24,7 +24,7 @@ export interface IRootObject {
 
 export const getHotLists = (type: string) => {
   return axios
-    .get(`https://daily-hot-api-chi-topaz.vercel.app/${type}`)
+    .get(`https://dailyhot.hkg1.zeabur.app/${type}`)
     .then((res) => {
       return res.data;
     })
