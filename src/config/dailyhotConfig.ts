@@ -70,7 +70,7 @@ export const news = [
     order: 14,
   },
   {
-    label: '36 氪',
+    label: '36氪',
     name: '36kr',
     order: 15,
   },

@@ -1,6 +1,4 @@
-import { message } from 'antd';
 import axios from 'axios';
-import useDailyHotStore from 'store/dailyhot';
 
 export interface IData {
   title: string;
@@ -24,7 +22,7 @@ export interface IRootObject {
 
 export const getHotLists = (type: string) => {
   return axios
-    .get(`https://dailyhot.hkg1.zeabur.app/${type}`)
+    .get(`https://dailyhot.hkg1.zeabur.app/${type}?cache=false`)
     .then((res) => {
       return res.data;
     })
