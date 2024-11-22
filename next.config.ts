@@ -15,13 +15,10 @@ const nextConfig = withPWA({
     API_URL: process.env.API_URL,
   },
   typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
     ignoreBuildErrors: true,
   },
   experimental: {
+    reactCompiler: true,
     largePageDataBytes: 512 * 100000,
   },
   rewrites: async () => {

@@ -10,7 +10,7 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS='--inspect' next dev  -p 8080",
+    "dev": "cross-env NODE_OPTIONS='--inspect' next dev --turbopack  -p 8080",
     "build": "next build ",
     "start": "next --turbo -p 8080",
     "type-check": "tsc --noEmit",
@@ -35,14 +35,15 @@
     "ahooks": "3.7.10",
     "antd": "5.8.6",
     "axios": "1.6.0",
+    "babel-plugin-react-compiler": "19.0.0-beta-0dec889-20241115",
     "cross-env": "7.0.3",
     "dayjs": "1.11.9",
     "lodash": "4.17.21",
-    "next": "14.1.0",
+    "next": "15.0.3",
     "next-auth": "4.24.6",
     "next-pwa": "5.6.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-markdown": "9.0.1",
     "socket.io-client": "4.7.4",
     "swr": "2.2.5",
@@ -54,13 +55,13 @@
   "devDependencies": {
     "@types/lodash": "4.14.198",
     "@types/node": "18.17.11",
-    "@types/react": "18.2.21",
-    "@types/react-dom": "18.2.7",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
     "@typescript-eslint/eslint-plugin": "6.4.1",
     "@typescript-eslint/parser": "6.4.1",
     "autoprefixer": "10.4.15",
     "eslint": "8.48.0",
-    "eslint-config-next": "14.1.0",
+    "eslint-config-next": "15.0.3",
     "eslint-config-prettier": "9.0.0",
     "eslint-import-resolver-typescript": "3.6.0",
     "eslint-plugin-import": "2.28.1",
@@ -71,5 +72,11 @@
     "prettier": "3.0.2",
     "tailwindcss": "3.3.3",
     "typescript": "5.2.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "18.3.12",
+      "@types/react-dom": "18.3.1"
+    }
   }
 }
