@@ -1,10 +1,9 @@
-import { signIn, signOut, useSession } from 'next-auth/react';
+'use client';
 import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Divider, IconButton, Menu, MenuItem } from '@mui/material';
 import React from 'react';
 import AppsIcon from '@mui/icons-material/Apps';
-import Head from 'next/head';
 
 const APPS = [
   {
@@ -57,15 +56,14 @@ const Links = [
 ];
 
 export default function Header() {
-  const { data: session } = useSession();
   const router = useRouter();
-  const currentApp = APPS.find((app) => app.url === router.pathname);
+  // const currentApp = APPS.find((app) => app.url === router.pathname);
 
-  useEffect(() => {
-    if (currentApp?.name && document.title) {
-      document.title = currentApp?.name;
-    }
-  }, [router]);
+  // useEffect(() => {
+  //   if (currentApp?.name && document.title) {
+  //     document.title = currentApp?.name;
+  //   }
+  // }, [router]);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -75,7 +73,7 @@ export default function Header() {
   };
   return (
     <header>
-      <Head>
+      {/* <Head>
         <title>{currentApp?.name}</title>
         <link rel="icon" href="./icons/icon-384.png" />
         <meta name="description" content="description" />
@@ -90,7 +88,7 @@ export default function Header() {
         />
         <meta name="theme-color" content="#2564cf" />
         <link rel="manifest" href="/manifest.json" />
-      </Head>
+      </Head> */}
       <div
         className={
           'h-[48px] leading-[48px] bg-primary  text-white flex px-[14px]  '
@@ -139,41 +137,9 @@ export default function Header() {
               );
             })}
           </Menu>
-          <span>{currentApp?.name}</span>
+          {/* <span>{currentApp?.name}</span> */}
         </div>
         <div className="flex-1"> </div>
-        <div className="flex items-center">
-          {!session && (
-            <>
-              <span>You are not signed in</span>
-              <button onClick={() => signIn()}>登录</button>
-            </>
-          )}
-          {session?.user && (
-            <>
-              <strong className="mr-4">{session.user.name}</strong>
-              {session.user.image && (
-                <span
-                  style={{ backgroundImage: `url('${session.user.image}')` }}
-                  className="avatar rounded-full h-[32px] w-[32px]  bg-white bg-cover bg-no-repeat inline-block"
-                />
-              )}
-              <a
-                className="ml-4 "
-                href={`/api/auth/signout`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  localStorage.removeItem('token');
-                  signOut({
-                    callbackUrl: '/user/login',
-                  });
-                }}
-              >
-                登出
-              </a>
-            </>
-          )}
-        </div>
       </div>
     </header>
   );

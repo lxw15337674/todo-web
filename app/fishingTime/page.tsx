@@ -1,3 +1,5 @@
+'use client';
+
 import Layout from '@/components/layout';
 import React, { useMemo } from 'react';
 import { usePromise } from 'wwhooks';

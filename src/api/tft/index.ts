@@ -1,3 +1,5 @@
+'use server';
+
 import axios from 'axios';
 import { JobType, RaceType, TFTCard, TFTChess } from './type';
 import { EquipsByType, TFTEquip } from './model/Equipment';
@@ -17,63 +19,56 @@ export interface ISeasonInfo {
   urlAdventureData?: string;
 }
 
-export function getVersionConfig(): Promise<ISeasonInfo[]> {
-  return axios.get('/routing/tftVersionConfig').then((res) => res.data);
+export async function getVersionConfig(): Promise<ISeasonInfo[]> {
+  const res = await axios.get('/routing/tftVersionConfig');
+  return res.data;
 }
-
-// // 奇遇
-// export function getAdventure(url): Promise<any> {
-//     return axios.get()
-// }
 
 const routingGame = (url: string) => {
   return url.replace('https://game.gtimg.cn/', '/routing/game/');
 };
 
 // 棋子
-export function getChessData(url: string): Promise<TFTChess[]> {
-  return axios.get(routingGame(url)).then((res) => {
-    return res.data.data;
-  });
+export async function getChessData(url: string): Promise<TFTChess[]> {
+  const res = await axios.get(routingGame(url));
+  return res.data.data;
 }
 
 // 职业
-export function getJobData(url: string): Promise<TFTCard[]> {
-  return axios.get(routingGame(url)).then((res) => {
-    return res.data.data.map((job: JobType) => {
-      return {
-        ...job,
-        id: job.jobId,
-        level: job.job_color_list?.split(',').map((item) => {
-          const [chessCount, color] = item.split(':');
-          return {
-            chessCount: parseInt(chessCount),
-            color: parseInt(color),
-            description: job.level[parseInt(chessCount)],
-          };
-        }),
-      };
-    });
+export async function getJobData(url: string): Promise<TFTCard[]> {
+  const res = await axios.get(routingGame(url));
+  return res.data.data.map((job: JobType) => {
+    return {
+      ...job,
+      id: job.jobId,
+      level: job.job_color_list?.split(',').map((item) => {
+        const [chessCount, color] = item.split(':');
+        return {
+          chessCount: parseInt(chessCount),
+          color: parseInt(color),
+          description: job.level[parseInt(chessCount)],
+        };
+      }),
+    };
   });
 }
 
 // 羁绊
-export function getRaceData(url: string): Promise<TFTCard[]> {
-  return axios.get(routingGame(url)).then((res) => {
-    return res.data.data.map((race: RaceType) => {
-      return {
-        ...race,
-        id: race.raceId,
-        level: race.race_color_list.split(',').map((item) => {
-          const [chessCount, color] = item.split(':');
-          return {
-            chessCount: parseInt(chessCount),
-            color: parseInt(color),
-            description: race.level[parseInt(chessCount)],
-          };
-        }),
-      };
-    });
+export async function getRaceData(url: string): Promise<TFTCard[]> {
+  const res = await axios.get(routingGame(url));
+  return res.data.data.map((race: RaceType) => {
+    return {
+      ...race,
+      id: race.raceId,
+      level: race.race_color_list.split(',').map((item) => {
+        const [chessCount, color] = item.split(':');
+        return {
+          chessCount: parseInt(chessCount),
+          color: parseInt(color),
+          description: race.level[parseInt(chessCount)],
+        };
+      }),
+    };
   });
 }
 

@@ -1,5 +1,5 @@
 import { Avatar, Badge, List, Typography } from 'antd';
-import { HotType } from 'pages/dailyhot';
+import { HotType } from '@/public/app/dailyhot';
 import Image from 'next/image';
 import React, { useEffect, useMemo, useState } from 'react';
 const { Text } = Typography;
@@ -36,20 +36,18 @@ const DailyHotCard = ({ data }: Props) => {
       header={
         <div className="flex justify-between  items-center">
           <div className="flex items-center">
-            {
-              imageExists && (
-                <Avatar
-                  src={
-                    <Image
-                      src={`/logo/${data.name}.png`}
-                      alt="avatar"
-                      width={30}
-                      height={30}
-                    />
-                  }
-                />
-              )
-            }
+            {imageExists && (
+              <Avatar
+                src={
+                  <Image
+                    src={`/logo/${data.name}.png`}
+                    alt="avatar"
+                    width={30}
+                    height={30}
+                  />
+                }
+              />
+            )}
             <Typography.Title level={5} style={{ margin: '0 5px' }}>
               {data?.label}
             </Typography.Title>
