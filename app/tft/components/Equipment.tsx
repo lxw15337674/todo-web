@@ -7,7 +7,7 @@ interface Props {
   equip: TFTEquip | null;
 }
 
-const Equipment: React.FC<Props> = ({ equip }) => {
+const Equipment = ({ equip }:Props) => {
   const renderCard = () => {
     if (!equip) {
       return null;

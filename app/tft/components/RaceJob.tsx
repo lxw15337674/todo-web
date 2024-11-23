@@ -1,17 +1,18 @@
+'use client'
 import React from 'react';
 import { TFTCard } from '@/api/tft/type';
 import Popover from '@mui/material/Popover';
 import {
   getRaceJobLevelBorderColor,
   getRaceJobLevelColor,
-} from '../../api/tft/model/RaceJob';
+} from '../../../src/api/tft/model/RaceJob';
 import { Avatar } from '@mui/material';
 
 interface Props {
   raceJob: TFTCard;
 }
 
-const RaceJob: React.FC<Props> = ({ raceJob }) => {
+const RaceJob = ({ raceJob }: Props) => {
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 
   const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {

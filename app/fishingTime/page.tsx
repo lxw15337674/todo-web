@@ -36,7 +36,7 @@ const Chat = () => {
   const fishingTime = useMemo(() => getTime(), []);
 
   return (
-    <Layout>
+    <>
       <div>
         <div className="[&_>p]:text-base">
           <div className="m-2">
@@ -123,7 +123,7 @@ const Chat = () => {
           );
         })}
       </div>
-    </Layout>
+    </>
   );
 };
 export default Chat;

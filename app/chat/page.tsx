@@ -1,8 +1,9 @@
+'use client';
 import Layout from '@/components/layout';
 import { Button, Input } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 import { Socket, io } from 'socket.io-client';
-import { useArray } from 'wwhooks';
+import { useArray, useUnmount } from 'wwhooks';
 
 const Chat = () => {
   const ws = useRef<Socket | null>(null);
@@ -26,9 +27,11 @@ const Chat = () => {
       action.push(data);
     });
   }, [ws]);
-
+  useUnmount(() => {
+    ws.current?.close();
+  });
   return (
-    <Layout>
+    <>
       <div className="m-2">
         聊天室
         <div>
@@ -47,7 +50,7 @@ const Chat = () => {
         </div>
         <div></div>
       </div>
-    </Layout>
+    </>
   );
 };
 export default Chat;

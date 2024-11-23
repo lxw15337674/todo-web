@@ -1,3 +1,4 @@
+'use client';
 import Layout from 'src/components/layout';
 import { useDebounceFn, useMount, useObject } from 'wwhooks';
 import {
@@ -48,7 +49,7 @@ export default function IndexPage() {
   }, [counts, state.search]);
 
   return (
-    <Layout>
+    <>
       <CountInfoDrawer />
       <div className="flex h-full">
         <div className="flex-1 m-3 flex flex-col ">
@@ -94,6 +95,6 @@ export default function IndexPage() {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 }

@@ -3,7 +3,7 @@ import {
   ChessImageType,
   getBorderColor,
   getChessImage,
-} from '../../api/tft/model/Chess';
+} from '../../../src/api/tft/model/Chess';
 import { Descriptions, Popover, Avatar } from 'antd';
 import { TFTChess, TFTCard } from '@/api/tft/type';
 import { ISeasonInfo } from '@/api/tft';

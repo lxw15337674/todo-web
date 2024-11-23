@@ -4,88 +4,39 @@ import {
   getJobData,
   getRaceData,
   getVersionConfig,
-  ISeasonInfo,
 } from '@/api/tft';
-import EquipmentBox from '@/components/tft/EquipmentBox';
+import EquipmentBox from '@/public/app/tft/components/EquipmentBox';
 import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   Typography,
 } from '@mui/material';
 import { getFetter, Item } from '@/utils/tftf';
 import { TFTCard, TFTChess } from '@/api/tft/type';
-import Equipment from '@/components/tft/Equipment';
-import { EquipmentType, TFTEquip } from '@/api/tft/model/Equipment';
-import RaceJob from '@/components/tft/RaceJob';
+import Equipment from '@/public/app/tft/components/Equipment';
+import { EquipmentType, EquipsByType, TFTEquip } from '@/api/tft/model/Equipment';
+import RaceJob from '@/public/app/tft/components/RaceJob';
 import { ConfigProvider, theme } from 'antd';
-import { redirect } from 'next/navigation';
-import RaceJobChessItem from '../../src/components/tft/RaceJobChessItem';
+import RaceJobChessItem from './components/RaceJobChessItem';
+import VersionSelect from './components/VersionSelect';
 
-export const revalidate = 60 * 60 * 24 * 7;
-export const dynamicParams = true;
-export async function generateStaticParams({
-  params,
-}: {
-  params: { version: string };
-}) {
-  const posts = await fetch('https://api.vercel.app/blog').then((res) =>
-    res.json(),
-  );
-  console.log(posts);
+type SearchParams = { [key: string]: string | string[] | undefined }
+
+export default async function Page({searchParams}: {searchParams: SearchParams}) {
+  const {version} = await searchParams
   const versionData = await getVersionConfig();
-  debugger;
-  const currentVersion = versionData[0];
+  const currentVersion = versionData.find(
+    (item) => item.idSeason === version
+  ) ?? versionData[0];
   const chesses = await getChessData(currentVersion.urlChessData);
   const jobs = await getJobData(currentVersion.urlJobData);
   const races = await getRaceData(currentVersion.urlRaceData);
-  const equips = await getEquipData(currentVersion.urlEquipData);
+  const equips = (await getEquipData(currentVersion.urlEquipData)).reduce((acc: EquipsByType, equip: TFTEquip) => {
+    return acc.set(equip.type, (acc.get(equip.type) || []).concat(equip));
+  }, new Map());
   const items = getFetter(jobs, races, chesses);
-  return {
-    versionData,
-    items,
-    jobs,
-    races,
-    equips,
-    currentVersion: versionData.find(
-      (item) => item.idSeason === params.version || versionData[0].idSeason,
-    ),
-  };
-}
-
-interface Props {
-  versionData: ISeasonInfo[];
-  items: Item[][];
-  jobs: TFTCard[];
-  races: TFTCard[];
-  equips: Map<EquipmentType, TFTEquip[]>;
-  currentVersion: ISeasonInfo;
-}
-export default async function IndexPage({ params }: { params: Props }) {
-  const { versionData, items, jobs, races, equips, currentVersion } = params;
-  console.log(params, versionData);
   return (
     <div className="p-3 bg-[#141329] text-white">
       <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
-        <FormControl fullWidth>
-          <InputLabel>版本</InputLabel>
-          <Select
-            value={currentVersion}
-            label="版本"
-            onChange={(e) => {
-              redirect(`/tft?version=${e.target.value}`);
-            }}
-          >
-            {versionData?.map((item) => {
-              return (
-                <MenuItem value={item.idSeason} key={item.idSeason}>
-                  {item.stringName}
-                </MenuItem>
-              );
-            })}
-          </Select>
-        </FormControl>
+        <VersionSelect currentVersion={currentVersion} versionData={versionData }/>
         <Typography variant="h5" gutterBottom>
           羁绊公式
         </Typography>

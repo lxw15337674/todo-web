@@ -10,14 +10,14 @@ const APPS = [
     name: '摸鱼办',
     url: '/fishingTime',
   },
-  {
-    name: '待办事项',
-    url: '/todo',
-  },
-  {
-    name: '计数器',
-    url: '/counter',
-  },
+  // {
+  //   name: '待办事项',
+  //   url: '/todo',
+  // },
+  // {
+  //   name: '计数器',
+  //   url: '/counter',
+  // },
   {
     name: '聊天室',
     url: '/chat',
@@ -57,13 +57,13 @@ const Links = [
 
 export default function Header() {
   const router = useRouter();
-  // const currentApp = APPS.find((app) => app.url === router.pathname);
+  const currentApp = APPS.find((app) => app.url === router.pathname);
 
-  // useEffect(() => {
-  //   if (currentApp?.name && document.title) {
-  //     document.title = currentApp?.name;
-  //   }
-  // }, [router]);
+  useEffect(() => {
+    if (currentApp?.name && document.title) {
+      document.title = currentApp?.name;
+    }
+  }, [router]);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -73,22 +73,6 @@ export default function Header() {
   };
   return (
     <header>
-      {/* <Head>
-        <title>{currentApp?.name}</title>
-        <link rel="icon" href="./icons/icon-384.png" />
-        <meta name="description" content="description" />
-        <meta
-          name="keywords"
-          content="HTML5, CSS3, JavaScript, TypeScript, Vue, React, 前端, 个人博客"
-        />
-        <meta name="author" content="author" />
-        <meta
-          name="viewport"
-          content="width=device-width,initial-scale=1.0,minimum-scale=1,maximum-scale=1,user-scalable=no"
-        />
-        <meta name="theme-color" content="#2564cf" />
-        <link rel="manifest" href="/manifest.json" />
-      </Head> */}
       <div
         className={
           'h-[48px] leading-[48px] bg-primary  text-white flex px-[14px]  '
@@ -137,7 +121,7 @@ export default function Header() {
               );
             })}
           </Menu>
-          {/* <span>{currentApp?.name}</span> */}
+          <span>{currentApp?.name}</span>
         </div>
         <div className="flex-1"> </div>
       </div>

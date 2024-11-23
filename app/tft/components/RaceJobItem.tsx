@@ -1,8 +1,9 @@
+'use client'
 import React, { useState } from 'react';
 import {
   getRaceJobLevelBorderColor,
   getRaceJobLevelColor,
-} from '../../api/tft/model/RaceJob';
+} from '../../../src/api/tft/model/RaceJob';
 import { Popover } from 'antd';
 import { TFTCard } from '@/api/tft/type';
 
@@ -10,7 +11,7 @@ interface Props {
   raceJob: TFTCard;
 }
 
-const RaceJobItem: React.FC<Props> = ({ raceJob }) => {
+const RaceJobItem = ({ raceJob }: Props) => {
   const [openPopover, setOpenPopover] = useState(false);
   if (!raceJob) {
     return null;

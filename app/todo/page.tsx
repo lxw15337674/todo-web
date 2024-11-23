@@ -1,3 +1,4 @@
+'use client';
 import Layout from 'src/components/layout';
 import { useDebounceFn, useMount, useObject, usePromise } from 'wwhooks';
 import { createTask, getTaskList, updateTask } from 'src/api/todo/task';

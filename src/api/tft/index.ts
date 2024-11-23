@@ -1,8 +1,8 @@
-'use server';
-
+'use service'
 import axios from 'axios';
 import { JobType, RaceType, TFTCard, TFTChess } from './type';
 import { EquipsByType, TFTEquip } from './model/Equipment';
+import { unstable_cache } from 'next/cache';
 
 export interface ISeasonInfo {
   booleanPreVersion: boolean;
@@ -19,24 +19,29 @@ export interface ISeasonInfo {
   urlAdventureData?: string;
 }
 
-export async function getVersionConfig(): Promise<ISeasonInfo[]> {
-  const res = await axios.get('/routing/tftVersionConfig');
-  return res.data;
-}
+export const revalidate = 60 * 60 * 24 * 7;
 
-const routingGame = (url: string) => {
-  return url.replace('https://game.gtimg.cn/', '/routing/game/');
-};
+
+export const getVersionConfig = unstable_cache(async (): Promise<ISeasonInfo[]> => {
+  const res = await axios.get('https://lol.qq.com/zmtftzone/public-lib/versionconfig.json');
+  return res.data;
+}, 
+['version'],
+{ revalidate: 60 * 60 * 24 * 7 });
+
+
 
 // 棋子
-export async function getChessData(url: string): Promise<TFTChess[]> {
-  const res = await axios.get(routingGame(url));
+export const getChessData = unstable_cache(async (url: string): Promise<TFTChess[]> => {
+  const res = await axios.get(url);
   return res.data.data;
-}
+},
+['chess'],
+{ revalidate: 60 * 60 * 24 * 7 });
 
 // 职业
-export async function getJobData(url: string): Promise<TFTCard[]> {
-  const res = await axios.get(routingGame(url));
+export const getJobData = unstable_cache(async (url: string): Promise<TFTCard[]> => {
+  const res = await axios.get(url);
   return res.data.data.map((job: JobType) => {
     return {
       ...job,
@@ -51,11 +56,13 @@ export async function getJobData(url: string): Promise<TFTCard[]> {
       }),
     };
   });
-}
+}, 
+['job'],
+{ revalidate: 60 * 60 * 24 * 7 });
 
 // 羁绊
-export async function getRaceData(url: string): Promise<TFTCard[]> {
-  const res = await axios.get(routingGame(url));
+export const getRaceData = unstable_cache(async (url: string): Promise<TFTCard[]> => {
+  const res = await axios.get(url);
   return res.data.data.map((race: RaceType) => {
     return {
       ...race,
@@ -70,12 +77,15 @@ export async function getRaceData(url: string): Promise<TFTCard[]> {
       }),
     };
   });
-}
+},
+['race'],
+{ revalidate: 60 * 60 * 24 * 7 });
 
 // 装备
-export async function getEquipData(url: string): Promise<EquipsByType> {
-  const res = await axios.get(routingGame(url));
-  return res.data.data.reduce((acc: EquipsByType, equip: TFTEquip) => {
-    return acc.set(equip.type, (acc.get(equip.type) || []).concat(equip));
-  }, new Map());
-}
+export const getEquipData = unstable_cache(async (url: string): Promise<TFTEquip[]> => {
+  const res = await axios.get(url);
+  return res.data.data
+},
+['equip'],
+  { revalidate: 60 * 60 * 24 * 7 }
+);

@@ -1,5 +1,5 @@
 import { Alert, Fade, Snackbar } from '@mui/material';
-import Header from './header';
+import Header from '../../app/Header1';
 import type { ReactNode } from 'react';
 import { useNotificationStore } from 'store/notification';
 import NoSSR from './NoSSR';

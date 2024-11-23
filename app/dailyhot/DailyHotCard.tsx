@@ -1,5 +1,5 @@
 import { Avatar, Badge, List, Typography } from 'antd';
-import { HotType } from '@/public/app/dailyhot';
+import { HotType } from '@/public/app/dailyhot/page';
 import Image from 'next/image';
 import React, { useEffect, useMemo, useState } from 'react';
 const { Text } = Typography;

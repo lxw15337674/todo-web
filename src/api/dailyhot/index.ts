@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { unstable_cache } from 'next/cache';
 
 export interface IData {
   title: string;
@@ -20,7 +21,7 @@ export interface IRootObject {
   data: IData[];
 }
 
-export const getHotLists = (type: string) => {
+export const getHotLists = unstable_cache((type: string) => {
   return axios
     .get(`https://dailyhot.hkg1.zeabur.app/${type}`,{
       params:{
@@ -33,4 +34,4 @@ export const getHotLists = (type: string) => {
     .catch((res) => {
       console.error(res.message);
     });
-};
+} , ['hot'], { revalidate: 60 * 60  });
