@@ -1,3 +1,4 @@
+'use client';
 import { Avatar, Badge, List, Typography } from 'antd';
 import { HotType } from '@/public/app/dailyhot/page';
 import Image from 'next/image';

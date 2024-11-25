@@ -6,37 +6,48 @@ import {
   getVersionConfig,
 } from '@/api/tft';
 import EquipmentBox from '@/public/app/tft/components/EquipmentBox';
-import {
-  Typography,
-} from '@mui/material';
-import { getFetter, Item } from '@/utils/tftf';
+import { Typography } from '@mui/material';
+import { getFetter } from '@/utils/tftf';
 import { TFTCard, TFTChess } from '@/api/tft/type';
 import Equipment from '@/public/app/tft/components/Equipment';
-import { EquipmentType, EquipsByType, TFTEquip } from '@/api/tft/model/Equipment';
+import {
+  EquipmentType,
+  EquipsByType,
+  TFTEquip,
+} from '@/api/tft/model/Equipment';
 import RaceJob from '@/public/app/tft/components/RaceJob';
 import { ConfigProvider, theme } from 'antd';
 import RaceJobChessItem from './components/RaceJobChessItem';
 import VersionSelect from './components/VersionSelect';
 
-type SearchParams = { [key: string]: string | string[] | undefined }
+type SearchParams = { [key: string]: string | string[] | undefined };
 
-export default async function Page({searchParams}: {searchParams: SearchParams}) {
-  const {version} = await searchParams
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const { version } = await searchParams;
   const versionData = await getVersionConfig();
-  const currentVersion = versionData.find(
-    (item) => item.idSeason === version
-  ) ?? versionData[0];
+  const currentVersion =
+    versionData.find((item) => item.idSeason === version) ?? versionData[0];
   const chesses = await getChessData(currentVersion.urlChessData);
   const jobs = await getJobData(currentVersion.urlJobData);
   const races = await getRaceData(currentVersion.urlRaceData);
-  const equips = (await getEquipData(currentVersion.urlEquipData)).reduce((acc: EquipsByType, equip: TFTEquip) => {
-    return acc.set(equip.type, (acc.get(equip.type) || []).concat(equip));
-  }, new Map());
+  const equips = (await getEquipData(currentVersion.urlEquipData)).reduce(
+    (acc: EquipsByType, equip: TFTEquip) => {
+      return acc.set(equip.type, (acc.get(equip.type) || []).concat(equip));
+    },
+    new Map(),
+  );
   const items = getFetter(jobs, races, chesses);
   return (
     <div className="p-3 bg-[#141329] text-white">
       <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
-        <VersionSelect currentVersion={currentVersion} versionData={versionData }/>
+        <VersionSelect
+          currentVersion={currentVersion}
+          versionData={versionData}
+        />
         <Typography variant="h5" gutterBottom>
           羁绊公式
         </Typography>
