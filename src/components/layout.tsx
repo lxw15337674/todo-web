@@ -2,7 +2,6 @@ import { Alert, Fade, Snackbar } from '@mui/material';
 import Header from '../../app/Header';
 import type { ReactNode } from 'react';
 import { useNotificationStore } from 'store/notification';
-import NoSSR from './NoSSR';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { open, message, close } = useNotificationStore();

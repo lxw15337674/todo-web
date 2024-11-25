@@ -1,163 +1,150 @@
-import {
-  getChessData,
-  getEquipData,
-  getJobData,
-  getRaceData,
-  getVersionConfig,
-} from '@/api/tft';
-import EquipmentBox from '@/public/app/tft/components/EquipmentBox';
-import { Typography } from '@mui/material';
-import { getFetter } from '@/utils/tftf';
-import { TFTCard, TFTChess } from '@/api/tft/type';
-import Equipment from '@/public/app/tft/components/Equipment';
-import {
-  EquipmentType,
-  EquipsByType,
-  TFTEquip,
-} from '@/api/tft/model/Equipment';
-import RaceJob from '@/public/app/tft/components/RaceJob';
-import RaceJobChessItem from './components/RaceJobChessItem';
-import VersionSelect from './components/VersionSelect';
+'use client';
 
-type SearchParams = { [key: string]: string | string[] | undefined };
+import { useState, useEffect } from 'react';
+import {
+  createTrackMeta, getTrackMetas, updateTrackMeta, deleteTrackMeta,
+  createTrackItem, getTrackItems, updateTrackItem, deleteTrackItem,
+} from '@/api/trackActions';
+import { Button, Input, List, Typography, Form, Space } from 'antd';
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const { version } = await searchParams;
-  const versionData = await getVersionConfig();
-  const currentVersion =
-    versionData.find((item) => item.idSeason === version) ?? versionData[0];
-  const chesses = await getChessData(currentVersion.urlChessData);
-  const jobs = await getJobData(currentVersion.urlJobData);
-  const races = await getRaceData(currentVersion.urlRaceData);
-  const equips = (await getEquipData(currentVersion.urlEquipData)).reduce(
-    (acc: EquipsByType, equip: TFTEquip) => {
-      return acc.set(equip.type, (acc.get(equip.type) || []).concat(equip));
-    },
-    new Map(),
-  );
-  const items = getFetter(jobs, races, chesses);
+const { Title } = Typography;
+
+export default function Home() {
+  const [trackMetas, setTrackMetas] = useState([]);
+  const [trackItems, setTrackItems] = useState([]);
+  const [name, setName] = useState('');
+  const [type, setType] = useState('');
+  const [remark, setRemark] = useState('');
+  const [userId, setUserId] = useState('');
+  const [editingTrackMetaId, setEditingTrackMetaId] = useState(null);
+  const [editingTrackItemId, setEditingTrackItemId] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const metas = await getTrackMetas();
+      const items = await getTrackItems();
+      setTrackMetas(metas);
+      setTrackItems(items);
+    }
+    fetchData();
+  }, []);
+
+  const handleCreateTrackMeta = async () => {
+    const newTrackMeta = await createTrackMeta(name, type, remark, userId);
+    setTrackMetas([...trackMetas, newTrackMeta]);
+    setName('');
+    setType('');
+    setRemark('');
+    setUserId('');
+  };
+
+  const handleUpdateTrackMeta = async () => {
+    await updateTrackMeta(editingTrackMetaId, name, type, remark, userId);
+    const updatedTrackMetas = trackMetas.map(meta => meta.id === editingTrackMetaId ? { ...meta, name, type, remark, userId } : meta);
+    setTrackMetas(updatedTrackMetas);
+    setEditingTrackMetaId(null);
+    setName('');
+    setType('');
+    setRemark('');
+    setUserId('');
+  };
+
+  const handleDeleteTrackMeta = async (id) => {
+    await deleteTrackMeta(id);
+    const updatedTrackMetas = trackMetas.filter(meta => meta.id !== id);
+    setTrackMetas(updatedTrackMetas);
+  };
+
+  const handleCreateTrackItem = async () => {
+    const newTrackItem = await createTrackItem(remark);
+    setTrackItems([...trackItems, newTrackItem]);
+    setRemark('');
+  };
+
+  const handleUpdateTrackItem = async () => {
+    await updateTrackItem(editingTrackItemId, remark);
+    const updatedTrackItems = trackItems.map(item => item.id === editingTrackItemId ? { ...item, remark } : item);
+    setTrackItems(updatedTrackItems);
+    setEditingTrackItemId(null);
+    setRemark('');
+  };
+
+  const handleDeleteTrackItem = async (id) => {
+    await deleteTrackItem(id);
+    const updatedTrackItems = trackItems.filter(item => item.id !== id);
+    setTrackItems(updatedTrackItems);
+  };
+
   return (
-    <div className="p-3  ">
-      <VersionSelect
-        currentVersion={currentVersion}
-        versionData={versionData}
+    <div style={{ padding: '20px' }}>
+      <Title level={2}>Track Metas</Title>
+      <List
+        bordered
+        dataSource={trackMetas}
+        renderItem={meta => (
+          <List.Item
+            key={meta.id} // 添加 key 属性
+            actions={[
+              <Button type="link" onClick={() => { setEditingTrackMetaId(meta.id); setName(meta.name); setType(meta.type); setRemark(meta.remark); setUserId(meta.userId); }}>Edit</Button>,
+              <Button type="link" danger onClick={() => handleDeleteTrackMeta(meta.id)}>Delete</Button>
+            ]}
+          >
+            {meta.name} - {meta.type} - {meta.remark} - {meta.userId}
+          </List.Item>
+        )}
       />
-      <Typography variant="h5" gutterBottom>
-        羁绊公式
-      </Typography>
-      <div className="flex flex-col mt-3 border border-gray-950">
-        {items?.map((rows, rowIndex) => {
-          return (
-            <div key={rowIndex} className="flex">
-              {rows?.map((item, colIndex) => {
-                if (rowIndex === 0 && colIndex === 0) {
-                  return (
-                    <span
-                      className="card border-gray-950 min-w-[10rem]"
-                      key={colIndex + colIndex}
-                    ></span>
-                  );
-                }
-                if (rowIndex === 0) {
-                  return (
-                    <span
-                      className="card border-l border-gray-950 min-w-[6rem]"
-                      key={colIndex + colIndex}
-                    >
-                      <RaceJob raceJob={item as TFTCard} />
-                    </span>
-                  );
-                }
-                if (colIndex === 0) {
-                  return (
-                    <span
-                      className="card border-t border-gray-950 min-w-[10rem]"
-                      key={colIndex + colIndex}
-                    >
-                      <RaceJob raceJob={item as TFTCard} />
-                    </span>
-                  );
-                }
-                return (
-                  <span
-                    className="card border-l border-t border-gray-950 min-w-[6rem]"
-                    key={colIndex + colIndex}
-                  >
-                    {currentVersion && (
-                      <RaceJobChessItem
-                        version={currentVersion}
-                        races={races}
-                        jobs={jobs}
-                        chesses={item as TFTChess[]}
-                      />
-                    )}
-                  </span>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-2">
-        <Typography variant="h5" gutterBottom>
-          装备公式
-        </Typography>
-        <EquipmentBox equipsByType={equips} />
-      </div>
-      {equips.get(EquipmentType['ink']) && (
-        <div className="mt-2">
-          <Typography variant="h5" gutterBottom>
-            额外装备
-          </Typography>
-          {equips.get(EquipmentType['ink'])?.map((equip: TFTEquip) => {
-            return <Equipment equip={equip} key={equip.equipId} />;
-          })}
-        </div>
-      )}
-      {equips.get(EquipmentType['job']) && (
-        <div className="mt-2">
-          <Typography variant="h5" gutterBottom>
-            无法合成的特殊转职纹章
-          </Typography>
-          {equips.get(EquipmentType['job'])?.map((equip: TFTEquip) => {
-            return <Equipment equip={equip} key={equip.equipId} />;
-          })}
-        </div>
-      )}
-      {equips.get(EquipmentType['ornn']) && (
-        <div className="mt-2">
-          <Typography variant="h5" gutterBottom>
-            奥恩神器
-          </Typography>
-          {equips.get(EquipmentType['ornn'])?.map((equip: TFTEquip) => {
-            return <Equipment equip={equip} key={equip.equipId} />;
-          })}
-        </div>
-      )}
-      {equips.get(EquipmentType['golden']) && (
-        <div className="mt-2">
-          <Typography variant="h5" gutterBottom>
-            金鳞龙装备
-          </Typography>
-          {equips.get(EquipmentType['golden'])?.map((equip: TFTEquip) => {
-            return <Equipment equip={equip} key={equip.equipId} />;
-          })}
-        </div>
-      )}
-      {equips.get(EquipmentType['support']) && (
-        <div className="mt-2">
-          <Typography variant="h5" gutterBottom>
-            辅助装备
-          </Typography>
-          {equips.get(EquipmentType['support'])?.map((equip: TFTEquip) => {
-            return <Equipment equip={equip} key={equip.equipId} />;
-          })}
-        </div>
-      )}
+      <Title level={3}>{editingTrackMetaId ? 'Edit Track Meta' : 'Create Track Meta'}</Title>
+      <Form layout="vertical">
+        <Form.Item label="Name">
+          <Input value={name} onChange={(e) => setName(e.target.value)} />
+        </Form.Item>
+        <Form.Item label="Type">
+          <Input value={type} onChange={(e) => setType(e.target.value)} />
+        </Form.Item>
+        <Form.Item label="Remark">
+          <Input value={remark} onChange={(e) => setRemark(e.target.value)} />
+        </Form.Item>
+        <Form.Item label="User ID">
+          <Input value={userId} onChange={(e) => setUserId(e.target.value)} />
+        </Form.Item>
+        <Form.Item>
+          {editingTrackMetaId ? (
+            <Button type="primary" onClick={handleUpdateTrackMeta}>Update Track Meta</Button>
+          ) : (
+            <Button type="primary" onClick={handleCreateTrackMeta}>Create Track Meta</Button>
+          )}
+        </Form.Item>
+      </Form>
+
+      <Title level={2}>Track Items</Title>
+      <List
+        bordered
+        dataSource={trackItems}
+        renderItem={item => (
+          <List.Item
+            key={item.id} // 添加 key 属性
+            actions={[
+              <Button type="link" onClick={() => { setEditingTrackItemId(item.id); setRemark(item.remark); }}>Edit</Button>,
+              <Button type="link" danger onClick={() => handleDeleteTrackItem(item.id)}>Delete</Button>
+            ]}
+          >
+            {item.remark}
+          </List.Item>
+        )}
+      />
+      <Title level={3}>{editingTrackItemId ? 'Edit Track Item' : 'Create Track Item'}</Title>
+      <Form layout="vertical">
+        <Form.Item label="Remark">
+          <Input value={remark} onChange={(e) => setRemark(e.target.value)} />
+        </Form.Item>
+        <Form.Item>
+          {editingTrackItemId ? (
+            <Button type="primary" onClick={handleUpdateTrackItem}>Update Track Item</Button>
+          ) : (
+            <Button type="primary" onClick={handleCreateTrackItem}>Create Track Item</Button>
+          )}
+        </Form.Item>
+      </Form>
     </div>
   );
 }

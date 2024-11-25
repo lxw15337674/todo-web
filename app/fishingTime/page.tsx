@@ -19,7 +19,6 @@ import {
   calculateRestDays,
   getTime,
 } from '@/utils/time';
-import NoSSR from '@/components/NoSSR';
 
 const Chat = () => {
   const { data: todayInHistoryData } = usePromise(todayInHistory, {
@@ -51,9 +50,7 @@ const Chat = () => {
             <ul>
               <li>
                 距离【6点下班】：
-                <NoSSR>
                   <Countdown targetTime={new Date().setHours(18, 0, 0, 0)} />
-                </NoSSR>
               </li>
             </ul>
           </div>
