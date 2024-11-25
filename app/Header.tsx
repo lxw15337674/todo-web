@@ -75,7 +75,7 @@ export default function Header() {
     <header>
       <div
         className={
-          'h-[48px] leading-[48px] bg-primary  text-white flex px-[14px]  '
+          'h-[48px] leading-[48px] bg-[#2e2e2e]  text-white flex px-[14px]  '
         }
       >
         <div className="mr-4 flex">

@@ -3,7 +3,9 @@ import './global.css';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import theme from '../src/theme';
 import { ThemeProvider } from '@mui/material/styles';
-import Header from './Header1';
+import Header from './Header';
+import { CssBaseline } from '@mui/material';
+import { ConfigProvider, theme as antdTheme } from 'antd';
 
 export const metadata: Metadata = {
   title: 'Home',
@@ -18,11 +20,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppRouterCacheProvider>
+        <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProvider theme={theme}>
-            <Header/>
-            {children}
-            </ThemeProvider>
+            <ConfigProvider theme={{ algorithm: antdTheme.darkAlgorithm }}>
+              <CssBaseline enableColorScheme />
+              <Header />
+              {children}
+            </ConfigProvider>
+          </ThemeProvider>
         </AppRouterCacheProvider>
       </body>
     </html>

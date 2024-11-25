@@ -49,7 +49,11 @@ const DailyHotCard = ({ data }: Props) => {
                 }
               />
             )}
-            <Typography.Title level={5} style={{ margin: '0 5px' }}>
+            <Typography.Title
+              level={5}
+              style={{ margin: '0 5px' }}
+              className="text-zinc-50"
+            >
               {data?.label}
             </Typography.Title>
           </div>
@@ -67,7 +71,11 @@ const DailyHotCard = ({ data }: Props) => {
       dataSource={data.children}
       bordered
       size="small"
-      className="h-full  [&_.ant-list-items]:scroll-container   [&_.ant-list-items]:h-[22rem] w-full"
+      className="h-full  
+       text-zinc-50
+      bg-[#18181c]
+      border-0	
+      [&_.ant-list-items]:scroll-container   [&_.ant-list-items]:h-[22rem] w-full"
       loading={data.children.length === 0}
       renderItem={(item, index) => (
         <List.Item className="justify-start ">
@@ -76,12 +84,17 @@ const DailyHotCard = ({ data }: Props) => {
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-base mx-2 cursor-pointer hover:text-primary flex-1 visited:text-purple-800 truncate"
+            className="text-base mx-2 cursor-pointer
+              text-zinc-50
+            hover:text-primary flex-1 visited:text-purple-600 truncate"
             title={item.title}
           >
             {item.title}
           </a>
-          <Text className="ml-auto" title={item.hot?.toString()}>
+          <Text
+            className="ml-auto    text-zinc-50"
+            title={item.hot?.toString()}
+          >
             {item.hot}
           </Text>
         </List.Item>
