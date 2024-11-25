@@ -15,7 +15,7 @@ const APPS = [
   //   url: '/todo',
   // },
   // {
-  //   name: '计数器',
+  //   name: '打卡器',
   //   url: '/counter',
   // },
   {

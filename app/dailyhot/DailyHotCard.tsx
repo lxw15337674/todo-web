@@ -86,7 +86,7 @@ const DailyHotCard = ({ data }: Props) => {
             rel="noopener noreferrer"
             className="text-base mx-2 cursor-pointer
               text-zinc-50
-            hover:text-primary flex-1 visited:text-purple-600 truncate"
+            hover:text-blue-400 flex-1 visited:text-blue-600 truncate"
             title={item.title}
           >
             {item.title}

@@ -46,8 +46,8 @@ const DailyHot = async () => {
   );
   const hotLists: HotType[] = await Promise.all(requests);
   return (
-    <div className="m-2">
-      <div className="grid md:grid-cols-3 gap-4 ">
+    <div className="m-4">
+      <div className="grid md:grid-cols-3 gap-4">
         {hotLists.map((item) => {
           return (
             <div className="w-full overflow-auto" key={item.name}>
