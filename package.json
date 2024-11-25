@@ -1,7 +1,6 @@
 {
-  "name": "typescript-nextjs-starter",
-  "description": "A TypeScript starter for Next.js that includes all you need to build amazing projects",
-  "version": "1.0.0",
+  "name": "todo-web",
+  "version": "2.0.0",
   "private": true,
   "author": "",
   "license": "MIT",
