@@ -6,6 +6,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import Header from './Header';
 import { CssBaseline } from '@mui/material';
 import { ConfigProvider, theme as antdTheme } from 'antd';
+import { ThemeProvider as NextThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
   title: 'Home',
@@ -18,14 +19,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProvider theme={theme}>
             <ConfigProvider theme={{ algorithm: antdTheme.darkAlgorithm }}>
-              <CssBaseline enableColorScheme />
-              <Header />
-              {children}
+              <NextThemeProvider
+                defaultTheme="dark"
+                enableSystem
+                disableTransitionOnChange
+              >
+                <CssBaseline enableColorScheme />
+                <Header />
+                {children}
+              </NextThemeProvider>
             </ConfigProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>
