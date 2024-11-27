@@ -23,10 +23,6 @@ const nextConfig = withPWA({
   rewrites: async () => {
     return [
       {
-        source: '/todayInHistory',
-        destination: `https://www.ipip5.com/today/api.php?type=json`,
-      },
-      {
         source: '/poems',
         destination: 'https://v2.jinrishici.com/one.json',
       },

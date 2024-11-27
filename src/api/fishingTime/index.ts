@@ -29,17 +29,6 @@ export function getFishingTime(): Promise<FishingTime> {
   });
 }
 
-interface HistoricalEvent {
-  year: string;
-  title: string;
-}
-
-export function todayInHistory(): Promise<HistoricalEvent[]> {
-  return axios.get('/todayInHistory').then((res) => {
-    return res?.data?.result.slice(0, -1);
-  });
-}
-
 interface Poem {
   title: string;
   dynasty: string;

@@ -19,15 +19,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <body>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          <ThemeProvider theme={theme}>
+          <ThemeProvider theme={theme} defaultMode="dark" >
             <ConfigProvider theme={{ algorithm: antdTheme.darkAlgorithm }}>
               <NextThemeProvider
+                attribute="class"
                 defaultTheme="dark"
-                enableSystem
-                disableTransitionOnChange
               >
                 <CssBaseline enableColorScheme />
                 <Header />

@@ -1,10 +1,11 @@
-'use client';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Divider, IconButton, Menu, MenuItem } from '@mui/material';
+'use client'
 import React from 'react';
-import AppsIcon from '@mui/icons-material/Apps';
-
+import { ModeToggle } from 'src/components/ModeToggle';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../src/components/ui/dropdown-menu';
+import { Button } from '../src/components/ui/button';
+import { Separator } from '../src/components/ui/separator';
+import { LayoutGrid } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 const APPS = [
   {
     name: '摸鱼办',
@@ -19,7 +20,7 @@ const APPS = [
     url: '/counter',
   },
   {
-    name:'打卡与记录',
+    name: '打卡与记录',
     url: '/track',
   },
   {
@@ -60,74 +61,53 @@ const Links = [
 ];
 
 export default function Header() {
-  const router = useRouter();
-  const currentApp = APPS.find((app) => app.url === router.pathname);
+  const router = usePathname()
+  const currentApp = APPS.find((app) => app.url === router);
+  console.log(currentApp)
 
-  useEffect(() => {
-    if (currentApp?.name && document.title) {
-      document.title = currentApp?.name;
-    }
-  }, [router]);
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
   return (
     <header>
       <div
         className={
-          'h-[48px] leading-[48px] bg-[#2e2e2e]  text-white flex px-[14px]  '
+          'px-4 py-2  bg-zine-800 dark:border-zinc-800 border-b-[1px] flex items-center '
         }
       >
-        <div className="mr-4 flex">
-          <IconButton
-            onClick={handleClick}
-            style={{
-              color: 'white',
-            }}
-          >
-            <AppsIcon />
-          </IconButton>
-          <Menu
-            id="basic-menu"
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-          >
-            {APPS.map((app) => {
-              return (
-                <MenuItem
+        <div className="mr-4 flex items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <LayoutGrid />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {APPS.map((app) => (
+                <DropdownMenuCheckboxItem
                   onClick={() => {
-                    router.push(app.url);
-                    handleClose();
+                    window.location.href = app.url;
                   }}
+                  checked={currentApp?.url === app.url}
                   key={app.name}
                 >
                   {app.name}
-                </MenuItem>
-              );
-            })}
-            <Divider />
-            {Links.map((app) => {
-              return (
-                <MenuItem
+                </DropdownMenuCheckboxItem>
+              ))}
+              <Separator />
+              {Links.map((app) => (
+                <DropdownMenuItem
                   onClick={() => {
                     window.open(app.url);
-                    handleClose();
                   }}
                   key={app.name}
                 >
                   {app.name}
-                </MenuItem>
-              );
-            })}
-          </Menu>
-          <span>{currentApp?.name}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <span className="font-bold">{currentApp?.name}</span>
         </div>
-        <div className="flex-1"> </div>
+        <div className="flex-1" />
+        <ModeToggle />
       </div>
     </header>
   );

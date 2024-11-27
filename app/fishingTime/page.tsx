@@ -1,9 +1,8 @@
 'use client';
 
-import Layout from '@/components/layout';
 import React, { useMemo } from 'react';
 import { usePromise } from 'wwhooks';
-import { englishToday, holiday, todayInHistory } from '@/api/fishingTime';
+import { englishToday, holiday } from '@/api/fishingTime';
 import Countdown from './Countdown';
 import { Progress } from 'antd';
 import {
@@ -21,10 +20,6 @@ import {
 } from '@/utils/time';
 
 const Chat = () => {
-  const { data: todayInHistoryData } = usePromise(todayInHistory, {
-    manual: false,
-    initialData: [],
-  });
   const { data: englishTodayData } = usePromise(englishToday, {
     manual: false,
   });
@@ -50,7 +45,7 @@ const Chat = () => {
             <ul>
               <li>
                 距离【6点下班】：
-                  <Countdown targetTime={new Date().setHours(18, 0, 0, 0)} />
+                  <Countdown   />
               </li>
             </ul>
           </div>
@@ -109,16 +104,6 @@ const Chat = () => {
           <p> {englishTodayData?.translation}</p>
           <h2></h2>
         </div>
-      </div>
-      <div className="m-2">
-        <h1 className="text-lg">【历史上的今天】</h1>
-        {todayInHistoryData.map((item, index) => {
-          return (
-            <div key={index}>
-              {item.year}年：{item.title}
-            </div>
-          );
-        })}
       </div>
     </>
   );

@@ -1,8 +1,6 @@
+'use client'
 import React, { useState, useEffect } from 'react';
 
-interface Props {
-  targetTime: number;
-}
 const calculateRemainingTime = (targetTime: number) => {
   const currentTime = new Date().getTime();
   const difference = targetTime - currentTime;
@@ -15,7 +13,8 @@ const calculateRemainingTime = (targetTime: number) => {
   // 将毫秒转换为秒，并向下取整
   return Math.floor(difference / 1000);
 };
-const Countdown = ({ targetTime }: Props) => {
+const targetTime = new Date().setHours(18, 0, 0, 0);
+const Countdown = () => {
   const [remainingTime, setRemainingTime] = useState(
     calculateRemainingTime(targetTime),
   );
