@@ -12,7 +12,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-model trackMeta {
+model TrackMeta {
   id         String   @id @default(uuid())
   name       String
   type       String
@@ -20,17 +20,17 @@ model trackMeta {
   createTime DateTime @default(now())
   updateTime DateTime @default(now())
   deletedAt  DateTime?
-  countItems trackItem[]
+  countItems TrackItem[]
 }
 
-model trackItem {
+model TrackItem {
   id          String   @id @default(uuid())
   remark      String
   createTime  DateTime @default(now())
   updateTime  DateTime @default(now())
   countMetaId String?
   deletedAt   DateTime?
-  countMeta   trackMeta? @relation(fields: [countMetaId], references: [id])
+  countMeta   TrackMeta? @relation(fields: [countMetaId], references: [id])
 }
 
 

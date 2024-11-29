@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ModeToggle } from 'src/components/ModeToggle';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../src/components/ui/dropdown-menu';
 import { Button } from '../src/components/ui/button';
@@ -39,31 +39,32 @@ const APPS = [
 
 const Links = [
   {
-    name: 'AI聊天 - LobeChat',
-    url: 'https://lobe-chat-omega-lac.vercel.app',
-  },
-  {
     name: '个人博客',
     url: 'https://bhwa233-blog.vercel.app',
   },
   {
-    name: '个人笔记本',
-    url: 'https://noiton-next-memos.vercel.app',
+    name: 'feishuMemos - 个人笔记本',
+    url: 'https://feishu-next-memos.vercel.app',
   },
   {
     name: '微博热搜榜历史',
     url: 'https://weibo-trending-hot-history.vercel.app',
   },
   {
-    name: '网站剪藏',
-    url: 'https://omnivore.app/',
+    name: 'hoarder - 网站剪藏',
+    url: 'https://hoarder.hkg1.zeabur.app/dashboard/bookmarks',
   },
 ];
 
 export default function Header() {
-  const router = usePathname()
+  const router = usePathname();
   const currentApp = APPS.find((app) => app.url === router);
-  console.log(currentApp)
+
+  useEffect(() => {
+    if (currentApp) {
+      document.title = currentApp.name;
+    }
+  }, [currentApp]);
 
   return (
     <header>
@@ -104,7 +105,7 @@ export default function Header() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <span className="font-bold">{currentApp?.name}</span>
+          <span className="font-bold ml-2">{currentApp?.name}</span>
         </div>
         <div className="flex-1" />
         <ModeToggle />

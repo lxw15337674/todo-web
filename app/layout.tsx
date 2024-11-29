@@ -8,11 +8,6 @@ import { CssBaseline } from '@mui/material';
 import { ConfigProvider, theme as antdTheme } from 'antd';
 import { ThemeProvider as NextThemeProvider } from "@/components/theme-provider"
 
-export const metadata: Metadata = {
-  title: 'Home',
-  description: 'Welcome to Next.js',
-};
-
 export default function RootLayout({
   children,
 }: {

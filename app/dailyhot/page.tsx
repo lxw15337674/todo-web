@@ -8,13 +8,12 @@ import axios from 'axios';
 export interface HotType {
   label: string;
   name: string;
-  order: number;
   show?: boolean;
   subtitle?: string;
   updateTime?: string;
   children: IData[];
 }
-const getHotLists = unstable_cache(
+const getHotLists = (
   async (type: string) => {
     return axios
       .get(`https://dailyhot.hkg1.zeabur.app/${type}`, {
@@ -28,10 +27,7 @@ const getHotLists = unstable_cache(
       .catch((res) => {
         console.error(res.message);
       });
-  },
-  ['hot'],
-  { revalidate: 60 * 60 },
-);
+  })
 
 const DailyHot = async () => {
   const requests = news.map((item) =>

@@ -1,11 +1,48 @@
+'use client'
+import { useState, useEffect } from 'react';
 import { Bell, Calendar, CheckCircle2, ChevronDown, MoreHorizontal, Plus, Search, Settings } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import { createTrackItem, deleteTrackItem, getTrackItems, getTrackMetas, updateTrackItem } from '../../src/api/trackActions';
+import { TrackItem, TrackMeta } from '@prisma/client';
+import { useMount } from 'ahooks';
+
 
 export default function TaskManagement() {
+    const [tasks, setTasks] = useState<TrackMeta[]>([]);
+    const [newTask, setNewTask] = useState<Partial<TrackMeta>>({
+        name: '',
+        type: ''
+    });
+    async function fetchTasks() {
+        const items = await getTrackMetas();
+        setTasks(items);
+    }
+
+
+    const handleAddTask = async () => {
+        if (newTask.name?.trim()) {
+            const task = await createTrackItem(newTask);
+            setTasks([...tasks, task]);
+            setNewTask('');
+        }
+    };
+
+    const handleUpdateTask = async (id, remark) => {
+        const updatedTask = await updateTrackItem(id, remark);
+        setTasks(tasks.map(task => task.id === id ? updatedTask : task));
+    };
+
+    const handleDeleteTask = async (id) => {
+        await deleteTrackItem(id);
+        setTasks(tasks.filter(task => task.id !== id));
+    };
+    useMount(() => {
+        fetchTasks();
+    });
     return (
         <div className="grid h-screen grid-cols-[240px_1fr_300px]">
             {/* Sidebar */}
@@ -49,29 +86,41 @@ export default function TaskManagement() {
                 </header>
                 <ScrollArea className="flex-1 p-4">
                     <div className="space-y-4">
-                        <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground">
-                            <Plus className="h-4 w-4" />
-                            添加任务
-                        </Button>
-                        <Card className="p-4">
-                            <div className="space-y-4">
-                                <div className="flex items-start gap-2">
-                                    <input type="checkbox" className="mt-1" />
-                                    <div className="flex-1">
-                                        <div className="font-medium">一个打卡记录</div>
-                                        <div className="text-sm text-muted-foreground">输入内容或使用/快捷输入</div>
+                        <div className="flex gap-2">
+                            <Input
+                                value={newTask}
+                                onChange={(e) => setNewTask(e.target.value)}
+                                placeholder="输入内容或使用/快捷输入"
+                            />
+                            <Button onClick={handleAddTask} variant="ghost" className="gap-2 text-muted-foreground">
+                                <Plus className="h-4 w-4" />
+                                添加任务
+                            </Button>
+                        </div>
+                        {tasks.map(task => (
+                            <Card key={task.id} className="p-4">
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-2">
+                                        <input
+                                            type="checkbox"
+                                            className="mt-1"
+                                            checked={task.completed}
+                                            onChange={() => handleUpdateTask(task.id, { ...task, completed: !task.completed })}
+                                        />
+                                        <div className="flex-1">
+                                            <div className={`font-medium ${task.completed ? 'line-through opacity-50' : ''}`}>
+                                                {task.remark}
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">{task.date}</div>
+                                        </div>
+                                        <Button onClick={() => handleDeleteTask(task.id)} variant="ghost" size="icon">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
                                     </div>
+                                    <Separator />
                                 </div>
-                                <Separator />
-                                <div className="flex items-start gap-2">
-                                    <input type="checkbox" className="mt-1" checked />
-                                    <div className="flex-1">
-                                        <div className="font-medium line-through opacity-50">用户设置+if，写一个demo向前端传输动态pc端</div>
-                                        <div className="text-sm text-muted-foreground">11月22日</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Card>
+                            </Card>
+                        ))}
                     </div>
                 </ScrollArea>
             </div>

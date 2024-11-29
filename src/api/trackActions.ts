@@ -1,46 +1,64 @@
 // app/actions/trackActions.ts
 'use server';
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TrackMeta, TrackItem } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 // TrackMeta CRUD
-export async function createTrackMeta(name: string, type: string, remark: string, userId?: string) {
+interface CreateTrackMetaParams {
+    name: string;
+    remark: string;
+}
+
+export async function createTrackMeta({ name,  remark }: CreateTrackMetaParams): Promise<TrackMeta> {
     return prisma.trackMeta.create({
         data: {
             name,
-            type,
             remark,
-            userId,
         },
     });
 }
 
-export async function getTrackMetas() {
+export async function getTrackMetas(): Promise<TrackMeta[]> {
     return prisma.trackMeta.findMany();
 }
 
-export async function updateTrackMeta(id: string, name: string, type: string, remark: string, userId?: string) {
+interface UpdateTrackMetaParams {
+    id: string;
+    name: string;
+    type: string;
+    remark: string;
+}
+
+export async function updateTrackMeta({ id, name, type, remark }: UpdateTrackMetaParams): Promise<TrackMeta> {
     return prisma.trackMeta.update({
         where: { id },
         data: {
             name,
             type,
             remark,
-            userId,
         },
     });
 }
 
-export async function deleteTrackMeta(id: string) {
+interface DeleteTrackMetaParams {
+    id: string;
+}
+
+export async function deleteTrackMeta({ id }: DeleteTrackMetaParams): Promise<TrackMeta> {
     return prisma.trackMeta.delete({
         where: { id },
     });
 }
 
 // TrackItem CRUD
-export async function createTrackItem(remark: string, countMetaId?: string) {
+interface CreateTrackItemParams {
+    remark: string;
+    countMetaId?: string;
+}
+
+export async function createTrackItem({ remark, countMetaId }: CreateTrackItemParams): Promise<TrackItem> {
     return prisma.trackItem.create({
         data: {
             remark,
@@ -49,11 +67,17 @@ export async function createTrackItem(remark: string, countMetaId?: string) {
     });
 }
 
-export async function getTrackItems() {
+export async function getTrackItems(): Promise<TrackItem[]> {
     return prisma.trackItem.findMany();
 }
 
-export async function updateTrackItem(id: string, remark: string, countMetaId?: string) {
+interface UpdateTrackItemParams {
+    id: string;
+    remark: string;
+    countMetaId?: string;
+}
+
+export async function updateTrackItem({ id, remark, countMetaId }: UpdateTrackItemParams): Promise<TrackItem> {
     return prisma.trackItem.update({
         where: { id },
         data: {
@@ -63,7 +87,11 @@ export async function updateTrackItem(id: string, remark: string, countMetaId?: 
     });
 }
 
-export async function deleteTrackItem(id: string) {
+interface DeleteTrackItemParams {
+    id: string;
+}
+
+export async function deleteTrackItem({ id }: DeleteTrackItemParams): Promise<TrackItem> {
     return prisma.trackItem.delete({
         where: { id },
     });
