@@ -8,20 +8,27 @@ const prisma = new PrismaClient();
 // TrackMeta CRUD
 interface CreateTrackMetaParams {
     name: string;
-    remark: string;
+    type: string;
 }
 
-export async function createTrackMeta({ name,  remark }: CreateTrackMetaParams): Promise<TrackMeta> {
-    return prisma.trackMeta.create({
+
+
+export async function createTrackMeta({ name, type,
+}: CreateTrackMetaParams): Promise<TrackMeta> {
+     return prisma.trackMeta.create({
         data: {
             name,
-            remark,
+            type
         },
     });
 }
 
-export async function getTrackMetas(): Promise<TrackMeta[]> {
-    return prisma.trackMeta.findMany();
+export async function fetchTrackMetas() {
+    return prisma.trackMeta.findMany({
+        include: {
+            countItems: true, // 包含关联的 TrackItem
+        },
+    });
 }
 
 interface UpdateTrackMetaParams {
@@ -52,23 +59,23 @@ export async function deleteTrackMeta({ id }: DeleteTrackMetaParams): Promise<Tr
     });
 }
 
-// TrackItem CRUD
-interface CreateTrackItemParams {
-    remark: string;
-    countMetaId?: string;
-}
-
-export async function createTrackItem({ remark, countMetaId }: CreateTrackItemParams): Promise<TrackItem> {
+export async function createTrackItem(countMetaId: string, remark: string = ''): Promise<TrackItem> {
     return prisma.trackItem.create({
         data: {
-            remark,
+            remark: remark,
             countMetaId,
         },
     });
 }
 
-export async function getTrackItems(): Promise<TrackItem[]> {
+export async function fetchTrackItems(): Promise<TrackItem[]> {
     return prisma.trackItem.findMany();
+}
+
+export async function fetchTrackItemById(id: string): Promise<TrackItem | null> {
+    return prisma.trackItem.findUnique({
+        where: { id },
+    });
 }
 
 interface UpdateTrackItemParams {

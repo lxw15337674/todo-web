@@ -19,7 +19,7 @@ import CountCard from '@/components/Counter/CounterCard';
 import CountInfoDrawer from '@/components/Counter/CounterInfoDrawer';
 
 export default function IndexPage() {
-  const { counts, setStore } = useCountStore((state) => ({
+  const { counts = [], setStore } = useCountStore((state) => ({
     counts: state.counts,
     setStore: state.setStore,
   }));

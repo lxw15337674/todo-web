@@ -18,6 +18,7 @@ import { useNotificationStore } from 'store/notification';
 
 export function findAllWithCounter(): Promise<CountDetail[]> {
   return service.get('/count/findAllWithCounter').then((counts) => {
+    console.log(counts)
     useCountStore.setState({ counts });
     return counts;
   });
