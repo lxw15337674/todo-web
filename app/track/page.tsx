@@ -9,6 +9,7 @@ import { useMount } from 'ahooks';
 import { useImmer } from 'use-immer';
 import TrackCard from './TrackCard';
 
+
 export interface Track extends TrackMeta {
     countItems: TrackItem[];
 }
@@ -68,17 +69,17 @@ export default function TaskManagement() {
                 <header className="flex items-center justify-between border-b p-4">
                     <h1 className="text-lg font-semibold mr-4">打卡</h1>
                     <div className="flex items-center gap-2 flex-1 max-w-lg">
-                            <Input
-                                value={newTask.name}
-                                onChange={(e) => setNewTask(draft => {
-                                    draft.name = e.target.value;
-                                })}
-                                placeholder="输入内容或使用/快捷输入"
-                            />
-                            <Button onClick={handleAddTask} variant="ghost" className=" text-muted-foreground px-2" >
-                                <Plus className="h-4 w-4" />
-                                添加打卡
-                            </Button>
+                        <Input
+                            value={newTask.name}
+                            onChange={(e) => setNewTask(draft => {
+                                draft.name = e.target.value;
+                            })}
+                            placeholder="输入内容或使用/快捷输入"
+                        />
+                        <Button onClick={handleAddTask} variant="ghost" className=" text-muted-foreground px-2" >
+                            <Plus className="h-4 w-4" />
+                            添加打卡
+                        </Button>
                     </div>
                 </header>
                 <ScrollArea className="flex-1 p-4">
@@ -91,11 +92,12 @@ export default function TaskManagement() {
                                     setTasks={setTasks}
                                 />
                             ))}
+                            
                         </div>
                     </div>
                 </ScrollArea>
             </div>
-
+          
             {/* Right Panel */}
             {/* <div className="border-l p-4">
                 <div className="space-y-4">

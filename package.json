@@ -9,7 +9,7 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "cross-env next dev  -p 8080 --turbo",
+    "dev": "cross-env next dev  -p 8080 ",
     "build": "next build ",
     "start": "next --turbo -p 8080",
     "type-check": "tsc --noEmit",
@@ -26,7 +26,9 @@
     "@mui/material-nextjs": "6.1.8",
     "@mui/x-date-pickers": "6.13.0",
     "@prisma/client": "5.22.0",
+    "@radix-ui/react-dialog": "1.1.2",
     "@radix-ui/react-dropdown-menu": "2.1.2",
+    "@radix-ui/react-progress": "1.1.0",
     "@radix-ui/react-scroll-area": "1.2.1",
     "@radix-ui/react-separator": "1.1.0",
     "@radix-ui/react-slot": "1.1.0",
@@ -53,7 +55,9 @@
     "swr": "2.2.5",
     "tailwind-merge": "2.5.5",
     "tailwindcss-animate": "1.0.7",
+    "use-count-up": "3.0.1",
     "use-immer": "0.10.0",
+    "vaul": "1.1.1",
     "wwhooks": "2.0.2",
     "www-components": "1.1.0",
     "zustand": "4.4.1",
