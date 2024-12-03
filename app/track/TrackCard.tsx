@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import dayjs from "dayjs";
 import { Timeline, TimelineConnector, TimelineContent, TimelineDot, TimelineItem, timelineItemClasses, TimelineSeparator } from "@mui/lab";
 import { ScrollArea } from "../../src/components/ui/scroll-area";
+import { zhCN } from 'date-fns/locale';
 
 interface TrackCardProps {
     task: Track,
@@ -22,7 +23,6 @@ interface TrackCardProps {
 const TrackCard = ({ task, setTasks }: TrackCardProps) => {
     const [open, setOpen] = useState(false)
     const [pressing, setPressing] = useState(false)
-    const [date, setDate] = useState<Date | undefined>(new Date())
     const trackItems = task.countItems;
     const { value: animationWidth, reset } = useCountUp({
         isCounting: pressing,
@@ -43,6 +43,13 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
         const lastItem = task.countItems[task.countItems.length - 1].createTime;
         return `${lastItem.toISOString().split('T')[0]} ${lastItem.toTimeString().split(' ')[0].slice(0, 5)}`;
     }, [task.countItems]);
+
+    const markedDates = useMemo(() => {
+        return trackItems.map(item => ({
+            date: new Date(item.createTime.toISOString().split('T')[0]),
+            className: 'bg-green-500'
+        }));
+    }, [trackItems]);
 
     const completeTodayTrack = async (id: string) => {
         if (isTaskCompletedToday) { return }
@@ -88,10 +95,12 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
                     <ScrollArea className="h-[calc(100vh-90px)] rounded-md ">
                         <div className="space-y-4 mr-4">
                             <Calendar
-                                mode="single"
-                                selected={date}
-                                onSelect={setDate}
+                                mode="multiple"
+                                locale={zhCN}
+                                selected={markedDates.map(item => item.date)}
+                                onSelect={()=>{}}
                                 className="rounded-md border w-full "
+                                modifiers={{ marked: markedDates }}
                             />
 
                             <Card className=" px-4">
