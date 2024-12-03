@@ -49,7 +49,7 @@ export default function TaskManagement() {
         <div className=" h-screen ">
             {/* <div className="border-r  p-4">
                 <nav className="mt-4 space-y-1">
-                    <Button variant="ghost" className="w-full justify-start gap-2">
+                    <Button variant="ghost className="w-full justify-start gap-2">
                         <Calendar className="h-4 w-4" />
                         今天
                     </Button>

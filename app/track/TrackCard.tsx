@@ -5,10 +5,14 @@ import { createTrackItem } from "../../src/api/trackActions";
 import { Track } from "./page";
 import { Updater } from "use-immer";
 import { useCountUp } from 'use-count-up';
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '../../src/components/ui/Sheet'
 import { Button } from "../../src/components/ui/button";
 import { Progress } from "../../src/components/ui/progress";
 import { useMemoizedFn } from "ahooks";
+import { Calendar } from "../../src/components/ui/calendar";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "../../src/components/ui/sheet";
+import dayjs from "dayjs";
+import { Timeline, TimelineConnector, TimelineContent, TimelineDot, TimelineItem, timelineItemClasses, TimelineSeparator } from "@mui/lab";
+import { ScrollArea } from "../../src/components/ui/scroll-area";
 
 interface TrackCardProps {
     task: Track,
@@ -18,6 +22,8 @@ interface TrackCardProps {
 const TrackCard = ({ task, setTasks }: TrackCardProps) => {
     const [open, setOpen] = useState(false)
     const [pressing, setPressing] = useState(false)
+    const [date, setDate] = useState<Date | undefined>(new Date())
+    const trackItems = task.countItems;
     const { value: animationWidth, reset } = useCountUp({
         isCounting: pressing,
         start: 0,
@@ -44,18 +50,18 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
             const index = draft.findIndex(item => item.id === id);
             draft[index].countItems.push({
                 createTime: new Date(),
-                id: '',
+                id: id,
                 countMetaId: id,
                 remark: '',
                 updateTime: new Date(),
                 deletedAt: null,
             });
         })
-        // const task = await createTrackItem(id);
-        // setTasks(draft => {
-        //     const index = draft.findIndex(item => item.id === id);
-        //     draft[index].countItems.push(task);
-        // })
+        const task = await createTrackItem(id);
+        setTasks(draft => {
+            const index = draft.findIndex(item => item.id === id);
+            draft[index].countItems[draft[index].countItems.length - 1] = task;
+        })
     }
 
     const startPressing = useMemoizedFn(() => {
@@ -71,15 +77,55 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
             reset()
         }
     })
-
     return (
         <>
             <Sheet open={open} onOpenChange={setOpen} >
                 <SheetContent>
                     <SheetHeader>
-                        <SheetTitle>Are you absolutely sure?</SheetTitle>
-                        <SheetDescription>This action cannot be undone.</SheetDescription>
+                        <SheetTitle>{task.name}</SheetTitle>
+                        {/* <SheetDescription>This action cannot be undone.</SheetDescription> */}
                     </SheetHeader>
+                    <ScrollArea className="h-[calc(100vh-90px)] rounded-md ">
+                        <div className="space-y-4 mr-4">
+                            <Calendar
+                                mode="single"
+                                selected={date}
+                                onSelect={setDate}
+                                className="rounded-md border w-full "
+                            />
+
+                            <Card className=" px-4">
+                                <Timeline position="right" sx={{
+                                    [`& .${timelineItemClasses.root}:before`]: {
+                                        flex: 0,
+                                        padding: 0,
+                                    },
+                                }}>
+                                    {
+                                        trackItems.map((count, index) => (
+                                            <TimelineItem key={count.id}>
+                                                <TimelineSeparator>
+                                                    <TimelineDot color="primary" />
+                                                    {index < trackItems.length - 1 && <TimelineConnector />}
+                                                </TimelineSeparator>
+                                                <TimelineContent>
+                                                    <div>
+                                                        第{trackItems.length - index}次 {dayjs(count.createTime).format('YYYY-MM-DD HH:mm:ss')}
+                                                    </div>
+                                                    {/* <Button
+                                                        onClick={() => { }
+                                                        }
+                                                    >
+                                                        删除
+                                                    </Button> */}
+                                                </TimelineContent>
+                                            </TimelineItem>
+                                        ))
+                                    }
+                                </Timeline>
+                            </Card>
+                        </div>
+                    </ScrollArea>
                 </SheetContent>
             </Sheet>
             <Card
@@ -106,20 +152,20 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
                                 e.nativeEvent.preventDefault()
                                 setOpen(true)
                             }}>
-                            <History  />
+                            <History />
                         </Button>
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 py-2  flex items-end rounded-lg">
                     <div>
-                    <div className="flex items-center gap-0.5  py-0.5  rounded-full w-fit" title="总打卡">
-                        <FlagTriangleRight className="w-4 h-4 text-blue-400" />
-                        <span className="text-gray-400 text-sm">{task.countItems.length}天</span>
-                    </div>
-                    <div className="flex items-center gap-0.5  py-0.5  rounded-full w-fit" title="最近打卡时间">
-                        <Check className="w-4 h-4 text-red-400" />
-                        <span className="text-gray-400 text-sm">{lastTrackDate || '无'}</span>
-                    </div>
+                        <div className="flex items-center gap-0.5  py-0.5  rounded-full w-fit" title="总打卡">
+                            <FlagTriangleRight className="w-4 h-4 text-blue-400" />
+                            <span className="text-gray-400 text-sm">{task.countItems.length}天</span>
+                        </div>
+                        <div className="flex items-center gap-0.5  py-0.5  rounded-full w-fit" title="最近打卡时间">
+                            <Check className="w-4 h-4 text-red-400" />
+                            <span className="text-gray-400 text-sm">{lastTrackDate || '无'}</span>
+                        </div>
                     </div>
                     {isTaskCompletedToday ? <CircleCheckBig className="text-green-600 ml-auto w-6 h-6" /> :
                         <Circle className=" ml-auto w-6 h-6 text-[#fffff5db]" />
