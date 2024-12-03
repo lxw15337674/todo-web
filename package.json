@@ -9,7 +9,7 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "cross-env next dev  -p 8080 ",
+    "dev": "cross-env next dev  -p 8080 --turbo",
     "build": "next build ",
     "start": "next --turbo -p 8080",
     "type-check": "tsc --noEmit",
@@ -46,7 +46,6 @@
     "lodash": "4.17.21",
     "lucide-react": "0.461.0",
     "next": "15.0.3",
-    "next-auth": "4.24.6",
     "next-pwa": "5.6.0",
     "next-themes": "0.4.3",
     "react": "18.3.1",

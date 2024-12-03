@@ -15,10 +15,10 @@ const APPS = [
   //   name: '待办事项',
   //   url: '/todo',
   // },
-  {
-    name: '打卡器',
-    url: '/counter',
-  },
+  // {
+  //   name: '打卡器',
+  //   url: '/counter',
+  // },
   {
     name: '打卡与记录',
     url: '/track',
