@@ -23,10 +23,10 @@ const APPS = [
     name: '打卡与记录',
     url: '/track',
   },
-  {
-    name: '聊天室',
-    url: '/chat',
-  },
+  // {
+  //   name: '聊天室',
+  //   url: '/chat',
+  // },
   {
     name: '云顶之弈一图流',
     url: '/tft',

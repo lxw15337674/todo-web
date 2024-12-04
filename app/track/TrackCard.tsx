@@ -123,6 +123,7 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
     })
 
     const renameTask = useMemoizedFn(async () => {
+        if (taskName === task.name) return
         setTasks(draft => {
             const index = draft.findIndex(item => item.id === task.id);
             draft[index].name = taskName;
