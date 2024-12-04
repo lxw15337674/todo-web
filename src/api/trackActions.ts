@@ -109,11 +109,9 @@ export async function updateTrackItem({ id, remark, countMetaId }: UpdateTrackIt
     });
 }
 
-interface DeleteTrackItemParams {
-    id: string;
-}
 
-export async function deleteTrackItem({ id }: DeleteTrackItemParams): Promise<TrackItem> {
+
+export async function deleteTrackItem(id: string): Promise<TrackItem> {
     return prisma.trackItem.delete({
         where: { id },
     });

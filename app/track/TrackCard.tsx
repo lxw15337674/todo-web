@@ -1,8 +1,8 @@
 'use client'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Circle, CircleCheckBig, FlagTriangleRight, History, Ellipsis } from 'lucide-react';
-import { useMemo, useState, useCallback, useRef } from "react";
-import { createTrackItem, deleteTrackMeta } from "../../src/api/trackActions";
+import { useMemo, useState } from "react";
+import { createTrackItem, deleteTrackItem, deleteTrackMeta } from "../../src/api/trackActions";
 import { Track } from "./page";
 import { Updater } from "use-immer";
 import { useCountUp } from 'use-count-up';
@@ -17,11 +17,6 @@ import { ScrollArea } from "../../src/components/ui/scroll-area";
 import { zhCN } from 'date-fns/locale';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../src/components/ui/dropdown-menu";
 import { useToast } from "../../src/hooks/use-toast";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../../src/components/ui/dialog";
 import { TimePicker } from "../../src/components/ui/TimePicker";
 
@@ -34,6 +29,7 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
     const [open, setOpen] = useState(false)
     const [pressing, setPressing] = useState(false)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [date, setDate] = useState<Date | undefined>(new Date())
     const trackItems = task.countItems;
     const { toast } = useToast()
@@ -107,13 +103,32 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
             title: '删除成功',
             description: '已成功删除打卡任务',
         })
-        // deleteTrackMeta(task.id)
+        deleteTrackMeta(task.id)
     })
 
     const onDayClick = useMemoizedFn((day: Date) => {
-        setDate(day)
-        setDialogOpen(true)
-    })
+        const isDayCompleted = task.countItems.some(item => dayjs(item.createTime).isSame(day, 'day'));
+        if (isDayCompleted) {
+            setDate(day);
+            setConfirmDialogOpen(true);
+        } else {
+            setDate(day);
+            setDialogOpen(true);
+        }
+    });
+
+    const handleRevoke = useMemoizedFn(() => {
+        setTasks(draft => {
+            const index = draft.findIndex(item => item.id === task.id);
+            draft[index].countItems = draft[index].countItems.filter(item => !dayjs(item.createTime).isSame(date, 'day'));
+        });
+        setConfirmDialogOpen(false);
+        toast({
+            title: '撤回成功',
+            description: '已成功撤回打卡',
+        });
+        deleteTrackItem(task.id)
+    });
 
     return (
         <>
@@ -130,6 +145,17 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
                                 completeTodayTrack(task.id, date)
                             }}
                         >保存</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+                <DialogContent className="max-w-[300px]">
+                    <DialogHeader>
+                        <DialogTitle>撤回打卡</DialogTitle>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>取消</Button>
+                        <Button type="submit" onClick={handleRevoke}>撤回</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
