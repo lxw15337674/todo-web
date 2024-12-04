@@ -20,6 +20,9 @@ const nextConfig = withPWA({
     reactCompiler: true,
     largePageDataBytes: 512 * 100000,
   },
+  images: {
+    domains: ['game.gtimg.cn'],
+  },
   rewrites: async () => {
     return [
       {

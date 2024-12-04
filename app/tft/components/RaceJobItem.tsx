@@ -6,6 +6,7 @@ import {
 } from '../../../src/api/tft/model/RaceJob';
 import { Popover } from 'antd';
 import { TFTCard } from '@/api/tft/type';
+import Image from 'next/image';
 
 interface Props {
   raceJob: TFTCard;
@@ -56,10 +57,12 @@ const RaceJobItem = ({ raceJob }: Props) => {
     >
       <div className={`flex flex-col   m-0.5 items-center justify-center`}>
         <div className="flex items-center">
-          <img
+          <Image
             className="white-icon"
             src={raceJob.imagePath}
-            style={{ width: 16, height: 16 }}
+            alt={raceJob.name}
+            width={16}
+            height={16}
           />
           <span className="text-base font-bold text-white ml-1">
             {raceJob.name}

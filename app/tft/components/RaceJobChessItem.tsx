@@ -8,6 +8,7 @@ import { Descriptions, Popover, Avatar } from 'antd';
 import { TFTChess, TFTCard } from '@/api/tft/type';
 import { ISeasonInfo } from '@/api/tft';
 import { Desc } from './Desc';
+import Image from 'next/image';
 
 interface Props {
   races: TFTCard[];
@@ -87,10 +88,12 @@ const RaceJobChessItem: React.FC<Props> = ({
                   }}
                   key={raceJob.id}
                 >
-                  <img
+                  <Image
                     className={'white-icon'}
                     src={raceJob.imagePath}
-                    style={{ width: 16, height: 16, marginRight: 4 }}
+                    alt={raceJob.name}
+                    width={16}
+                    height={16}
                   />
                   <span style={{ fontSize: 15 }}>{raceJob.name}</span>
                 </div>

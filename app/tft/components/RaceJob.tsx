@@ -7,6 +7,7 @@ import {
   getRaceJobLevelColor,
 } from '../../../src/api/tft/model/RaceJob';
 import { Avatar } from '@mui/material';
+import Image from 'next/image';
 
 interface Props {
   raceJob: TFTCard;
@@ -34,10 +35,12 @@ const RaceJob = ({ raceJob }: Props) => {
         onMouseLeave={handlePopoverClose}
       >
         <div className="flex items-center">
-          <Avatar
+          <Image
             className="white-icon"
             src={raceJob.imagePath}
-            style={{ width: 16, height: 16 }}
+            alt={raceJob.name}
+            width={16}
+            height={16}
           />
           <span className="text-base font-bold text-white ml-1">
             {raceJob.name}
