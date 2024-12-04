@@ -217,6 +217,9 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
                             </div>
                             <Calendar
                                 mode="multiple"
+                                disabled={(date) => {
+                                    return date > new Date();
+                                }}
                                 locale={zhCN}
                                 selected={markedDates.map(item => item.date)}
                                 onDayClick={(day) => {
