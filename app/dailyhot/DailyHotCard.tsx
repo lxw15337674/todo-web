@@ -31,17 +31,16 @@ const DailyHotCard = ({ data }: Props) => {
               <div className="w-4 h-4 rounded-full bg-zinc-800 flex items-center justify-center shrink-0">
                 <span className="text-sm font-medium text-zinc-400">{index}</span>
               </div>
-              <div className="flex-1 min-w-0">
                 <a
                   href={topic.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-base mx-2 cursor-pointer text-zinc-50 hover:text-blue-400 flex-1 visited:text-blue-600 truncate "
+                  className=" min-w-0 text-base mx-2 cursor-pointer text-zinc-50 hover:text-blue-400 flex-1 visited:text-blue-600 truncate w-32"
+
                   title={topic.title}
                 >
                   {topic.title}
                 </a>
-              </div>
               <div className="text-sm text-zinc-400 shrink-0">{topic.hot}</div>
             </div>
           ))}
