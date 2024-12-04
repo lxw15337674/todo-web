@@ -32,14 +32,17 @@ export async function fetchTrackMetas() {
                 },
             },
         },
+        orderBy: {
+            createTime: 'desc', // 根据 createTime 倒序排列
+        },
     });
 }
 
 interface UpdateTrackMetaParams {
     id: string;
-    name: string;
-    type: string;
-    remark: string;
+    name?: string;
+    type?: string;
+    remark?: string;
 }
 
 export async function queryTrackMetaById(id: string): Promise<TrackMeta | null> {

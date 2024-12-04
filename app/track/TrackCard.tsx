@@ -1,8 +1,8 @@
 'use client'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Circle, CircleCheckBig, FlagTriangleRight, History, Ellipsis } from 'lucide-react';
-import { useMemo, useState } from "react";
-import { createTrackItem, deleteTrackItem, deleteTrackMeta } from "../../src/api/trackActions";
+import { useMemo, useState, useCallback, useRef } from "react";
+import { createTrackItem, deleteTrackMeta, updateTrackMeta } from "../../src/api/trackActions";
 import { Track } from "./page";
 import { Updater } from "use-immer";
 import { useCountUp } from 'use-count-up';
@@ -19,6 +19,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from "../../src/hooks/use-toast";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../../src/components/ui/dialog";
 import { TimePicker } from "../../src/components/ui/TimePicker";
+import { startConfettiAnimation } from "../../src/lib/utils";
 
 interface TrackCardProps {
     task: Track,
@@ -29,8 +30,8 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
     const [open, setOpen] = useState(false)
     const [pressing, setPressing] = useState(false)
     const [dialogOpen, setDialogOpen] = useState(false)
-    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [date, setDate] = useState<Date | undefined>(new Date())
+    const [taskName, setTaskName] = useState(task.name);
     const trackItems = task.countItems;
     const { toast } = useToast()
     const { value: animationWidth, reset } = useCountUp({
@@ -58,8 +59,17 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
         return trackItems.map(item => ({
             date: dayjs(item.createTime).toDate(),
             className: 'bg-green-500',
+            datetime: dayjs(item.createTime).format('YYYY-MM-DD HH:mm:ss')
         }));
     }, [trackItems]);
+
+    const monthlyTrackCount = useMemo(() => {
+        return task.countItems.filter(item => dayjs(item.createTime).isSame(new Date(), 'month')).length
+    }, [task.countItems]);
+
+    const totalTrackCount = useMemo(() => {
+        return task.countItems.length;
+    }, [task.countItems]);
 
     const completeTodayTrack = async (id: string, createTime: Date = new Date()) => {
         setTasks(draft => {
@@ -74,6 +84,7 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
             });
         })
         const track = await createTrackItem(id, createTime);
+        startConfettiAnimation()
         setTasks(draft => {
             const index = draft.findIndex(item => item.id === id);
             draft[index] = { ...draft[index], ...track };
@@ -94,41 +105,37 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
         }
     })
 
-    const handleDelete = useMemoizedFn(() => {
+    const handleDelete = useMemoizedFn(async () => {
         setTasks(draft => {
             const index = draft.findIndex(item => item.id === task.id);
             draft.splice(index, 1);
         })
+        await deleteTrackMeta(task.id)
         toast({
             title: '删除成功',
             description: '已成功删除打卡任务',
         })
-        deleteTrackMeta(task.id)
     })
 
     const onDayClick = useMemoizedFn((day: Date) => {
-        const isDayCompleted = task.countItems.some(item => dayjs(item.createTime).isSame(day, 'day'));
-        if (isDayCompleted) {
-            setDate(day);
-            setConfirmDialogOpen(true);
-        } else {
-            setDate(day);
-            setDialogOpen(true);
-        }
-    });
+        setDate(day)
+        setDialogOpen(true)
+    })
 
-    const handleRevoke = useMemoizedFn(() => {
+    const renameTask = useMemoizedFn(async () => {
         setTasks(draft => {
             const index = draft.findIndex(item => item.id === task.id);
-            draft[index].countItems = draft[index].countItems.filter(item => !dayjs(item.createTime).isSame(date, 'day'));
-        });
-        setConfirmDialogOpen(false);
+            draft[index].name = taskName;
+        })
+        await updateTrackMeta({
+            id: task.id,
+            name: taskName,
+        })
         toast({
-            title: '撤回成功',
-            description: '已成功撤回打卡',
-        });
-        deleteTrackItem(task.id)
-    });
+            title: '修改成功',
+            description: '已成功修改打卡任务',
+        })
+    })
 
     return (
         <>
@@ -145,17 +152,6 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
                                 completeTodayTrack(task.id, date)
                             }}
                         >保存</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-            <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-                <DialogContent className="max-w-[300px]">
-                    <DialogHeader>
-                        <DialogTitle>撤回打卡</DialogTitle>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>取消</Button>
-                        <Button type="submit" onClick={handleRevoke}>撤回</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -192,26 +188,14 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
                             <div className="grid grid-cols-2 gap-4 ">
                                 <Card>
                                     <CardContent className="p-4">
-                                        <div className="text-sm text-muted-foreground">月打卡</div>
-                                        <div className="text-2xl font-bold mt-1">1<span className="text-sm font-normal ml-1">天</span></div>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardContent className="p-4">
                                         <div className="text-sm text-muted-foreground">总打卡</div>
-                                        <div className="text-2xl font-bold mt-1">15<span className="text-sm font-normal ml-1">天</span></div>
+                                        <div className="text-2xl font-bold mt-1">{totalTrackCount}<span className="text-sm font-normal ml-1">天</span></div>
                                     </CardContent>
                                 </Card>
                                 <Card>
                                     <CardContent className="p-4">
-                                        <div className="text-sm text-muted-foreground">月完成率</div>
-                                        <div className="text-2xl font-bold mt-1">3<span className="text-sm font-normal ml-1">%</span></div>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardContent className="p-4">
-                                        <div className="text-sm text-muted-foreground">当前连续</div>
-                                        <div className="text-2xl font-bold mt-1">1<span className="text-sm font-normal ml-1">天</span></div>
+                                        <div className="text-sm text-muted-foreground">当月打卡</div>
+                                        <div className="text-2xl font-bold mt-1">{monthlyTrackCount}<span className="text-sm font-normal ml-1">天</span></div>
                                     </CardContent>
                                 </Card>
                             </div>
@@ -272,7 +256,13 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
             >
                 <CardHeader className="px-4 py-2   radius ">
                     <CardTitle className="truncate text-[#fffff5db] text-lg flex items-center" title={task.name}>
-                        {task.name}
+                        <input
+                            type="text"
+                            value={taskName}
+                            onChange={(e) => setTaskName(e.target.value)}
+                            onBlur={renameTask}
+                            className="bg-transparent border-none outline-none text-[#fffff5db] text-lg"
+                        />
                         <Button variant="outline" size="icon"
                             className="ml-auto"
                             onClick={(e) => {

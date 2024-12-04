@@ -41,6 +41,7 @@
     "antd": "5.8.6",
     "axios": "1.6.0",
     "babel-plugin-react-compiler": "19.0.0-beta-0dec889-20241115",
+    "canvas-confetti": "1.9.3",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "cross-env": "7.0.3",
@@ -69,6 +70,7 @@
     "zustand-middleware-computed": "1.2.1"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "1.6.4",
     "@types/lodash": "4.14.198",
     "@types/node": "18.17.11",
     "@types/react": "18.3.12",
