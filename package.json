@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "dev": "cross-env next dev  -p 8080 --turbo",
-    "build": "next build ",
+    "build": "prisma generate && next build",
     "start": "next --turbo -p 8080",
     "type-check": "tsc --noEmit",
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
