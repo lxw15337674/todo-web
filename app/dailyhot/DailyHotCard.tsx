@@ -1,105 +1,56 @@
-'use client';
-import { Avatar, Badge, List, Typography } from 'antd';
 import { HotType } from '@/public/app/dailyhot/page';
 import Image from 'next/image';
-import React, { useEffect, useMemo, useState } from 'react';
-const { Text } = Typography;
+import React from 'react'; // 移除 useMemo
+import { Card } from '../../src/components/ui/card';
+import { ScrollArea } from '../../src/components/ui/scroll-area';
+import dayjs from 'dayjs';
 
 interface Props {
   data: HotType;
 }
 
-const textColor = ['#ea444d', '#ed702d', '#eead3f'];
-
 const DailyHotCard = ({ data }: Props) => {
-  const [imageExists, setImageExists] = useState(true);
-  useEffect(() => {
-    const img = new window.Image();
-    img.src = `/logo/${data.name}.png`;
-    img.onload = () => setImageExists(true);
-    img.onerror = () => setImageExists(false);
-  }, [data.name]);
-
-  const date = useMemo(() => {
-    if (!data.updateTime) {
-      return '';
-    }
-    const date = new Date(data.updateTime);
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${year}/${month}/${day} ${hours}:${minutes}`;
-  }, [data.updateTime]);
+  const date =  dayjs(data.updateTime).format('YYYY/MM/DD HH:mm') 
   return (
-    <List
-      header={
-        <div className="flex justify-between  items-center">
-          <div className="flex items-center">
-            {imageExists && (
-              <Avatar
-                src={
-                  <Image
-                    src={`/logo/${data.name}.png`}
-                    alt="avatar"
-                    width={30}
-                    height={30}
-                  />
-                }
-              />
-            )}
-            <Typography.Title
-              level={5}
-              style={{ margin: '0 5px' }}
-              className="text-zinc-50"
-            >
-              {data?.label}
-            </Typography.Title>
-          </div>
-          <Typography.Title level={5} className="mb-0 mr-[15px]">
-            {data?.subtitle}
-          </Typography.Title>
+    <Card className="w-full max-w-2xl bg-zinc-900 text-white">
+      <div className="p-2 border-b border-zinc-800">
+        <div className="flex items-center gap-2">
+          <Image
+            src={`/logo/${data.name}.png`}
+            alt="avatar"
+            width={24}
+            height={24}
+          />
+          <span className="font-bold ">{data.label}</span>
         </div>
-      }
-      footer={
-        data.children.length > 0 && (
-          <div className="text-right">更新时间：{date}</div>
-        )
-      }
-      itemLayout="horizontal"
-      dataSource={data.children}
-      bordered
-      size="small"
-      className="h-full  
-       text-zinc-50
-      bg-[#18181c]
-      border-0	
-      [&_.ant-list-items]:scroll-container   [&_.ant-list-items]:h-[22rem] w-full"
-      loading={data.children.length === 0}
-      renderItem={(item, index) => (
-        <List.Item className="justify-start ">
-          <Badge count={index + 1} color={textColor[index] ?? '#bfbfbf'} />
-          <a
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-base mx-2 cursor-pointer
-              text-zinc-50
-            hover:text-blue-400 flex-1 visited:text-blue-600 truncate"
-            title={item.title}
-          >
-            {item.title}
-          </a>
-          <Text
-            className="ml-auto    text-zinc-50"
-            title={item.hot?.toString()}
-          >
-            {item.hot}
-          </Text>
-        </List.Item>
-      )}
-    />
+      </div>
+      <ScrollArea className="h-[410px]">
+        <div className="divide-y divide-zinc-800">
+          {data.children.map((topic, index) => (
+            <div key={index} className="flex items-center gap-4 p-2 hover:bg-zinc-800/50 transition-colors">
+              <div className="w-4 h-4 rounded-full bg-zinc-800 flex items-center justify-center shrink-0">
+                <span className="text-sm font-medium text-zinc-400">{index}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <a
+                  href={topic.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-base mx-2 cursor-pointer text-zinc-50 hover:text-blue-400 flex-1 visited:text-blue-600 truncate "
+                  title={topic.title}
+                >
+                  {topic.title}
+                </a>
+              </div>
+              <div className="text-sm text-zinc-400 shrink-0">{topic.hot}</div>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+      <div className="p-2 border-t border-zinc-800">
+        <p className=" text-zinc-400 text-right">更新时间:{date}</p>
+      </div>
+    </Card>
   );
 };
 export default DailyHotCard;
