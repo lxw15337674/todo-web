@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+'use client'
 import './global.css';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import theme from '../src/theme';
@@ -7,6 +7,7 @@ import Header from './Header';
 import { CssBaseline } from '@mui/material';
 import { ConfigProvider, theme as antdTheme } from 'antd';
 import { ThemeProvider as NextThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
 
 export default function RootLayout({
   children,
@@ -26,6 +27,7 @@ export default function RootLayout({
                 <CssBaseline enableColorScheme />
                 <Header />
                 {children}
+                <Toaster />
               </NextThemeProvider>
             </ConfigProvider>
           </ThemeProvider>

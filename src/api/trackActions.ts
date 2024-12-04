@@ -15,7 +15,7 @@ interface CreateTrackMetaParams {
 
 export async function createTrackMeta({ name, type,
 }: CreateTrackMetaParams): Promise<TrackMeta> {
-     return prisma.trackMeta.create({
+    return prisma.trackMeta.create({
         data: {
             name,
             type
@@ -26,7 +26,11 @@ export async function createTrackMeta({ name, type,
 export async function fetchTrackMetas() {
     return prisma.trackMeta.findMany({
         include: {
-            countItems: true, // 包含关联的 TrackItem
+            countItems: {
+                orderBy: {
+                    createTime: 'desc', // 根据 createTime 倒序排列
+                },
+            },
         },
     });
 }
@@ -38,6 +42,18 @@ interface UpdateTrackMetaParams {
     remark: string;
 }
 
+export async function queryTrackMetaById(id: string): Promise<TrackMeta | null> {
+    return prisma.trackMeta.findUnique({
+        where: { id },
+        include: {
+            countItems: {
+                orderBy: {
+                    createTime: 'desc', // 根据 createTime 倒序排列
+                },
+            },
+        },
+    });
+}
 export async function updateTrackMeta({ id, name, type, remark }: UpdateTrackMetaParams): Promise<TrackMeta> {
     return prisma.trackMeta.update({
         where: { id },
@@ -49,23 +65,22 @@ export async function updateTrackMeta({ id, name, type, remark }: UpdateTrackMet
     });
 }
 
-interface DeleteTrackMetaParams {
-    id: string;
-}
-
-export async function deleteTrackMeta({ id }: DeleteTrackMetaParams): Promise<TrackMeta> {
+export async function deleteTrackMeta(id: string): Promise<TrackMeta> {
     return prisma.trackMeta.delete({
         where: { id },
     });
 }
 
-export async function createTrackItem(countMetaId: string, remark: string = ''): Promise<TrackItem> {
-    return prisma.trackItem.create({
+export async function createTrackItem(countMetaId: string, createTime: Date, remark: string = ''): Promise<TrackMeta> {
+    await prisma.trackItem.create({
         data: {
             remark: remark,
             countMetaId,
+            createTime
         },
     });
+    const data = await queryTrackMetaById(countMetaId)
+    return data as TrackMeta
 }
 
 export async function fetchTrackItems(): Promise<TrackItem[]> {
