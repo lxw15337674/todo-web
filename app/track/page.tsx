@@ -8,6 +8,8 @@ import { TrackItem, TrackMeta } from '@prisma/client';
 import { useMount } from 'ahooks';
 import { useImmer } from 'use-immer';
 import TrackCard from './TrackCard';
+import useConfigStore from '../../store/config'
+import  { redirect } from 'next/navigation'
 
 
 export interface Track extends TrackMeta {
@@ -15,6 +17,14 @@ export interface Track extends TrackMeta {
 }
 
 export default function TaskManagement() {
+    const { validateEditCode } = useConfigStore();
+    useMount(() => {
+        validateEditCode().then((hasEditCodePermission) => {
+            if (!hasEditCodePermission) {
+               redirect('/login')
+            }
+        });
+    });
     const [tasks, setTasks] = useImmer<Track[]>([]);
     const [newTask, setNewTask] = useImmer<{ name: string, type: string }>({
         name: '',
