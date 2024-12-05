@@ -2,7 +2,6 @@ import React from 'react';
 import DailyHotCard from './DailyHotCard';
 import { news } from '../../src/config/dailyhotConfig';
 import { IData } from '@/api/dailyhot';
-import { unstable_cache } from 'next/cache';
 import axios from 'axios';
 
 export interface HotType {
