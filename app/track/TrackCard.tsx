@@ -141,7 +141,7 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
     return (
         <>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="max-w-[300px]">
+                <DialogContent >
                     <DialogHeader>
                         <DialogTitle>补卡</DialogTitle>
                     </DialogHeader>
@@ -157,8 +157,8 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
                 </DialogContent>
             </Dialog>
             <Sheet open={open} onOpenChange={setOpen} >
-                <SheetContent>
-                    <SheetHeader className="mb-2 ">
+                <SheetContent className="w-4/5">
+                    <SheetHeader className="mb-2">
                         <SheetTitle className="flex justify-between items-center ">{task.name}
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
