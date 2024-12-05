@@ -18,8 +18,12 @@ const DailyHotCard = ({ data }: Props) => {
           <Image
             src={`/logo/${data.name}.png`}
             alt="avatar"
+            loading='lazy'
             width={24}
             height={24}
+            style={{
+              height: 24
+            }}
           />
           <span className="font-bold ">{data.label}</span>
         </div>

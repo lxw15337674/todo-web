@@ -13,7 +13,7 @@ export interface HotType {
   updateTime?: string;
   children: IData[];
 }
-const getHotLists = unstable_cache((
+const getHotLists = (
   async (type: string) => {
     return axios
       .get(`https://dailyhot.hkg1.zeabur.app/${type}`, {
@@ -27,12 +27,7 @@ const getHotLists = unstable_cache((
       .catch((res) => {
         console.error(res.message);
       });
-  }),
-  ['getHotLists'],
-  {
-    revalidate: 60 * 60 // 1 hour
-  }
-)
+  })
 
 const DailyHot = async () => {
   const requests = news.map((item) =>
