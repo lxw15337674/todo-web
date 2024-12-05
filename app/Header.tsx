@@ -6,6 +6,7 @@ import { Button } from '../src/components/ui/button';
 import { Separator } from '../src/components/ui/separator';
 import { LayoutGrid } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { Toaster } from '../src/components/ui/toaster';
 const APPS = [
   {
     name: '摸鱼办',
@@ -68,6 +69,7 @@ export default function Header() {
 
   return (
     <header>
+      <Toaster />
       <div
         className={
           'px-4 py-2  bg-zine-800 dark:border-zinc-800 border-b-[1px] flex items-center '

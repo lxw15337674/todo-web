@@ -1,15 +1,14 @@
-const runtimeCaching = require('next-pwa/cache');
 
-const withPWA = require('next-pwa')({
-  disable: process.env.NODE_ENV === 'development',
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  runtimeCaching,
-  buildExcludes: [/middleware-manifest.json$/],
+import withSerwistInit from "@serwist/next";
+
+const withSerwist = withSerwistInit({
+  // Note: This is only an example. If you use Pages Router,
+  // use something else that works, such as "service-worker/index.ts".
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
 });
 
-const nextConfig = withPWA({
+const nextConfig = withSerwist({
   env: {
     API_URL: process.env.API_URL,
   },
