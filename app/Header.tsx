@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ModeToggle } from 'src/components/ModeToggle';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../src/components/ui/dropdown-menu';
 import { Button } from '../src/components/ui/button';
@@ -14,9 +14,11 @@ export default function Header() {
   const router = usePathname();
   const currentApp = [...EfficiencyTools, ...APPS].find((app) => app.url === router);
 
-  if (currentApp) {
-    document.title = currentApp.name;
-  }
+  useEffect(() => {
+    if (currentApp) {
+      document.title = currentApp.name;
+    }
+  }, [router]);
 
   return (
     <header>
