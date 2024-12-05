@@ -1,7 +1,7 @@
 // 效率工具
 export const EfficiencyTools = [
     {
-        name: '待办事项',
+        name: '任务',
         url: '/task',
     },
     {

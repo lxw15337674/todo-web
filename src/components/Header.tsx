@@ -12,13 +12,11 @@ import { APPS, EfficiencyTools, Links } from '../config/RouterConfig';
 
 export default function Header() {
   const router = usePathname();
-  const currentApp = APPS.find((app) => app.url === router);
+  const currentApp = [...EfficiencyTools, ...APPS].find((app) => app.url === router);
 
-  useEffect(() => {
-    if (currentApp) {
-      document.title = currentApp.name;
-    }
-  }, [currentApp]);
+  if (currentApp) {
+    document.title = currentApp.name;
+  }
 
   return (
     <header>

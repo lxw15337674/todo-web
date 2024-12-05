@@ -28,7 +28,7 @@ const TaskCard = ({ task, setTasks }: TaskCardProps) => {
                 checked={checked}
                 onCheckedChange={() => toggleTask(task.id)}
             />
-            <span className={cn('flex-1', checked && 'line-through text-muted-foreground')}>
+            <span className={cn('flex-1 truncate', checked && 'line-through text-muted-foreground')}>
                 {task.name}
             </span>
             {task?.countItems &&
@@ -38,7 +38,7 @@ const TaskCard = ({ task, setTasks }: TaskCardProps) => {
                 </div>
             }
             <span className="text-sm text-muted-foreground">
-                {dayjs(task.updateTime).format('MM/DD')}
+                {dayjs(task.updateTime).format('MM/DD HH:mm')}
             </span>
         </div>
     );
