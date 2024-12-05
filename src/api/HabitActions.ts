@@ -1,6 +1,4 @@
-// app/actions/trackActions.ts
 'use server';
-
 import { PrismaClient, TrackMeta, TrackItem } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -11,10 +9,7 @@ interface CreateTrackMetaParams {
     type: string;
 }
 
-
-
-export async function createTrackMeta({ name, type,
-}: CreateTrackMetaParams): Promise<TrackMeta> {
+export async function createTrackMeta({ name, type }: CreateTrackMetaParams): Promise<TrackMeta> {
     return prisma.trackMeta.create({
         data: {
             name,
@@ -57,6 +52,7 @@ export async function queryTrackMetaById(id: string): Promise<TrackMeta | null> 
         },
     });
 }
+
 export async function updateTrackMeta({ id, name, type, remark }: UpdateTrackMetaParams): Promise<TrackMeta> {
     return prisma.trackMeta.update({
         where: { id },
@@ -74,12 +70,18 @@ export async function deleteTrackMeta(id: string): Promise<TrackMeta> {
     });
 }
 
-export async function createTrackItem(countMetaId: string, createTime: Date, remark: string = ''): Promise<TrackMeta> {
+export async function createTrackItem(countMetaId: string, createTime: Date=new Date(), remark: string = ''): Promise<TrackMeta> {
     await prisma.trackItem.create({
         data: {
             remark: remark,
             countMetaId,
             createTime
+        },
+    });
+    await prisma.trackMeta.update({
+        where: { id: countMetaId },
+        data: {
+            updateTime: new Date(),
         },
     });
     const data = await queryTrackMetaById(countMetaId)
@@ -112,10 +114,17 @@ export async function updateTrackItem({ id, remark, countMetaId }: UpdateTrackIt
     });
 }
 
-
-
 export async function deleteTrackItem(id: string): Promise<TrackItem> {
-    return prisma.trackItem.delete({
+ 
+    const trackItem=await  prisma.trackItem.delete({
         where: { id },
     });
+    await prisma.trackMeta.update({
+        where: { id: trackItem.countMetaId! },
+        data: {
+            updateTime: new Date(),
+        },
+    });
+    return trackItem
+
 }

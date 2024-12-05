@@ -1,66 +1,14 @@
 'use client'
 import React, { useEffect } from 'react';
 import { ModeToggle } from 'src/components/ModeToggle';
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../src/components/ui/dropdown-menu';
-import { Button } from '../src/components/ui/button';
-import { Separator } from '../src/components/ui/separator';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Button } from './ui/button';
+import { Separator } from './ui/separator';
 import { LayoutGrid } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { Toaster } from '../src/components/ui/toaster';
+import { Toaster } from './ui/toaster';
+import { APPS, EfficiencyTools, Links } from '../config/RouterConfig';
 
-// 效率工具
-const EfficiencyTools = [
-  {
-    name: '待办事项',
-    url: '/todo',
-  },
-  {
-    name: '打卡',
-    url: '/track',
-  },
-]
-
-const APPS = [
-  {
-    name: '摸鱼办',
-    url: '/fishingTime',
-  },
-  // {
-  //   name: '待办事项',
-  //   url: '/todo',
-  // },
-  // {
-  //   name: '聊天室',
-  //   url: '/chat',
-  // },
-  {
-    name: '云顶之弈一图流',
-    url: '/tft',
-  },
-  {
-    name: '每日热点',
-    url: '/dailyhot',
-  },
-];
-
-const Links = [
-  {
-    name: '个人博客',
-    url: 'https://bhwa233-blog.vercel.app',
-  },
-  {
-    name: 'feishuMemos - 个人笔记本',
-    url: 'https://feishu-next-memos.vercel.app',
-  },
-  {
-    name: '微博热搜榜历史',
-    url: 'https://weibo-trending-hot-history.vercel.app',
-  },
-  {
-    name: 'hoarder - 网站剪藏',
-    url: 'https://hoarder.hkg1.zeabur.app/dashboard/bookmarks',
-  },
-];
 
 export default function Header() {
   const router = usePathname();

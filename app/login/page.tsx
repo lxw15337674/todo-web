@@ -23,7 +23,7 @@ export default function Login() {
     useMount(async () => {
         validateEditCode().then((hasEditCodePermission) => {
             if (hasEditCodePermission) {
-                router.push('/track')
+                router.push('/')
                 return
             }
         });

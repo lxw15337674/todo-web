@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { service } from '..';
 
 export interface FishingTime {
   year: number;

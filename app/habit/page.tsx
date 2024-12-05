@@ -1,13 +1,13 @@
 'use client'
-import { Calendar, CheckCircle2, MoreHorizontal, Plus, Search, Settings } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { createTrackMeta, fetchTrackMetas } from '../../src/api/trackActions';
+import { createTrackMeta, fetchTrackMetaByToday, fetchTrackMetas } from '../../src/api/HabitActions';
 import { TrackItem, TrackMeta } from '@prisma/client';
 import { useMount } from 'ahooks';
 import { useImmer } from 'use-immer';
-import TrackCard from './TrackCard';
+import HabitCard from '../../src/components/habit/HabitCard';
 import useConfigStore from '../../store/config'
 import  { redirect } from 'next/navigation'
 
@@ -36,8 +36,7 @@ export default function TaskManagement() {
             draft.push(...items);
         });
     }
-
-
+  
     const handleAddTask = async () => {
         if (newTask.name?.trim()) {
             const task = await createTrackMeta(newTask);
@@ -74,7 +73,6 @@ export default function TaskManagement() {
                     </Button>
                 </nav>
             </div> */}
-
             <div className="flex flex-col ">
                 <header className=" border-b p-4">
                     <div className="flex items-center gap-2 flex-1 max-w-lg ml-auto ">
@@ -95,7 +93,7 @@ export default function TaskManagement() {
                     <div className="space-y-4">
                         <div className='grid grid-cols-1 sm:grid-cols-2  gap-4'>
                             {tasks.map(task => (
-                                <TrackCard
+                                <HabitCard
                                     key={task.id}
                                     task={task}
                                     setTasks={setTasks}
@@ -104,6 +102,7 @@ export default function TaskManagement() {
                             
                         </div>
                     </div>
+                    
                 </ScrollArea>
             </div>
           

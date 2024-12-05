@@ -1,5 +1,4 @@
 'use client';
-import Layout from '@/components/layout';
 import { Button, Input } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 import { Socket, io } from 'socket.io-client';

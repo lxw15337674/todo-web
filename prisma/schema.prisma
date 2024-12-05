@@ -12,25 +12,35 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model TrackMeta {
-  id         String   @id @default(uuid())
+  id         String      @id @default(uuid())
   name       String
   type       String
-  remark     String   @default("")
-  createTime DateTime @default(now())
-  updateTime DateTime @default(now())
+  remark     String      @default("")
+  createTime DateTime    @default(now())
+  updateTime DateTime    @default(now())
   deletedAt  DateTime?
   countItems TrackItem[]
 }
 
 model TrackItem {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   remark      String
-  createTime  DateTime @default(now())
-  updateTime  DateTime @default(now())
+  createTime  DateTime   @default(now())
+  updateTime  DateTime   @default(now())
   countMetaId String?
   deletedAt   DateTime?
   countMeta   TrackMeta? @relation(fields: [countMetaId], references: [id])
 }
 
-
+model Task {
+  id         String    @id @default(uuid())
+  name       String
+  remark     String
+  createTime DateTime  @default(now())
+  updateTime DateTime  @default(now())
+  deletedAt  DateTime?
+  // 完成状态
+  status     String //0 未完成 1 完成
+}

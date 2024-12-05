@@ -1,32 +1,32 @@
 'use client'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Circle, CircleCheckBig, FlagTriangleRight, History, Ellipsis } from 'lucide-react';
-import { useMemo, useState, useCallback, useRef } from "react";
-import { createTrackItem, deleteTrackMeta, updateTrackMeta } from "../../src/api/trackActions";
-import { Track } from "./page";
+import { Check, CircleCheckBig, FlagTriangleRight, History, Ellipsis } from 'lucide-react';
+import { useMemo, useState } from "react";
+import { createTrackItem, deleteTrackMeta, updateTrackMeta } from "../../api/HabitActions";
+import { Track } from "../../../app/habit/page";
 import { Updater } from "use-immer";
 import { useCountUp } from 'use-count-up';
-import { Button } from "../../src/components/ui/button";
-import { Progress } from "../../src/components/ui/progress";
+import { Button } from "../ui/button";
+import { Progress } from "../ui/progress";
 import { useMemoizedFn } from "ahooks";
-import { Calendar } from "../../src/components/ui/calendar";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../../src/components/ui/sheet";
+import { Calendar } from "../ui/calendar";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import dayjs from "dayjs";
 import { Timeline, TimelineConnector, TimelineContent, TimelineDot, TimelineItem, timelineItemClasses, TimelineSeparator } from "@mui/lab";
-import { ScrollArea } from "../../src/components/ui/scroll-area";
+import { ScrollArea } from "../ui/scroll-area";
 import { zhCN } from 'date-fns/locale';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../src/components/ui/dropdown-menu";
-import { useToast } from "../../src/hooks/use-toast";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../../src/components/ui/dialog";
-import { TimePicker } from "../../src/components/ui/TimePicker";
-import { startConfettiAnimation } from "../../src/lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { useToast } from "../../hooks/use-toast";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
+import { TimePicker } from "../ui/TimePicker";
+import { startConfettiAnimation } from "../../lib/utils";
 
-interface TrackCardProps {
+interface HabitCardProps {
     task: Track,
     setTasks: Updater<Track[]>
 }
 
-const TrackCard = ({ task, setTasks }: TrackCardProps) => {
+const HabitCard = ({ task, setTasks }: HabitCardProps) => {
     const [open, setOpen] = useState(false)
     const [pressing, setPressing] = useState(false)
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -294,5 +294,5 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
         </>
     );
 };
-TrackCard.displayName = "TrackCard";
-export default TrackCard;
+HabitCard.displayName = "HabitCard";
+export default HabitCard;

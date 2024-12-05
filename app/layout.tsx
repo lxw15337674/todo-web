@@ -2,11 +2,11 @@ import './global.css';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import theme from '../src/theme';
 import { ThemeProvider } from '@mui/material/styles';
-import Header from './Header';
 import { CssBaseline } from '@mui/material';
 import { ConfigProvider, theme as antdTheme } from 'antd';
 import { ThemeProvider as NextThemeProvider } from "@/components/theme-provider"
 import {  Viewport } from 'next';
+import Header from '../src/components/Header';
 
 
 export const viewport: Viewport = {
