@@ -21,17 +21,21 @@ export interface IRootObject {
   data: IData[];
 }
 
-export const getHotLists = unstable_cache((type: string) => {
-  return axios
-    .get(`https://dailyhot.hkg1.zeabur.app/${type}`,{
-      params:{
-        cache:true
-      }
-    })
-    .then((res) => {
-      return res.data;
-    })
-    .catch((res) => {
-      console.error(res.message);
-    });
-} , ['hot'], { revalidate: 60 * 60  });
+export const getHotLists = unstable_cache(
+  (type: string) => {
+    return axios
+      .get(`https://dailyhot.hkg1.zeabur.app/${type}`, {
+        params: {
+          cache: true,
+        },
+      })
+      .then((res) => {
+        return res.data;
+      })
+      .catch((res) => {
+        console.error(res.message);
+      });
+  },
+  ['hot'],
+  { revalidate: 60 * 60 },
+);

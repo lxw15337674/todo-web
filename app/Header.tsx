@@ -1,13 +1,13 @@
 'use client'
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ModeToggle } from 'src/components/ModeToggle';
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
-import { Button } from './ui/button';
-import { Separator } from './ui/separator';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../src/components/ui/dropdown-menu';
+import { Button } from '../src/components/ui/button';
+import { Separator } from '../src/components/ui/separator';
 import { LayoutGrid } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { Toaster } from './ui/toaster';
-import { APPS, EfficiencyTools, Links } from '../config/RouterConfig';
+import { Toaster } from '../src/components/ui/toaster';
+import { APPS, EfficiencyTools, Links } from '../src/config/RouterConfig';
 
 
 export default function Header() {

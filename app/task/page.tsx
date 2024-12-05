@@ -17,13 +17,6 @@ import {
 
 export default function Page() {
     const { validateEditCode } = useConfigStore();
-    useMount(() => {
-        validateEditCode().then((hasEditCodePermission) => {
-            if (!hasEditCodePermission) {
-                redirect('/login')
-            }
-        });
-    });
     const [tasks, setTasks] = useState<AggregatedTask[]>([]);
     const [newTask, setNewTask] = useImmer<NewTask>({
         name: '',
@@ -50,9 +43,13 @@ export default function Page() {
     const completedTasks = tasks.filter(task => task.status === '1');
 
     useMount(() => {
+        validateEditCode().then((hasEditCodePermission) => {
+            if (!hasEditCodePermission) {
+                redirect('/login')
+            }
+        });
         fetchTasks();
     });
-
     return (
         <div className="flex-1 p-4 space-y-4">
             <div className="flex items-center gap-2">

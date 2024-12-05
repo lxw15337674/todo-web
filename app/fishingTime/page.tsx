@@ -28,7 +28,6 @@ const Chat = () => {
   });
 
   const fishingTime = useMemo(() => getTime(), []);
-
   return (
     <>
       <div>

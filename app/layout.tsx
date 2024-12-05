@@ -1,3 +1,4 @@
+'use client';
 import './global.css';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import theme from '../src/theme';
@@ -5,13 +6,8 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { ConfigProvider, theme as antdTheme } from 'antd';
 import { ThemeProvider as NextThemeProvider } from "@/components/theme-provider"
-import {  Viewport } from 'next';
-import Header from '../src/components/Header';
+import Header from './Header';
 
-
-export const viewport: Viewport = {
-  themeColor: "#000000",
-};
 
 export default function RootLayout({
   children,
