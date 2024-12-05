@@ -253,7 +253,7 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
                 onTouchEnd={endPressing}
                 className={`relative p-4 transition-transform transform cursor-pointer
                     hover:bg-accent
-                    ${isTaskCompletedToday ? 'border-green-600 ' : ''} p-0 ${pressing && !isTaskCompletedToday ? 'scale-95' : ''}`}
+                    ${isTaskCompletedToday ? 'border-green-400 ' : ''} p-0 ${pressing && !isTaskCompletedToday ? 'scale-95' : ''}`}
             >
                 <CardHeader className="px-4 py-2   radius ">
                     <CardTitle className="truncate text-[#fffff5db] text-lg flex items-center" title={task.name}>
@@ -274,8 +274,7 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 py-2  flex items-end rounded-lg">
-                    <div>
-                        <div className="flex items-center gap-0.5  py-0.5  rounded-full w-fit" title="总打卡">
+                        <div className="flex items-center gap-0.5  py-0.5  rounded-full w-fit mr-2" title="总打卡">
                             <FlagTriangleRight className="w-4 h-4 text-blue-400" />
                             <span className="text-gray-400 text-sm">{task.countItems.length}天</span>
                         </div>
@@ -283,9 +282,8 @@ const TrackCard = ({ task, setTasks }: TrackCardProps) => {
                             <Check className="w-4 h-4 text-red-400" />
                             <span className="text-gray-400 text-sm">{lastTrackDate || '无'}</span>
                         </div>
-                    </div>
-                    {isTaskCompletedToday ? <CircleCheckBig className="text-green-600 ml-auto w-6 h-6 mr-2" /> :
-                        <Circle className=" ml-auto w-6 h-6 text-[#fffff5db] mr-2" />
+                    {isTaskCompletedToday ? <CircleCheckBig className="text-green-400 ml-auto w-6 h-6 mr-2" /> :null
+                      
                     }
                 </CardContent>
                 {

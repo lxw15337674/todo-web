@@ -7,6 +7,19 @@ import { Separator } from '../src/components/ui/separator';
 import { LayoutGrid } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Toaster } from '../src/components/ui/toaster';
+
+// 效率工具
+const EfficiencyTools = [
+  {
+    name: '待办事项',
+    url: '/todo',
+  },
+  {
+    name: '打卡',
+    url: '/track',
+  },
+]
+
 const APPS = [
   {
     name: '摸鱼办',
@@ -16,14 +29,6 @@ const APPS = [
   //   name: '待办事项',
   //   url: '/todo',
   // },
-  // {
-  //   name: '打卡器',
-  //   url: '/counter',
-  // },
-  {
-    name: '打卡与记录',
-    url: '/track',
-  },
   // {
   //   name: '聊天室',
   //   url: '/chat',
@@ -83,6 +88,18 @@ export default function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
+              {EfficiencyTools.map((app) => (
+                <DropdownMenuCheckboxItem
+                  onClick={() => {
+                    window.location.href = app.url;
+                  }}
+                  checked={currentApp?.url === app.url}
+                  key={app.name}
+                >
+                  {app.name}
+                </DropdownMenuCheckboxItem>
+              ))}
+              <Separator />
               {APPS.map((app) => (
                 <DropdownMenuCheckboxItem
                   onClick={() => {

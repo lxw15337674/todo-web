@@ -76,15 +76,14 @@ export default function TaskManagement() {
             </div> */}
 
             <div className="flex flex-col ">
-                <header className="flex items-center justify-between border-b p-4">
-                    <h1 className="text-lg font-semibold mr-4">打卡</h1>
-                    <div className="flex items-center gap-2 flex-1 max-w-lg">
+                <header className=" border-b p-4">
+                    <div className="flex items-center gap-2 flex-1 max-w-lg ml-auto ">
                         <Input
                             value={newTask.name}
                             onChange={(e) => setNewTask(draft => {
                                 draft.name = e.target.value;
                             })}
-                            placeholder="输入内容或使用/快捷输入"
+                            placeholder="输入内容"
                         />
                         <Button onClick={handleAddTask} variant="ghost" className=" text-muted-foreground px-2" >
                             <Plus className="h-4 w-4" />
