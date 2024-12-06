@@ -58,7 +58,7 @@ const DailyHotCard = ({ data }: Props) => {
                 href={topic.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className=" min-w-0 text-base mx-2 cursor-pointer text-zinc-50 hover:text-blue-400 flex-1 visited:text-blue-600 truncate w-32"
+                className=" min-w-0 text-base  cursor-pointer text-zinc-50 hover:text-blue-400 flex-1 visited:text-blue-600  w-32"
 
                 title={topic.title}
               >
