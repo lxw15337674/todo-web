@@ -28,18 +28,7 @@ export function getFishingTime(): Promise<FishingTime> {
   });
 }
 
-interface Poem {
-  title: string;
-  dynasty: string;
-  author: string;
-  content: string[];
-  translate: null;
-}
-export function poems(): Promise<Poem> {
-  return axios.get('/poems').then((res) => {
-    return res?.data?.data.origin;
-  });
-}
+
 
 interface EnglishToday {
   content: string;

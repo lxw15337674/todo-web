@@ -25,10 +25,6 @@ const nextConfig = withSerwist({
   rewrites: async () => {
     return [
       {
-        source: '/poems',
-        destination: 'https://v2.jinrishici.com/one.json',
-      },
-      {
         source: '/englishToday',
         destination: 'https://apiv3.shanbay.com/weapps/dailyquote/quote/',
       },
