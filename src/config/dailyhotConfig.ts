@@ -8,6 +8,10 @@ export const news = [
     name: 'ngabbs',
   },
   {
+    label: '少数派',
+    name: 'sspai',
+  },
+  {
     label: '哔哩哔哩',
     name: 'bilibili',
   },
@@ -37,24 +41,13 @@ export const news = [
     name: 'douban-movie',
   },
   {
-    label: '豆瓣讨论小组',
-    name: 'douban-group',
-  },
-  {
     label: '百度贴吧',
     name: 'tieba',
   },
-  {
-    label: '少数派',
-    name: 'sspai',
-  },
+
   {
     label: 'IT之家',
     name: 'ithome',
-  },
-  {
-    label: '简书',
-    name: 'jianshu',
   },
   {
     label: '36氪',
@@ -87,9 +80,5 @@ export const news = [
   {
     label: 'HelloGitHub',
     name: 'hellogithub',
-  },
-  {
-    label: '历史上的今天',
-    name: 'history',
   },
 ];
