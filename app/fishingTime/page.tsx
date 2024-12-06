@@ -29,8 +29,7 @@ const Chat = () => {
 
   const fishingTime = useMemo(() => getTime(), []);
   return (
-    <>
-      <div>
+      <div className='p-2'>
         <div className="[&_>p]:text-base">
           <div className="m-2">
             <h1 className="text-lg">【摸鱼办】提醒您:</h1>
@@ -104,7 +103,6 @@ const Chat = () => {
           <h2></h2>
         </div>
       </div>
-    </>
   );
 };
 export default Chat;
