@@ -8,6 +8,7 @@ import { LayoutGrid } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Toaster } from '../src/components/ui/toaster';
 import { APPS, EfficiencyTools, Links } from '../src/config/RouterConfig';
+import Link from 'next/link';
 
 
 export default function Header() {
@@ -38,25 +39,19 @@ export default function Header() {
             <DropdownMenuContent>
               {EfficiencyTools.map((app) => (
                 <DropdownMenuCheckboxItem
-                  onClick={() => {
-                    window.location.href = app.url;
-                  }}
                   checked={currentApp?.url === app.url}
                   key={app.name}
                 >
-                  {app.name}
+                  <Link href={app.url}>{app.name}</Link>
                 </DropdownMenuCheckboxItem>
               ))}
               <Separator />
               {APPS.map((app) => (
                 <DropdownMenuCheckboxItem
-                  onClick={() => {
-                    window.location.href = app.url;
-                  }}
                   checked={currentApp?.url === app.url}
                   key={app.name}
                 >
-                  {app.name}
+                  <Link href={app.url}>{app.name}</Link>
                 </DropdownMenuCheckboxItem>
               ))}
               <Separator />
