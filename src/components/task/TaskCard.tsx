@@ -4,17 +4,18 @@ import { cn, startConfettiAnimation } from '../../lib/utils';
 import { AggregatedTask, updateTask } from '../../api/taskActions';
 import { FlagTriangleRight } from 'lucide-react';
 import dayjs from 'dayjs';
+import { SetState } from 'ahooks/lib/useSetState';
 
 interface TaskCardProps {
   task: AggregatedTask;
-  setTasks: React.Dispatch<React.SetStateAction<AggregatedTask[]>>;
+  setTasks: (value?: SetState<AggregatedTask[]> | undefined) => void;
 }
 
 const TaskCard = ({ task, setTasks }: TaskCardProps) => {
   const toggleTask = async (id: string) => {
     startConfettiAnimation();
     setTasks((tasks) =>
-      tasks.map((t) => {
+      (Array.isArray(tasks) ? tasks : []).map((t) => {
         if (t.id === id) {
           return { ...t, status: t.status === '0' ? '1' : '0' };
         }

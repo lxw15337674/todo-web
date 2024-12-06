@@ -6,9 +6,8 @@ import TaskCard from '../../src/components/task/TaskCard'
 import { AggregatedTask, createTask,  fetchAggregatedTask,  NewTask } from '../../src/api/taskActions'
 import { useImmer } from 'use-immer'
 import useConfigStore from '../../store/config'
-import { useMount } from 'ahooks'
+import { useLocalStorageState, useMount } from 'ahooks'
 import { redirect } from 'next/navigation'
-import { useState } from 'react'
 import {
     Collapsible,
     CollapsibleContent,
@@ -17,7 +16,9 @@ import {
 
 export default function Page() {
     const { validateEditCode } = useConfigStore();
-    const [tasks, setTasks] = useState<AggregatedTask[]>([]);
+    const [tasks=[], setTasks] = useLocalStorageState<AggregatedTask[]>('task',{
+        defaultValue: [],
+    });
     const [newTask, setNewTask] = useImmer<NewTask>({
         name: '',
         remark: '',
