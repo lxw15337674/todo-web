@@ -47,11 +47,13 @@ interface UpdateTaskParams
   type: TaskType;
 }
 
-export const updateTask = async (id: string, data: UpdateTaskParams) => {
-  if (data.type === 'track') {
+export const updateTask = async (id: string, Params: UpdateTaskParams) => {
+  const { type, ...data } = Params
+  if (type === 'track') {
     await createTrackItem(id);
     return;
   }
+
   await prisma.task.update({
     where: { id },
     data,
