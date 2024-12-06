@@ -20,7 +20,7 @@ const getHotLists = (
     return axios
       .get(`https://dailyhot.hkg1.zeabur.app/${type}`, {
         params: {
-          cache: false,
+          cache: true,
         },
       })
       .then((res) => {
