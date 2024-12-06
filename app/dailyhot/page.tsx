@@ -12,6 +12,9 @@ export interface HotType {
   updateTime?: string;
   children: IData[];
 }
+
+export const revalidate = 60
+
 const getHotLists = (
   async (type: string) => {
     return axios

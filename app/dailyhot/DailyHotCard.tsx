@@ -70,7 +70,7 @@ const DailyHotCard = ({ data }: Props) => {
         </div>
       </ScrollArea>
       <div className="p-2 border-t border-zinc-800">
-        <p className=" text-zinc-400 text-right">更新时间:{date}</p>
+        <p className="text-sm text-zinc-400 text-right">更新时间:{date}</p>
       </div>
     </Card>
   );
