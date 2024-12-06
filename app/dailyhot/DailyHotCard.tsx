@@ -4,6 +4,7 @@ import React from 'react';
 import dayjs from 'dayjs'; // 新增 dayjs 导入
 import { Card } from '../../src/components/ui/card';
 import { ScrollArea } from '../../src/components/ui/scroll-area';
+import Link from 'next/link';
 
 interface Props {
   data: HotType;
@@ -54,7 +55,7 @@ const DailyHotCard = ({ data }: Props) => {
               <div className="w-4 h-4 rounded-full bg-zinc-800 flex items-center justify-center shrink-0">
                 <span className="text-sm font-medium text-zinc-400">{index}</span>
               </div>
-              <a
+              <Link
                 href={topic.url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -63,7 +64,7 @@ const DailyHotCard = ({ data }: Props) => {
                 title={topic.title}
               >
                 {topic.title}
-              </a>
+              </Link>
               <div className="text-sm text-zinc-400 shrink-0">{topic.hot}</div>
             </div>
           ))}
