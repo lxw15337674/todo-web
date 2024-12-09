@@ -23,6 +23,7 @@ export default function Header() {
 
   return (
     <header>
+      <link rel="icon" href="/favicon.ico" sizes="any" />
       <Toaster />
       <div
         className={

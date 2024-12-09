@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ChevronsUpDown, Plus } from 'lucide-react'
 import TaskCard from '../../src/components/task/TaskCard'
-import { AggregatedTask, createTask,  fetchAggregatedTask,  NewTask } from '../../src/api/taskActions'
+import { AggregatedTask, createTask, fetchAggregatedTask, NewTask } from '../../src/api/taskActions'
 import { useImmer } from 'use-immer'
 import useConfigStore from '../../store/config'
 import { useLocalStorageState, useMount } from 'ahooks'
@@ -16,7 +16,7 @@ import {
 
 export default function Page() {
     const { validateEditCode } = useConfigStore();
-    const [tasks=[], setTasks] = useLocalStorageState<AggregatedTask[]>('task',{
+    const [tasks = [], setTasks] = useLocalStorageState<AggregatedTask[]>('task', {
         defaultValue: [],
     });
     const [newTask, setNewTask] = useImmer<NewTask>({
@@ -52,7 +52,7 @@ export default function Page() {
         fetchTasks();
     });
     return (
-        <div className="flex-1 p-4 space-y-4">
+        <div className="flex-1 p-4 space-y-4 ">
             <div className="flex items-center gap-2">
                 <Input
                     placeholder="添加任务"
@@ -78,10 +78,12 @@ export default function Page() {
                         <div className="sr-only">Toggle</div>
                         未完成
                     </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        {uncompletedTasks.map((task) => (
-                            <TaskCard key={task.id} task={task} setTasks={setTasks} />
-                        ))}
+                    <CollapsibleContent >
+                        <div >
+                            {uncompletedTasks.map((task) => (
+                                <TaskCard key={task.id} task={task} setTasks={setTasks} />
+                            ))}
+                        </div>
                     </CollapsibleContent>
                 </Collapsible>
                 <Collapsible defaultOpen>
