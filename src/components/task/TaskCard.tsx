@@ -55,7 +55,7 @@ const TaskCard = ({ task, setTasks }: TaskCardProps) => {
   return (
     <div
       key={task.id}
-      className="flex items-center gap-2 p-2  hover:bg-accent border-b "
+      className="flex items-center gap-2 px-2 py-1  hover:bg-accent border-b "
     >
       <Checkbox checked={checked} onCheckedChange={() => toggleTask(task.id)} />
       <AutosizeTextarea
@@ -64,7 +64,7 @@ const TaskCard = ({ task, setTasks }: TaskCardProps) => {
         onChange={(e) => setTaskName(e.target.value)}
         onBlur={renameTask}
         className={cn(
-          'flex-1 break-words w-36 border-0 resize-none', // 添加 resize-none 样式
+          'flex-1 break-words w-36 p-1 border-0 resize-none', // 添加 resize-none 样式
           checked && 'line-through text-muted-foreground ',
         )}
       />
