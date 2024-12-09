@@ -55,7 +55,7 @@ const TaskCard = ({ task, setTasks }: TaskCardProps) => {
   return (
     <div
       key={task.id}
-      className="flex items-center gap-2 px-2 py-1  hover:bg-accent border-b "
+      className="flex  gap-2 px-2 py-1 hover:bg-accent border-b items-center"
     >
       <Checkbox checked={checked} onCheckedChange={() => toggleTask(task.id)} />
       <AutosizeTextarea
@@ -68,10 +68,10 @@ const TaskCard = ({ task, setTasks }: TaskCardProps) => {
           checked && 'line-through text-muted-foreground ',
         )}
       />
-      <div className=' flex '>
+      <div className='flex items-center'>
         {task?.countItems && (
           <div
-            className="flex items-center gap-0.5  py-0.5  rounded-full w-fit mr-2"
+            className="flex items-center gap-0.5 py-0.5 rounded-full w-fit mr-2"
             title="总打卡"
           >
             <FlagTriangleRight className="w-4 h-4 text-blue-400" />
