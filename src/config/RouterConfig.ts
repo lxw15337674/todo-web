@@ -8,6 +8,10 @@ export const EfficiencyTools = [
     name: '打卡',
     url: '/habit',
   },
+  {
+    name: '书签',
+    url: '/bookmark'
+  }
 ];
 
 export const APPS = [

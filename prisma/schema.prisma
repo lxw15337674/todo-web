@@ -44,3 +44,24 @@ model Task {
   // 完成状态
   status     String //0 未完成 1 完成
 }
+
+model Bookmark {
+  id         String    @id @default(uuid())
+  name       String
+  url        String
+  remark     String
+  createTime DateTime  @default(now())
+  updateTime DateTime  @default(now())
+  deletedAt  DateTime?
+  tags       BookmarkTag[] // 新增，多对多关联字段
+}
+
+model BookmarkTag {
+  id         String    @id @default(uuid())
+  name       String
+  remark     String
+  createTime DateTime  @default(now())
+  updateTime DateTime  @default(now())
+  deletedAt  DateTime?
+  bookmarks  Bookmark[] // 新增，多对多关联字段
+}

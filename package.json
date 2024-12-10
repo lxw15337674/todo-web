@@ -14,7 +14,8 @@
     "start": "next --turbo -p 8080",
     "type-check": "tsc --noEmit",
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
-    "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write"
+    "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
+    "prisma-migrate": "npx prisma migrate dev --name migrate"
   },
   "dependencies": {
     "@emotion/cache": "11.13.5",
@@ -45,8 +46,10 @@
     "axios": "1.6.0",
     "babel-plugin-react-compiler": "19.0.0-beta-0dec889-20241115",
     "canvas-confetti": "1.9.3",
+    "cheerio": "1.0.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
+    "cmdk": "1.0.0",
     "cross-env": "7.0.3",
     "date-fns": "4.1.0",
     "dayjs": "1.11.9",
