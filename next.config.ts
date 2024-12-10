@@ -1,4 +1,3 @@
-
 import withSerwistInit from "@serwist/next";
 
 const withSerwist = withSerwistInit({
@@ -20,7 +19,12 @@ const nextConfig = withSerwist({
     largePageDataBytes: 512 * 100000,
   },
   images: {
-    domains: ['game.gtimg.cn'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'game.gtimg.cn',
+      },
+    ],
   },
   rewrites: async () => {
     return [
