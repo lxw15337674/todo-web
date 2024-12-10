@@ -62,7 +62,10 @@ const RaceJobChessItem: React.FC<Props> = ({
             <HoverCard>
               <HoverCardTrigger>
                 <Avatar
-                  className={`cursor-pointer ml-1 rounded-none border-2 border-${borderColor}`}
+                  className={`cursor-pointer ml-1 rounded-none border-2 `}
+                  style={{
+                    borderColor
+                  }}
                 >
                   <AvatarImage src={getChessImage(version.idSeason, chess.TFTID, ChessImageType.head)} />
                   <AvatarFallback>
