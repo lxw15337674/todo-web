@@ -117,6 +117,8 @@ interface MultiSelectProps
      * Optional, can be used to add custom styles.
      */
     className?: string;
+
+    onCreateNewOption?: (value: string) => void;
 }
 
 export const MultiSelect = React.forwardRef<
@@ -143,7 +145,7 @@ export const MultiSelect = React.forwardRef<
             React.useState<string[]>(defaultValue);
         const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
         const [isAnimating, setIsAnimating] = React.useState(false);
-
+        const [searchQuery, setSearchQuery] = React.useState("");
         const handleInputKeyDown = (
             event: React.KeyboardEvent<HTMLInputElement>
         ) => {
@@ -285,10 +287,14 @@ export const MultiSelect = React.forwardRef<
                     align="start"
                     onEscapeKeyDown={() => setIsPopoverOpen(false)}
                 >
-                    <Command>
+                    <Command filter={(value, search) => {
+                        if (value.includes(search) || value.startsWith('创建标签')) return 1
+                        return 0
+                    }}>
                         <CommandInput
-                            placeholder="Search..."
+                            placeholder="查找或创建标签"
                             onKeyDown={handleInputKeyDown}
+                            onInput={(e) => setSearchQuery(e.currentTarget.value)}
                         />
                         <CommandList>
                             <CommandEmpty>No results found.</CommandEmpty>
@@ -335,6 +341,20 @@ export const MultiSelect = React.forwardRef<
                                         </CommandItem>
                                     );
                                 })}
+                                {
+                                    <CommandItem
+                                        key="new"
+                                        onSelect={() => props.onCreateNewOption?.(searchQuery)}
+                                        className="cursor-pointer"
+                                    >
+                                        <div>
+                                            <span className="text-muted-foreground mr-2">
+                                                创建标签
+                                            </span>
+                                            {searchQuery}
+                                        </div>
+                                    </CommandItem>
+                                }
                             </CommandGroup>
                             <CommandSeparator />
                             <CommandGroup>

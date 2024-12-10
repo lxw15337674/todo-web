@@ -49,7 +49,7 @@ model Bookmark {
   id         String    @id @default(uuid())
   name       String
   url        String
-  remark     String
+  remark     String?
   createTime DateTime  @default(now())
   updateTime DateTime  @default(now())
   deletedAt  DateTime?
@@ -59,7 +59,7 @@ model Bookmark {
 model BookmarkTag {
   id         String    @id @default(uuid())
   name       String
-  remark     String
+  remark     String?
   createTime DateTime  @default(now())
   updateTime DateTime  @default(now())
   deletedAt  DateTime?

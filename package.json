@@ -15,7 +15,7 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
-    "prisma-migrate": "npx prisma migrate dev --name migrate"
+    "prisma-migrate": "npx prisma migrate dev --name migrate && npx prisma generate"
   },
   "dependencies": {
     "@emotion/cache": "11.13.5",

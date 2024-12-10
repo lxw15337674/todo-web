@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Bookmark, BookmarkCard, Category } from "../../src/components/bookmark/BookmarkCard"
 import { Sidebar } from "../../src/components/bookmark/Sidebar"
-import { NewBookmarkCard } from "../../src/components/bookmark/NewBookMarkCard1"
+import { NewBookmarkCard } from "../../src/components/bookmark/NewBookMarkCard"
 
 // Mock data
 const mockCategories: Category[] = [
@@ -38,7 +38,6 @@ const mockBookmarks: Bookmark[] = [
 export default function BookmarkManager() {
     const [activeCategory, setActiveCategory] = useState("uncategorized")
     const [searchQuery, setSearchQuery] = useState("")
-
     const filteredBookmarks = mockBookmarks.filter(bookmark =>
         bookmark.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         bookmark.description?.toLowerCase().includes(searchQuery.toLowerCase())
