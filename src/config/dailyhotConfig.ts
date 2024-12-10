@@ -1,5 +1,9 @@
 export const news = [
   {
+    label: '微博',
+    name: 'weibo',
+  },
+  {
     label: '虎扑',
     name: 'hupu',
   },
@@ -24,10 +28,7 @@ export const news = [
     name: 'coolapk',
   },
 
-  {
-    label: '微博',
-    name: 'weibo',
-  },
+
   {
     label: '知乎',
     name: 'zhihu',
@@ -40,10 +41,6 @@ export const news = [
     label: '豆瓣电影',
     name: 'douban-movie',
   },
-  {
-    label: '百度贴吧',
-    name: 'tieba',
-  },
 
   {
     label: 'IT之家',
@@ -52,10 +49,6 @@ export const news = [
   {
     label: '36氪',
     name: '36kr',
-  },
-  {
-    label: 'NodeSeek',
-    name: 'nodeseek',
   },
   {
     label: '稀土掘金',
@@ -68,10 +61,6 @@ export const news = [
   {
     label: '虎嗅',
     name: 'huxiu',
-  },
-  {
-    label: '爱范儿',
-    name: 'ifanr',
   },
   {
     label: '微信读书',
