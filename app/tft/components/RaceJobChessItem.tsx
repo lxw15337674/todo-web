@@ -4,11 +4,13 @@ import {
   getBorderColor,
   getChessImage,
 } from '../../../src/api/tft/model/Chess';
-import { Descriptions, Popover, Avatar } from 'antd';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TFTChess, TFTCard } from '@/api/tft/type';
 import { ISeasonInfo } from '@/api/tft';
 import { Desc } from './Desc';
 import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 
 interface Props {
   races: TFTCard[];
@@ -16,190 +18,106 @@ interface Props {
   chesses: TFTChess[];
   version: ISeasonInfo;
 }
+const imageWidth = 420;
 
+const Attributes: { label: string; value: keyof TFTChess; defaultValue?: string }[] = [
+  { label: '生命', value: 'lifeData' },
+  { label: '护甲', value: 'armor' },
+  { label: '魔抗', value: 'spellBlock' },
+  { label: '攻击', value: 'attackData' },
+  { label: '攻击距离', value: 'attackRange' },
+  { label: '攻速', value: 'attackSpeed' },
+  { label: '暴击', value: 'crit' },
+  { label: '初始法力值', value: 'startMagic', defaultValue: '0' },
+  { label: '最大法力值', value: 'magic', defaultValue: '0' },
+];
 const RaceJobChessItem: React.FC<Props> = ({
   chesses,
   races,
   jobs,
   version,
 }) => {
-  const renderChessCard = (chess: TFTChess) => {
-    const imageWidth = 420;
-    const raceJobs: TFTCard[] = [];
-    for (const id of chess.raceIds.split(',')) {
-      const race = races.find((race) => race.id === id);
-      if (race) {
-        raceJobs.push(race);
-      }
-    }
 
-    for (const id of chess.jobIds.split(',')) {
-      const job = jobs.find((job) => job.id === id);
-      if (job) {
-        raceJobs.push(job);
-      }
-    }
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: 8,
-          width: imageWidth,
-        }}
-      >
-        <div
-          style={{
-            position: 'relative',
-            width: imageWidth,
-            aspectRatio: 624 / 318,
-          }}
-        >
-          <Avatar
-            shape="square"
-            style={{
-              height: '100%',
-              width: '100%',
-              border: 0,
-            }}
-            src={getChessImage(
-              version.idSeason,
-              chess.TFTID,
-              ChessImageType.full,
-            )}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              left: 20,
-              bottom: 16,
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            {raceJobs.map((raceJob) => {
-              return (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginTop: 4,
-                  }}
-                  key={raceJob.id}
-                >
-                  <Image
-                    className={'white-icon'}
-                    src={raceJob.imagePath}
-                    alt={raceJob.name}
-                    width={16}
-                    height={16}
-                  />
-                  <span style={{ fontSize: 15 }}>{raceJob.name}</span>
-                </div>
-              );
-            })}
-            <span
-              style={{
-                fontSize: 20,
-                fontWeight: 'bold',
-                marginTop: 8,
-              }}
-            >
-              {chess.title} {chess.displayName}
-            </span>
-          </div>
-        </div>
-        <Descriptions
-          column={3}
-          bordered
-          size={'small'}
-          className="m-2"
-          labelStyle={{
-            fontSize: 12,
-            fontWeight: 'bold',
-            textAlign: 'center',
-            padding: '2px',
-          }}
-          contentStyle={{
-            fontSize: 13,
-            padding: '4px 12px',
-            fontWeight: 'bold',
-          }}
-          items={[
-            { label: '生命', children: chess.lifeData },
-            { label: '护甲', children: chess.armor },
-            { label: '魔抗', children: chess.spellBlock },
-            { label: '攻击', children: chess.attackData },
-            { label: '攻击距离', children: chess.attackRange },
-            { label: '攻速', children: chess.attackSpeed },
-            { label: '暴击', children: chess.crit },
-            { label: '初始法力值', children: chess.startMagic || '0' },
-            { label: '最大法力值', children: chess.magic || '0' },
-          ]}
-        />
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            paddingLeft: 16,
-            paddingRight: 16,
-            marginBottom: 16,
-          }}
-        >
-          <div
-            style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}
-          >
-            <Avatar
-              src={chess.skillImage}
-              size={30}
-              shape="square"
-              className="mr-2"
-            />
-            <span style={{ fontSize: 18, fontWeight: 'bold' }}>
-              {chess.skillName}
-            </span>
-          </div>
-          <span style={{ fontSize: 13 }}>
-            <Desc text={chess.skillDetail} />
-          </span>
-        </div>
-      </div>
-    );
-  };
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+    <div className="flex flex-wrap justify-center">
       {chesses?.map((chess) => {
         const borderColor = getBorderColor(chess.price);
+        const raceJobs: TFTCard[] = [];
+        for (const id of chess.raceIds.split(',')) {
+          const race = races.find((race) => race.id === id);
+          if (race) {
+            raceJobs.push(race);
+          }
+        }
+
+        for (const id of chess.jobIds.split(',')) {
+          const job = jobs.find((job) => job.id === id);
+          if (job) {
+            raceJobs.push(job);
+          }
+        }
         return (
           <Fragment key={chess.TFTID}>
-            <Popover
-              content={renderChessCard(chess)}
-              overlayInnerStyle={{ padding: 0 }}
-            >
-              <Avatar
-                src={getChessImage(
-                  version.idSeason,
-                  chess.TFTID,
-                  ChessImageType.head,
-                )}
-                shape="square"
-                size="large"
-                className="cursor-pointer ml-1"
-                style={{
-                  borderWidth: 2,
-                  borderColor,
-                  borderStyle: 'solid',
-                }}
-              />
-            </Popover>
+            <HoverCard>
+              <HoverCardTrigger>
+                <Avatar
+                  className="cursor-pointer ml-1"
+                  style={{
+                    borderWidth: 2,
+                    borderColor,
+                    borderStyle: 'solid',
+                  }}
+                >
+                  <AvatarImage src={getChessImage(version.idSeason, chess.TFTID, ChessImageType.head)} />
+                  <AvatarFallback>头像</AvatarFallback>
+                </Avatar>
+              </HoverCardTrigger>
+              <HoverCardContent className={`p-0 w-[${imageWidth}px]`}>
+                <div className="flex flex-col rounded-lg" style={{ width: imageWidth }}>
+                  <div className="relative" style={{ width: imageWidth, aspectRatio: '624 / 318' }}>
+                    <Image src={getChessImage(version.idSeason, chess.TFTID, ChessImageType.full)} alt={`${chess.displayName}`} width={imageWidth} height={210} />
+                    <div className="absolute left-5 bottom-4 flex flex-col">
+                      {raceJobs.map((raceJob) => (
+                        <div className="flex items-center mt-1" key={raceJob.id}>
+                          <Image
+                            className={'white-icon'}
+                            src={raceJob.imagePath}
+                            alt={raceJob.name}
+                            width={16}
+                            height={16}
+                          />
+                          <span className="text-sm">{raceJob.name}</span>
+                        </div>
+                      ))}
+                      <span className="text-lg font-bold mt-2">
+                        {chess.title} {chess.displayName}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="m-2 grid grid-rows-4 grid-flow-col ">
+                    {Attributes.map((attr) => (
+                      <div key={attr.label} className="flex justify-between ">
+                        <span className="text-center text-sm p-1  text-gray-400 font-bold border border-white/10 bg-white/10">{attr.label}</span>
+                        <span className="text-center text-sm p-1 font-bold border border-white/10 flex-1">{chess[attr.value] || attr.defaultValue}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-col px-4 mb-4">
+                    <div className="flex items-center mb-1.5">
+                      <Avatar className="mr-2">
+                        <AvatarImage src={chess.skillImage} />
+                        <AvatarFallback>技能图片</AvatarFallback>
+                      </Avatar>
+                      <span className="text-lg font-bold">{chess.skillName}</span>
+                    </div>
+                    <span className="text-xs">
+                      <Desc text={chess.skillDetail} />
+                    </span>
+                  </div>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
           </Fragment>
         );
       })}

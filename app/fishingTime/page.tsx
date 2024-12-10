@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { usePromise } from 'wwhooks';
 import { englishToday, holiday } from '@/api/fishingTime';
 import Countdown from './Countdown';
-import { Progress } from 'antd';
+import { Progress } from "@/components/ui/progress"
 import {
   daysUntilEndOfWeek,
   percentageCompletedOfWeek,
@@ -58,13 +58,13 @@ const Chat = () => {
             <ul>
               <div className="w-100">
                 <li>距离【本周结束】还有 {daysUntilEndOfWeek} 天</li>
-                <Progress percent={percentageCompletedOfWeek} />
+                <Progress value={percentageCompletedOfWeek} />
                 <li>距离【本月结束】还有 {daysUntilEndOfMonth} 天</li>
-                <Progress percent={percentageCompletedOfMonth} />
+                <Progress value={percentageCompletedOfMonth} />
                 <li>距离【本年结束】还有 {daysUntilEndOfYear} 天</li>
-                <Progress percent={percentageCompletedOfYear} />
+                <Progress value={percentageCompletedOfYear} />
                 <li>距离【70岁结束】还有 {daysToLive} 天</li>
-                <Progress percent={percentage} />
+                <Progress value={percentage} />
               </div>
             </ul>
           </div>
