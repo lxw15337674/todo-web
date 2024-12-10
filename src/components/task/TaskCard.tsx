@@ -72,7 +72,7 @@ const TaskCard = ({ task, setTasks }: TaskCardProps) => {
         onChange={(e) => setTaskName(e.target.value)}
         onBlur={renameTask}
         className={cn(
-          'flex-1 break-words w-36 p-1 m-1 border-0 resize-none text-sm  outline-none', // 添加 resize-none 样式
+          'flex-1 break-words w-36 p-1 m-1 border-0 resize-none   outline-none text-base', // 添加 resize-none 样式
           checked && 'line-through text-muted-foreground',
         )}
       />
