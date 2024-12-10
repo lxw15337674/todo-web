@@ -62,12 +62,7 @@ const RaceJobChessItem: React.FC<Props> = ({
             <HoverCard>
               <HoverCardTrigger>
                 <Avatar
-                  className="cursor-pointer ml-1 rounded-none"
-                  style={{
-                    borderWidth: 2,
-                    borderColor,
-                    borderStyle: 'solid',
-                  }}
+                  className={`cursor-pointer ml-1 rounded-none border-2 border-${borderColor}`}
                 >
                   <AvatarImage src={getChessImage(version.idSeason, chess.TFTID, ChessImageType.head)} />
                   <AvatarFallback>
@@ -77,7 +72,7 @@ const RaceJobChessItem: React.FC<Props> = ({
               </HoverCardTrigger>
               <HoverCardContent className={`p-0 w-[${imageWidth}px]`}>
                 <div className="flex flex-col rounded-lg" style={{ width: imageWidth }}>
-                  <div className="relative" style={{ width: imageWidth, aspectRatio: '624 / 318' }}>
+                  <div className="relative w-full aspect-[624/318]">
                     <Image src={getChessImage(version.idSeason, chess.TFTID, ChessImageType.full)} alt={`${chess.displayName}`} width={imageWidth} height={210} />
                     <div className="absolute left-5 bottom-4 flex flex-col">
                       {raceJobs.map((raceJob) => (
@@ -97,10 +92,10 @@ const RaceJobChessItem: React.FC<Props> = ({
                       </span>
                     </div>
                   </div>
-                  <div className="m-2 grid grid-rows-4 grid-flow-col ">
+                  <div className="m-2 grid grid-rows-4 grid-flow-col">
                     {Attributes.map((attr) => (
-                      <div key={attr.label} className="flex justify-between ">
-                        <span className="text-center text-sm p-1  text-gray-400 font-bold border border-white/10 bg-white/10">{attr.label}</span>
+                      <div key={attr.label} className="flex justify-between">
+                        <span className="text-center text-sm p-1 text-gray-400 font-bold border border-white/10 bg-white/10">{attr.label}</span>
                         <span className="text-center text-sm p-1 font-bold border border-white/10 flex-1">{chess[attr.value] || attr.defaultValue}</span>
                       </div>
                     ))}

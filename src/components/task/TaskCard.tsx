@@ -16,6 +16,7 @@ interface TaskCardProps {
 
 const TaskCard = ({ task, setTasks }: TaskCardProps) => {
   const [taskName, setTaskName] = useState(task.name);
+  const [isEditing, setIsEditing] = useState(false); // 添加编辑状态
   const { toast } = useToast();
   const toggleTask = async (id: string) => {
     startConfettiAnimation();
@@ -49,6 +50,7 @@ const TaskCard = ({ task, setTasks }: TaskCardProps) => {
         description: '任务名称已更新',
       });
     }
+    setIsEditing(false); // 退出编辑模式
   };
 
   const checked = task.status === '1';
@@ -57,15 +59,21 @@ const TaskCard = ({ task, setTasks }: TaskCardProps) => {
       key={task.id}
       className="flex  gap-2 px-2 py-1 hover:bg-accent border-b items-center"
     >
-      <Checkbox checked={checked} onCheckedChange={() => toggleTask(task.id)} />
+      <Checkbox
+        checked={checked}
+        onCheckedChange={() => toggleTask(task.id)}
+        className="focus:outline-none focus-visible:outline-none"
+      />
       <AutosizeTextarea
         minHeight={24}
         value={taskName}
+        readOnly={!isEditing}
+        onDoubleClick={() => setIsEditing(true)} // 双击进入编辑模式
         onChange={(e) => setTaskName(e.target.value)}
         onBlur={renameTask}
         className={cn(
-          'flex-1 break-words w-36 p-1 border-0 resize-none', // 添加 resize-none 样式
-          checked && 'line-through text-muted-foreground ',
+          'flex-1 break-words w-36 p-1 m-1 border-0 resize-none text-sm  outline-none', // 添加 resize-none 样式
+          checked && 'line-through text-muted-foreground',
         )}
       />
       <div className='flex items-center'>

@@ -31,7 +31,7 @@ export default function Page() {
     const handleAddTask = async () => {
         if (newTask.name?.trim()) {
             const task = await createTask(newTask);
-            setTasks((tasks) => [{ ...task, type: 'task' }, ...tasks]);
+            setTasks((tasks = []) => [{ ...task, type: 'task' }, ...tasks]);
             setNewTask(draft => {
                 draft.name = '';
             });
