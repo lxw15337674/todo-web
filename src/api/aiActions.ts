@@ -31,9 +31,9 @@ function extractJsonData(text: string): OpenAICompletion {
 // 构建提示信息的函数
 const constructPrompt = (c: string) => `
 您是一个稍后阅读应用中的机器人，您的职责是自动给出总结标题，内容和内容标签。
-请分析在 "CONTENT START HERE" 和 "CONTENT END HERE" 之间的html文本，并建议描述其关键主题和主要思想的相关标签。规则如下：
-- 目标是提供多样化的标签，包括广泛的类别、特定的关键词和潜在的子类别，不要出现意思类似的标签。
-- 给出4句话以内的总结。
+请分析在 "CONTENT START HERE" 和 "CONTENT END HERE" 之间的html文本，规则如下：
+- 标签目标是根据内容提供关键主题和主要思想的相关标签。
+- 总结目标是根据内容提供关键主题和主要思想给出一个四句话以内的总结。
 - 标题从html的标题标签中提取。
 - 标签语言必须是中文。
 - 如果是著名的网站，您也可以包括该网站的标签。如果标签不够通用，则不要包括。
