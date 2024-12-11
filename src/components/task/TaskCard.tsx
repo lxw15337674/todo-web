@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Checkbox } from '../ui/checkbox';
 import { cn, startConfettiAnimation } from '../../lib/utils';
-import { AggregatedTask, updateTask } from '../../api/taskActions';
+import { AggregatedTask, updateTask } from '../../api/task/taskActions';
 import { FlagTriangleRight } from 'lucide-react';
 import dayjs from 'dayjs';
 import { SetState } from 'ahooks/lib/createUseStorageState';

@@ -6,13 +6,17 @@ import {
   FlagTriangleRight,
   History,
   Ellipsis,
+  XCircle,
+  Eraser,
+  CalendarOff,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { use, useMemo, useState } from 'react';
 import {
   createTrackItem,
+  deleteTrackItem,
   deleteTrackMeta,
   updateTrackMeta,
-} from '../../api/HabitActions';
+} from '../../api/habitActions1';
 import { Track } from '../../../app/habit/page';
 import { Updater } from 'use-immer';
 import { useCountUp } from 'use-count-up';
@@ -152,8 +156,22 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
       description: '已成功删除打卡任务',
     });
   });
-
+  const handleDeleteItem = useMemoizedFn(async (id: string) => {
+    setTasks((draft) => {
+      const index = draft.findIndex((item) => item.id === task.id);
+      draft[index].countItems = draft[index].countItems.filter(
+        (item) => item.id !== id,
+      );
+    });
+    await deleteTrackItem(id);
+    toast({
+      title: '删除成功',
+      description: '已成功删除打卡记录',
+    });
+  })
   const onDayClick = useMemoizedFn((day: Date) => {
+    if (dayjs(day).isAfter(dayjs(), 'day')) return;
+    if (task.countItems.some((item) => dayjs(item.createTime).isSame(day, 'day'))) return;
     setDate(day);
     setDialogOpen(true);
   });
@@ -196,7 +214,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
         </DialogContent>
       </Dialog>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="w-4/5">
+        <SheetContent className="w-5/6 px-4 ">
           <SheetHeader className="mb-2">
             <SheetTitle className="flex justify-between items-center ">
               {task.name}
@@ -267,20 +285,25 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                   }}
                 >
                   {trackItems.map((count, index) => (
-                    <TimelineItem key={count.id}>
+                    <TimelineItem key={count.id} className='relative'>
                       <TimelineSeparator>
                         <TimelineDot color="primary" />
                         {index < trackItems.length - 1 && <TimelineConnector />}
                       </TimelineSeparator>
                       <TimelineContent>
-                        <div className="text-sm text-muted-foreground mb-2">
+                        <div className="text-sm text-muted-foreground mb-2 ">
                           第{trackItems.length - index}次
+
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {dayjs(count.createTime).format(
                             'YYYY-MM-DD HH:mm:ss',
                           )}
                         </div>
+                        {/* 撤回 */}
+                        <Button variant="outline" size="icon" className="absolute right-0 top-0 text-muted-foreground h-8 w-8" onClick={() => handleDeleteItem(count.id)}>
+                          <CalendarOff className='h-4' />
+                        </Button>
                       </TimelineContent>
                     </TimelineItem>
                   ))}
@@ -299,9 +322,8 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
         onTouchEnd={endPressing}
         className={`relative p-4 transition-transform transform cursor-pointer
                     hover:bg-accent
-                    ${isTaskCompletedToday ? 'border-green-400 ' : ''} p-0 ${
-                      pressing && !isTaskCompletedToday ? 'scale-95' : ''
-                    }`}
+                    ${isTaskCompletedToday ? 'border-green-400 ' : ''} p-0 ${pressing && !isTaskCompletedToday ? 'scale-95' : ''
+          }`}
       >
         <CardHeader className="px-4 py-2   radius ">
           <CardTitle

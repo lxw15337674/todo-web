@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { createTrackMeta, fetchTrackMetaByToday, fetchTrackMetas } from '../../src/api/HabitActions';
+import { createTrackMeta, fetchTrackMetaByToday, fetchTrackMetas } from '../../src/api/habitActions1';
 import { TrackItem, TrackMeta } from '@prisma/client';
 import { useMount } from 'ahooks';
 import { useImmer } from 'use-immer';
@@ -105,14 +105,6 @@ export default function TaskManagement() {
                     
                 </ScrollArea>
             </div>
-          
-            {/* Right Panel */}
-            {/* <div className="border-l p-4">
-                <div className="space-y-4">
-                    <h2 className="text-lg font-semibold">一个打卡记录</h2>
-                    <Input placeholder="输入内容或使用/快捷输入" />
-                </div>
-            </div> */}
         </div>
     )
 }
