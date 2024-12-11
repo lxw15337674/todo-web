@@ -19,11 +19,16 @@ const nextConfig = withSerwist({
     largePageDataBytes: 512 * 100000,
   },
   images: {
+    dangerouslyAllowSVG: true,
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'game.gtimg.cn',
       },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      }
     ],
   },
   rewrites: async () => {

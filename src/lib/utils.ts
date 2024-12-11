@@ -10,8 +10,6 @@ export function cn(...inputs: ClassValue[]) {
  * 启动一个从上往下散花的动画。
  */
 export function startConfettiAnimation(): void {
-  const count: number = 300;
-
   confetti({
     particleCount:100,
     angle: 60,

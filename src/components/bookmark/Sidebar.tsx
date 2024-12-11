@@ -5,7 +5,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { ChevronDown, ChevronRight, FolderIcon, History, Plus, Star } from 'lucide-react'
 import { useState } from "react"
 import { Category } from "./BookmarkCard"
-import { fetchTitle } from "../../api/requestActions"
 
 interface SidebarProps {
     categories: Category[]

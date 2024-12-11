@@ -46,22 +46,25 @@ model Task {
 }
 
 model Bookmark {
-  id         String    @id @default(uuid())
-  name       String
+  id         String        @id @default(uuid())
+  title       String?
   url        String
   remark     String?
-  createTime DateTime  @default(now())
-  updateTime DateTime  @default(now())
+  summary    String?
+  image      String?
+  createTime DateTime      @default(now())
+  updateTime DateTime      @default(now())
   deletedAt  DateTime?
+  loading    Boolean       @default(true)
   tags       BookmarkTag[] // 新增，多对多关联字段
 }
 
 model BookmarkTag {
-  id         String    @id @default(uuid())
+  id         String     @id @default(uuid())
   name       String
   remark     String?
-  createTime DateTime  @default(now())
-  updateTime DateTime  @default(now())
+  createTime DateTime   @default(now())
+  updateTime DateTime   @default(now())
   deletedAt  DateTime?
   bookmarks  Bookmark[] // 新增，多对多关联字段
 }

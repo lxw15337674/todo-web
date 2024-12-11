@@ -1,55 +1,69 @@
-import Image from "next/image"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-export interface Bookmark {
-    id: string
-    title: string
-    url: string
-    description?: string
-    image?: string
-    category?: string
-    createdAt: Date
-    isStarred: boolean
-}
+import { CompleteBookmark, deleteBookmark } from "../../api/bookmark"
 
-export interface Category {
-    id: string
-    name: string
-    count: number
-    icon?: React.ReactNode
-}
-
+import { Ellipsis } from "lucide-react";
+import { Button } from "../ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { useToast } from "../../hooks/use-toast";
 
 interface BookmarkCardProps {
-    bookmark: Bookmark
+    bookmark: CompleteBookmark
 }
 
 export function BookmarkCard({ bookmark }: BookmarkCardProps) {
+    const { toast } = useToast()
+    const handleDelete = async () => {
+        await deleteBookmark(bookmark.id)
+        toast({
+            title: '删除成功',
+            description: `书签 ${bookmark.title} 删除成功`
+        })
+    }
     return (
-        <Card className="hover:bg-accent/50 cursor-pointer transition-colors">
-            <CardHeader className="p-4">
-                <div className="flex items-start gap-4">
-                    <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{bookmark.title}</h3>
-                        <p className="text-sm text-muted-foreground">{bookmark.description}</p>
-                    </div>
-                    {bookmark.image && (
-                        <div className="flex-shrink-0">
-                            <Image
-                                src={bookmark.image}
-                                alt={bookmark.title}
-                                width={80}
-                                height={80}
-                                className="rounded-md object-cover"
-                            />
-                        </div>
-                    )}
+        <Card className="hover:bg-accent/50 transition-colors "
+        >
+            <CardHeader className="p-0">
+                <div className="w-full">
+                    <img
+                        src={bookmark?.image || `https://placehold.co/600x400?text=${bookmark.loading ? 'Loading' : bookmark.title}`}
+                        alt={bookmark.title ?? 'Bookmark Image'}
+                        className="object-cover h-56 w-full  cursor-pointer"
+                        onClick={() => window.open(bookmark.url, '_blank')}
+                    />
                 </div>
             </CardHeader>
-            <CardContent className="p-4 pt-0">
-                <div className="flex items-center text-xs text-muted-foreground">
-                    <span>{new URL(bookmark.url).hostname}</span>
+            <CardContent className="p-2 space-y-2 relative border-t">
+                <h3 className="font-semibold text-lg">{bookmark.title}</h3>
+                {bookmark.tags.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                        {bookmark.tags.map(tag => (
+                            <span key={tag.id} className="bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded">
+                                {tag.name}
+                            </span>
+                        ))}
+                    </div>
+                )}
+                <div className="flex items-center text-sm text-muted-foreground">
+                    <span>{bookmark.url ? new URL(bookmark.url).hostname : 'Invalid URL'}</span>
                     <span className="mx-2">•</span>
-                    <span>{bookmark.createdAt.toLocaleDateString()}</span>
+                    <span>{bookmark.createTime.toLocaleDateString()}</span>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="ml-auto">
+                                <Ellipsis className="w-6 mx-auto " />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <>
+                                <DropdownMenuItem
+                                    className="cursor-pointer text-red-500 dark:text-red-400"
+                                    onClick={handleDelete}
+                                >
+                                    删除
+                                </DropdownMenuItem>
+                            </>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </CardContent>
         </Card>
