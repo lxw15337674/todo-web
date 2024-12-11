@@ -24,7 +24,7 @@ export function Sidebar({ categories, activeCategory, onSelectCategory }: Sideba
                         <Button
                             variant="secondary"
                             className="w-full justify-start gap-2"
-                            onClick={() => fetchTitle('https://www.hecaitou.com/2024/12/Cats-do-not-need-bath.html')}
+                            onClick={() => fetchTitle('https://www.hecaitou.com/2024/11/A-person-with-no-taste.html')}
                         >
                             <FolderIcon className="h-4 w-4" />
                             测试接口
