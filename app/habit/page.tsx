@@ -105,14 +105,6 @@ export default function TaskManagement() {
                     
                 </ScrollArea>
             </div>
-          
-            {/* Right Panel */}
-            {/* <div className="border-l p-4">
-                <div className="space-y-4">
-                    <h2 className="text-lg font-semibold">一个打卡记录</h2>
-                    <Input placeholder="输入内容或使用/快捷输入" />
-                </div>
-            </div> */}
         </div>
     )
 }
