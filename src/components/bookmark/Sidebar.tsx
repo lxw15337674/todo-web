@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { ChevronDown, ChevronRight, FolderIcon, History, Plus, Star } from 'lucide-react'
 import { useState } from "react"
 import { Category } from "./BookmarkCard"
+import { fetchTitle } from "../../api/requestActions"
 
 interface SidebarProps {
     categories: Category[]
@@ -14,12 +15,21 @@ interface SidebarProps {
 
 export function Sidebar({ categories, activeCategory, onSelectCategory }: SidebarProps) {
     const [isListExpanded, setIsListExpanded] = useState(true)
-
+    
     return (
         <div className="pb-12 w-60">
             <div className="space-y-4 py-4">
                 <div className="px-3 py-2">
                     <div className="space-y-1">
+                        <Button
+                            variant="secondary"
+                            className="w-full justify-start gap-2"
+                            onClick={() => fetchTitle('https://www.hecaitou.com/2024/12/Cats-do-not-need-bath.html')}
+                        >
+                            <FolderIcon className="h-4 w-4" />
+                            测试接口
+                            <span className="ml-auto text-xs">2</span>
+                        </Button>
                         <Button
                             variant="secondary"
                             className="w-full justify-start gap-2"

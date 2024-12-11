@@ -1,6 +1,6 @@
 'use server';
 import { PrismaClient, Task, TrackItem } from '@prisma/client';
-import { createTrackItem, fetchTrackMetas } from './HabitActions';
+import { createTrackItem, fetchTrackMetas } from '../habitActions1';
 
 const prisma = new PrismaClient();
 export type TaskType = 'task' | 'track';
