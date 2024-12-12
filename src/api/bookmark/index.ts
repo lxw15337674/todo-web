@@ -4,32 +4,81 @@ import getSummarizeBookmark, { OpenAICompletion } from './aiActions';
 
 const prisma = new PrismaClient();
 
-// 创建书签
-export const createBookmark = async (url: string): Promise<Bookmark> => {
-    const newBookMark = await prisma.bookmark.create({
-        data: {
-            url,
-            loading: true
-        },
+
+// 批量查找标签，如果不存在标签，创建标签
+export const findBookmarkTags = async (data: string[]): Promise<BookmarkTag[]> => {
+    // 查找所有存在的标签
+    const existingTags = await prisma.bookmarkTag.findMany({
+        where: { name: { in: data } },
     });
-    getSummarizeBookmark(url).then(async (data: OpenAICompletion) => {
-        console.log(data);
-        const tags = await findBookmarkTags(data.tags);
-        return prisma.bookmark.update({
-            where: { id: newBookMark.id },
-            data: {
-                title: data.title,
-                summary: data.summary,
-                image: data.image,
-                tags: {
-                    connect: tags.map(tag => ({ id: tag.id }))
-                },
-                loading: false
-            }
+
+    // 提取已存在标签的名称
+    const existingTagNames = new Set(existingTags.map(tag => tag.name));
+
+    // 找出需要创建的新标签
+    const newTags = data.filter(name => !existingTagNames.has(name));
+
+    // 批量创建新标签
+    if (newTags.length > 0) {
+        await prisma.bookmarkTag.createMany({
+            data: newTags.map(name => ({ name })),
         });
+    }
+
+    // 返回所有标签（包括新创建的）
+    return prisma.bookmarkTag.findMany({
+        where: { name: { in: data } },
     });
+};
+
+// 创建书签
+export const createBookmark = async (url: string): Promise<Bookmark | null> => {
+    // 判断是否已经存在相同的书签
+    const existingBookmark = await prisma.bookmark.findFirst({
+        where: { url },
+    });
+    if (existingBookmark) {
+        return existingBookmark
+    }
+    let newBookMark: Bookmark | null = null;
+    try {
+        newBookMark = await prisma.bookmark.create({
+            data: { url, loading: true },
+        });
+
+        getSummarizeBookmark(url).then(async (data: OpenAICompletion) => {
+            if (!newBookMark) {
+                return null;
+            }
+            if (!data) {
+                throw new Error("Failed to get summary data");
+
+            }
+            const tags: BookmarkTag[] = await findBookmarkTags(data.tags);
+            const updatedBookmark = await prisma.bookmark.update({
+                where: { id: newBookMark.id },
+                data: {
+                    title: data.title,
+                    summary: data.summary,
+                    image: data.image,
+                    tags: { connect: tags.map(tag => ({ id: tag.id })) },
+                    loading: false,
+                },
+            });
+            console.info(`Created bookmark ${updateBookmark.name}-${updatedBookmark.id} with tags ${tags.map(tag => tag.name).join(', ')}`);
+        });
+    } catch (e) {
+        if (newBookMark) {
+            // 如果创建书签失败，更新书签的 loading 状态
+            await prisma.bookmark.update({
+                where: { id: newBookMark.id },
+                data: { loading: false },
+            });
+        }
+    }
     return newBookMark;
 };
+
 
 // 获取所有书签
 export interface CompleteBookmark extends Bookmark {
@@ -38,12 +87,8 @@ export interface CompleteBookmark extends Bookmark {
 export const getAllBookmarks = async (): Promise<CompleteBookmark[]> => {
     return await prisma.bookmark.findMany({
         take: 100,
-        orderBy: {
-            createTime: 'desc'
-        },
-        include: {
-            tags: true
-        }
+        orderBy: { createTime: 'desc' },
+        include: { tags: true }
     });
 };
 
@@ -51,17 +96,13 @@ export const getAllBookmarks = async (): Promise<CompleteBookmark[]> => {
 export const getSingleBookmark = async (id: string): Promise<CompleteBookmark | null> => {
     let bookmark = await prisma.bookmark.findUnique({
         where: { id },
-        include: {
-            tags: true
-        }
+        include: { tags: true }
     });
     while (bookmark?.loading) {
         await new Promise(resolve => setTimeout(resolve, 4000));
         bookmark = await prisma.bookmark.findUnique({
             where: { id },
-            include: {
-                tags: true
-            }
+            include: { tags: true }
         });
     }
     return bookmark;
@@ -82,20 +123,6 @@ export const deleteBookmark = async (id: string): Promise<Bookmark> => {
     });
 };
 
-// 批量查找标签，如果不存在标签，创建标签
-export const findBookmarkTags = async (data: string[]): Promise<BookmarkTag[]> => {
-    await prisma.bookmarkTag.createMany({
-        data: data.map((name) => ({ name })),
-        skipDuplicates: true,
-    });
-    return prisma.bookmarkTag.findMany({
-        where: {
-            name: {
-                in: data
-            }
-        }
-    });
-}
 
 // 获取所有标签
 export const getAllBookmarkTags = async (): Promise<BookmarkTag[]> => {

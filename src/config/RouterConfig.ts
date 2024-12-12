@@ -1,7 +1,7 @@
 // 效率工具
 export const EfficiencyTools = [
   {
-    name: '任务',
+    name: 'ToDo',
     url: '/task',
   },
   {
@@ -19,10 +19,6 @@ export const APPS = [
     name: '摸鱼办',
     url: '/fishingTime',
   },
-  // {
-  //   name: '待办事项',
-  //   url: '/todo',
-  // },
   // {
   //   name: '聊天室',
   //   url: '/chat',
