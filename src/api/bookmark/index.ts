@@ -84,14 +84,32 @@ export const createBookmark = async (url: string): Promise<Bookmark | null> => {
 export interface CompleteBookmark extends Bookmark {
     tags: BookmarkTag[]
 }
-export const getAllBookmarks = async (): Promise<CompleteBookmark[]> => {
+interface GetAllBookmarksOptions {
+    keyword?: string;
+    tagId?: string|null
+}
+export const getAllBookmarks = async (options: GetAllBookmarksOptions): Promise<CompleteBookmark[]> => {
+    const { keyword, tagId } = options;
     return await prisma.bookmark.findMany({
         take: 100,
+        where: {
+            AND: [
+                keyword ? {
+                    OR: [
+                        { title: { contains: keyword } },
+                    ],
+                } : {},
+                tagId ? {
+                    tags: {
+                        some: { id: tagId },
+                    },
+                } : {},
+            ],
+        },
         orderBy: { createTime: 'desc' },
-        include: { tags: true }
+        include: { tags: true },
     });
 };
-
 // 获取单个书签，不断轮训直到书签加载完成
 export const getSingleBookmark = async (id: string): Promise<CompleteBookmark | null> => {
     let bookmark = await prisma.bookmark.findUnique({
@@ -124,9 +142,20 @@ export const deleteBookmark = async (id: string): Promise<Bookmark> => {
 };
 
 
-// 获取所有标签
-export const getAllBookmarkTags = async (): Promise<BookmarkTag[]> => {
-    return await prisma.bookmarkTag.findMany();
+export interface BookmarkTagWithCount extends BookmarkTag {
+    count: number
+}
+// 获取所有标签，并查询每个标签下的关联多少个书签
+export const getAllBookmarkTags = async (): Promise<BookmarkTagWithCount[]> => {
+    const data = await prisma.bookmarkTag.findMany({
+        include: { bookmarks: true },
+    });
+    return data.map(item => {
+        return {
+            ...item,
+            count: item.bookmarks.length
+        }
+    })
 };
 
 // 更新标签

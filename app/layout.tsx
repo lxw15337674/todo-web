@@ -6,6 +6,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider as NextThemeProvider } from "@/components/theme-provider"
 import Header from './Header';
+import { SidebarProvider, SidebarTrigger } from '../src/components/ui/sidebar';
 
 
 export default function RootLayout({
@@ -16,18 +17,22 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning>
       <body>
-        <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          <ThemeProvider theme={theme} defaultMode="dark" >
+        <SidebarProvider>
+          <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+            <ThemeProvider theme={theme} defaultMode="dark" >
               <NextThemeProvider
                 attribute="class"
                 defaultTheme="dark"
               >
                 <CssBaseline enableColorScheme />
-                <Header />
-                {children}
+                <main className='w-screen h-screen'>
+                  <Header />
+                  {children}
+                </main>
               </NextThemeProvider>
-          </ThemeProvider>
-        </AppRouterCacheProvider>
+            </ThemeProvider>
+          </AppRouterCacheProvider>
+        </SidebarProvider>
       </body>
     </html>
   );

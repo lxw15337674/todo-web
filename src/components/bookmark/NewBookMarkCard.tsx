@@ -108,8 +108,8 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
                 />
             </CardContent>
             <CardFooter className="space-x-2">
-                <Button variant="outline" onClick={insertClipboardUrl}>
-                    粘贴剪切板中的URL(Ctrl+V)
+                <Button variant="outline" onClick={insertClipboardUrl} className="block">
+                    粘贴剪切板(Ctrl+V)
                 </Button>
                 <Button type="submit" className="w-full" onClick={handleSubmit}>
                     创建书签(Enter)
