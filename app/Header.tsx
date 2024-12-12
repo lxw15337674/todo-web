@@ -44,7 +44,7 @@ export default function Header() {
                   checked={currentApp?.url === app.url}
                   key={app.name}
                 >
-                  <Link href={app.url}>{app.name}</Link>
+                  <Link href={app.url} className='w-full'>{app.name}</Link>
                 </DropdownMenuCheckboxItem>
               ))}
               <Separator />
@@ -53,7 +53,7 @@ export default function Header() {
                   checked={currentApp?.url === app.url}
                   key={app.name}
                 >
-                  <Link href={app.url}>{app.name}</Link>
+                  <Link href={app.url} className='w-full'>{app.name}</Link>
                 </DropdownMenuCheckboxItem>
               ))}
               <Separator />
