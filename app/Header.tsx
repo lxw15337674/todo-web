@@ -31,9 +31,7 @@ export default function Header() {
         }
       >
         <div className="mr-4 flex items-center">
-          {
-            currentApp?.showSidebar && <SidebarTrigger className='mr-2' />
-          }
+         
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">
@@ -72,6 +70,9 @@ export default function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
           <span className="font-bold ml-2">{currentApp?.name}</span>
+          {
+            currentApp?.showSidebar && <SidebarTrigger className='mr-2' />
+          }
         </div>
         <div className="flex-1" />
         <ModeToggle />
