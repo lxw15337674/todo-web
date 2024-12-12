@@ -9,28 +9,18 @@ import { usePathname } from 'next/navigation';
 import { Toaster } from '../src/components/ui/toaster';
 import { APPS, EfficiencyTools, Links } from '../src/config/RouterConfig';
 import Link from 'next/link';
-import { SidebarTrigger, useSidebar } from '../src/components/ui/sidebar';
+import { SidebarTrigger } from '../src/components/ui/sidebar';
 
 
 export default function Header() {
   const router = usePathname();
   const currentApp = [...EfficiencyTools, ...APPS].find((app) => app.url === router);
-  const {
-    state,
-    open,
-    setOpen,
-    openMobile,
-    setOpenMobile,
-    isMobile,
-    toggleSidebar,
-  } = useSidebar()
 
   useEffect(() => {
     if (currentApp) {
       document.title = currentApp.name;
     }
   }, [router]);
-  console.log(state)
   return (
     <header>
       <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -41,7 +31,9 @@ export default function Header() {
         }
       >
         <div className="mr-4 flex items-center">
-          <SidebarTrigger className='mr-2'/>
+          {
+            currentApp?.showSidebar && <SidebarTrigger className='mr-2' />
+          }
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">

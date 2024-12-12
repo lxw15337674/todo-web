@@ -1,5 +1,10 @@
+interface MenuItem {
+  name: string;
+  url: string;
+  showSidebar?: boolean;
+}
 // 效率工具
-export const EfficiencyTools = [
+export const EfficiencyTools: MenuItem[] = [
   {
     name: 'ToDo',
     url: '/task',
@@ -10,11 +15,12 @@ export const EfficiencyTools = [
   },
   {
     name: '书签',
-    url: '/bookmark'
+    url: '/bookmark',
+    showSidebar: true,
   }
 ];
 
-export const APPS = [
+export const APPS: MenuItem []= [
   {
     name: '摸鱼办',
     url: '/fishingTime',
