@@ -14,6 +14,8 @@ import { useSidebar } from "../../src/components/ui/sidebar"
 import { Label } from "../../src/components/ui/label"
 import { Button } from "../../src/components/ui/button"
 
+const cacheKey = 'bookmarks'
+
 export default function BookmarkManager() {
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedTag, setSelectedTag] = useState<BookmarkTagWithCount | null>(null)
@@ -24,7 +26,9 @@ export default function BookmarkManager() {
         }
     ), {
         debounceWait: 500,
-        cacheKey: 'bookmarks',
+        cacheKey,
+        setCache: (data) => localStorage.setItem(cacheKey, JSON.stringify(data)),
+        getCache: () => JSON.parse(localStorage.getItem(cacheKey) || '{}'),
         refreshDeps: [searchQuery, selectedTag],
     });
     const {

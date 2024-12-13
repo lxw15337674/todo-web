@@ -5,6 +5,7 @@ import { Ellipsis } from "lucide-react";
 import { Button } from "../ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "../../hooks/use-toast";
+import dayjs from "dayjs";
 
 interface BookmarkCardProps {
     bookmark: CompleteBookmark
@@ -46,7 +47,7 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
                 <div className="flex items-center text-sm text-muted-foreground">
                     <span>{bookmark.url ? new URL(bookmark.url).hostname : 'Invalid URL'}</span>
                     <span className="mx-2">•</span>
-                    <span>{bookmark.createTime.toLocaleDateString()}</span>
+                    <span>{dayjs(bookmark.createTime).format('YYYY-MM-DD')}</span>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="ml-auto">

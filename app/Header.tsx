@@ -30,7 +30,7 @@ export default function Header() {
           'px-4 py-2  bg-zine-800 dark:border-zinc-800 border-b-[1px] flex items-center '
         }
       >
-        <div className="mr-4 flex items-center">
+        <div className="mr-4 flex items-center space-x-2">
          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -69,9 +69,9 @@ export default function Header() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <span className="font-bold ml-2">{currentApp?.name}</span>
+          <span className="font-bold ">{currentApp?.name}</span>
           {
-            currentApp?.showSidebar && <SidebarTrigger className='mr-2' />
+            currentApp?.showSidebar && <SidebarTrigger />
           }
         </div>
         <div className="flex-1" />

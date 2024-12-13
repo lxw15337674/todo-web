@@ -17,10 +17,13 @@ interface BookmarkSidebarProps {
     selectedTag: BookmarkTagWithCount | null;
     onSelectTag: (tag: BookmarkTagWithCount | null) => void;
 }
+const cacheKey= 'bookmarkTags'
 
 export default function BookmarkSidebar({ selectedTag, onSelectTag }: BookmarkSidebarProps) {
     const { data: tags = [] } = useRequest(getAllBookmarkTags, {
-        cacheKey: 'bookmarkTags',
+        cacheKey,
+        setCache: (data) => localStorage.setItem(cacheKey, JSON.stringify(data)),
+        getCache: () => JSON.parse(localStorage.getItem(cacheKey) || '{}'),
     });
 
     // 添加筛选输入框的状态
