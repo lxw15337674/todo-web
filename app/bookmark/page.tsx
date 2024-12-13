@@ -53,11 +53,6 @@ export default function BookmarkManager() {
 
     return (
         <div className="relative  w-full ">
-            {/* <Sidebar
-                    categories={mockCategories}
-                    activeCategory={activeCategory}
-                    onSelectCategory={setActiveCategory}
-                /> */}
             <BookmarkSidebar selectedTag={selectedTag} onSelectTag={setSelectedTag} />
             <div className={`h-full p-4 ${state === 'expanded' ? 'md:ml-64' : ''} duration-200 space-y-4`} >
                 <div className="flex items-center gap-4 ">

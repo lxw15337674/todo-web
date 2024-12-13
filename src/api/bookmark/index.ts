@@ -2,6 +2,9 @@
 import { PrismaClient, Bookmark, BookmarkTag } from '@prisma/client';
 import getSummarizeBookmark, { OpenAICompletion } from './aiActions';
 
+import { toast } from "@/components/ui/use-toast"
+
+
 const prisma = new PrismaClient();
 
 
@@ -79,6 +82,10 @@ export async function summarizeBookmark(id: string, url: string) {
             include: { tags: true },
         });
         console.info(`Created bookmark ${updatedBookmark.title}-${updatedBookmark.id} with tags ${tags.map(tag => tag.name).join(', ')}`);
+        toast({
+            title: 'AI摘要生成成功',
+            description: `书签 ${updatedBookmark!.url} AI摘要生成成功,标题为${updatedBookmark!.title}，摘要为${updatedBookmark!.summary}，标签为${updatedBookmark!.tags.map(tag => tag.name).join(', ')}`
+        });
         return updatedBookmark;
     } catch (e) {
         console.error(e);
@@ -135,6 +142,10 @@ export const getSingleBookmark = async (id: string): Promise<CompleteBookmark | 
             include: { tags: true }
         });
     }
+    toast({
+        title: 'AI摘要生成成功',
+        description: `书签 ${bookmark!.url} AI摘要生成成功,标题为${bookmark!.title}，摘要为${bookmark!.summary}，标签为${bookmark!.tags.map(tag => tag.name).join(', ')}`
+    })
     return bookmark;
 };
 
