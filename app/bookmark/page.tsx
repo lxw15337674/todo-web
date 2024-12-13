@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Search, X } from 'lucide-react'
+import {  Search, X } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { BookmarkCard } from "../../src/components/bookmark/BookmarkCard"
 import NewBookmarkCard from "../../src/components/bookmark/NewBookMarkCard"
