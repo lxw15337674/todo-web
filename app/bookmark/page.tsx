@@ -105,7 +105,9 @@ export default function BookmarkManager() {
                 <div className="grid md:grid-cols-4 gap-4">
                     <NewBookmarkCard onSubmit={onSubmit} />
                     {bookmarks.map((bookmark) => (
-                        <BookmarkCard key={bookmark.id} bookmark={bookmark} />
+                        <BookmarkCard key={bookmark.id} bookmark={bookmark}
+                        setBookmarks={mutate}
+                        />
                     ))}
                 </div>
             </div>

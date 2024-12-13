@@ -22,12 +22,12 @@ export default function Header() {
     }
   }, [router]);
   return (
-    <header>
+    <header className="sticky top-0 z-50 bg-black">
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <Toaster />
       <div
         className={
-          'px-4 py-2  bg-zine-800 dark:border-zinc-800 border-b-[1px] flex items-center '
+          'px-4 py-2   bg-zine-800 dark:border-zinc-800 border-b-[1px] flex items-center '
         }
       >
         <div className="mr-4 flex items-center space-x-2">

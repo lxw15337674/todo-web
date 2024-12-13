@@ -9,9 +9,10 @@ import dayjs from "dayjs";
 
 interface BookmarkCardProps {
     bookmark: CompleteBookmark
+    setBookmarks: (bookmarks?: CompleteBookmark[]|((bookmarks?: CompleteBookmark[]) => CompleteBookmark[])) => void
 }
 
-export function BookmarkCard({ bookmark }: BookmarkCardProps) {
+export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
     const { toast } = useToast()
     const handleDelete = async () => {
         await deleteBookmark(bookmark.id)
@@ -19,6 +20,7 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
             title: '删除成功',
             description: `书签 ${bookmark.title} 删除成功`
         })
+        setBookmarks(bookmarks => (bookmarks ? bookmarks.filter(item => item.id !== bookmark.id) : []))
     }
     return (
         <Card className="hover:bg-accent/50 transition-colors "
