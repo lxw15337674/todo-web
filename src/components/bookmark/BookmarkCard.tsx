@@ -38,7 +38,7 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
         const data = await summarizeBookmark(bookmark.id, bookmark.url)
         setBookmarks(bookmarks => {
             if (!data) return []
-            return (bookmarks??[])?.map(bookmark => {
+            return (bookmarks ?? [])?.map(bookmark => {
                 if (bookmark.id === data.id) {
                     return data;
                 }
@@ -48,7 +48,7 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
         );
         toast({
             title: 'AI摘要生成成功',
-            description: `书签 ${data!.title} AI摘要生成成功`
+            description: `书签 ${data!.url} AI摘要生成成功,标题为${data!.title}，摘要为${data!.summary}，标签为${data!.tags.map(tag => tag.name).join(', ')}`
         });
     }
     return (
