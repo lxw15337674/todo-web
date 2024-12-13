@@ -41,43 +41,55 @@ export const createBookmark = async (url: string): Promise<Bookmark | null> => {
         return existingBookmark
     }
     let newBookMark: Bookmark | null = null;
-    try {
-        newBookMark = await prisma.bookmark.create({
-            data: { url, loading: true },
-        });
-
-        getSummarizeBookmark(url).then(async (data: OpenAICompletion) => {
-            if (!newBookMark) {
-                return null;
-            }
-            if (!data) {
-                throw new Error("Failed to get summary data");
-
-            }
-            const tags: BookmarkTag[] = await findBookmarkTags(data.tags);
-            const updatedBookmark = await prisma.bookmark.update({
-                where: { id: newBookMark.id },
-                data: {
-                    title: data.title,
-                    summary: data.summary,
-                    image: data.image,
-                    tags: { connect: tags.map(tag => ({ id: tag.id })) },
-                    loading: false,
-                },
-            });
-            console.info(`Created bookmark ${updateBookmark.name}-${updatedBookmark.id} with tags ${tags.map(tag => tag.name).join(', ')}`);
-        });
-    } catch (e) {
-        if (newBookMark) {
-            // 如果创建书签失败，更新书签的 loading 状态
-            await prisma.bookmark.update({
-                where: { id: newBookMark.id },
-                data: { loading: false },
-            });
-        }
-    }
+    newBookMark = await prisma.bookmark.create({
+        data: { url, loading: true },
+    });
+    summarizeBookmark(newBookMark.id, url);
     return newBookMark;
 };
+
+export async function summarizeBookmark(id: string, url: string) {
+    try {
+        const data = await getSummarizeBookmark(url);
+        if (!data) {
+            throw new Error("Failed to get summary data");
+        }
+
+        const tags: BookmarkTag[] = await findBookmarkTags(data.tags);
+
+        // 删除之前关联的标签
+        await prisma.bookmark.update({
+            where: { id },
+            data: {
+                tags: {
+                    set: []
+                }
+            }
+        });
+
+        const updatedBookmark = await prisma.bookmark.update({
+            where: { id: id },
+            data: {
+                title: data.title,
+                summary: data.summary,
+                image: data.image,
+                tags: { connect: tags.map(tag => ({ id: tag.id })) },
+                loading: false,
+            },
+            include: { tags: true },
+        });
+        console.info(`Created bookmark ${updatedBookmark.title}-${updatedBookmark.id} with tags ${tags.map(tag => tag.name).join(', ')}`);
+        return updatedBookmark;
+    } catch (e) {
+        console.error(e);
+        // 如果创建书签失败，更新书签的 loading 状态
+        await prisma.bookmark.update({
+            where: { id: id },
+            data: { loading: false },
+        });
+        return null;
+    }
+}
 
 
 // 获取所有书签
@@ -86,7 +98,7 @@ export interface CompleteBookmark extends Bookmark {
 }
 interface GetAllBookmarksOptions {
     keyword?: string;
-    tagId?: string|null
+    tagId?: string | null
 }
 export const getAllBookmarks = async (options: GetAllBookmarksOptions): Promise<CompleteBookmark[]> => {
     const { keyword, tagId } = options;
@@ -128,6 +140,17 @@ export const getSingleBookmark = async (id: string): Promise<CompleteBookmark | 
 
 // 更新书签
 export const updateBookmark = async (id: string, data: Bookmark): Promise<Bookmark> => {
+    // 删除之前关联的标签
+    await prisma.bookmark.update({
+        where: { id },
+        data: {
+            tags: {
+                set: []
+            }
+        }
+    });
+
+    // 更新书签数据
     return await prisma.bookmark.update({
         where: { id },
         data,

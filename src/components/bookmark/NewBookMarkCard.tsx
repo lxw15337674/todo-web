@@ -7,7 +7,7 @@ import { useToast } from "../../hooks/use-toast"
 import { createBookmark } from "@/api/bookmark"
 import { Textarea } from "../ui/textarea"
 import { useEventListener, useInterval, useMount } from "ahooks"
-import { startConfettiAnimation } from "../../lib/utils"
+import { isBrowser, startConfettiAnimation } from "../../lib/utils"
 import dayjs from 'dayjs';
 
 interface BookmarkCardProps {
@@ -31,6 +31,7 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
     const { toast } = useToast();
     const [newBookmarkUrl, setNewBookmarkUrl] = useState('');
     const insertClipboardUrl = () => {
+        if (!isBrowser()) return;
         navigator?.clipboard?.readText().then((text) => {
             if (isValidUrl(text) && text !== newBookmarkUrl) {
                 setNewBookmarkUrl(text);
