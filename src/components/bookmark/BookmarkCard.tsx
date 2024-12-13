@@ -46,6 +46,10 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
             });
         }
         );
+        toast({
+            title: 'AI摘要生成成功',
+            description: `书签 ${data!.url} AI摘要生成成功,标题为${data!.title}，标签为${data!.tags.map(tag => tag.name).join(', ')}`
+        });
     }
     return (
         <Card className="hover:bg-accent/50 transition-colors "

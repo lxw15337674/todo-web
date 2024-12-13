@@ -14,10 +14,12 @@ import { Label } from "../../src/components/ui/label"
 import { Button } from "../../src/components/ui/button"
 import { isBrowser } from "@/lib/utils"
 import useLocalStorageRequest from "../../src/hooks/useLocalStorageRequest"
+import { useToast } from "../../src/hooks/use-toast"
 const cacheKey = 'bookmarks'
 
 export default function BookmarkManager() {
     const [searchQuery, setSearchQuery] = useState("")
+    const { toast } = useToast()
     const [selectedTag, setSelectedTag] = useState<BookmarkTagWithCount | null>(null)
     const { data: bookmarks = [], mutate } = useLocalStorageRequest(() => getAllBookmarks(
         {
@@ -48,6 +50,10 @@ export default function BookmarkManager() {
                     return bookmark;
                 });
             });
+            toast({
+                title: 'AI摘要生成成功',
+                description: `书签 ${updatedBookmark!.url} AI摘要生成成功,标题为${updatedBookmark!.title}，标签为${updatedBookmark!.tags.map(tag => tag.name).join(', ')}`
+            })
         }
     })
 
@@ -101,7 +107,7 @@ export default function BookmarkManager() {
                     <NewBookmarkCard onSubmit={onSubmit} />
                     {bookmarks.map((bookmark) => (
                         <BookmarkCard key={bookmark.id} bookmark={bookmark}
-                        setBookmarks={mutate}
+                            setBookmarks={mutate}
                         />
                     ))}
                 </div>
