@@ -2,6 +2,9 @@
     "functions": {
         "pages/**/*": {
             "maxDuration": 60
+        },
+        "src/api/**/*": {
+            "maxDuration": 60
         }
     }
 }
