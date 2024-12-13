@@ -6,32 +6,32 @@ import TaskCard from '../../src/components/task/TaskCard'
 import { AggregatedTask, createTask, fetchAggregatedTask, NewTask } from '../../src/api/task/taskActions'
 import { useImmer } from 'use-immer'
 import useConfigStore from '../../store/config'
-import { useLocalStorageState, useMount } from 'ahooks'
+import { useRequest } from 'ahooks'
 import { redirect } from 'next/navigation'
 import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { useEffect } from 'react'
 
+const cacheKey = 'AggregatedTask'
 export default function Page() {
     const { validateEditCode } = useConfigStore();
-    const [tasks = [], setTasks] = useLocalStorageState<AggregatedTask[]>('task', {
-        defaultValue: [],
+    const { data: tasks = [], mutate } = useRequest(fetchAggregatedTask, {
+        cacheKey,
+        setCache: (data) => localStorage.setItem(cacheKey, JSON.stringify(data)),
+        getCache: () => JSON.parse(localStorage.getItem(cacheKey) || '{}'),
     });
     const [newTask, setNewTask] = useImmer<NewTask>({
         name: '',
         remark: '',
         status: '0',
     });
-    async function fetchTasks() {
-        const items = await fetchAggregatedTask();
-        setTasks(items);
-    }
     const handleAddTask = async () => {
         if (newTask.name?.trim()) {
             const task = await createTask(newTask);
-            setTasks((tasks = []) => [{ ...task, type: 'task' }, ...tasks]);
+            mutate((tasks = []) => [{ ...task, type: 'task' }, ...tasks]);
             setNewTask(draft => {
                 draft.name = '';
             });
@@ -43,14 +43,13 @@ export default function Page() {
     // 已完成任务
     const completedTasks = tasks.filter(task => task.status === '1');
 
-    useMount(() => {
+    useEffect(() => {
         validateEditCode().then((hasEditCodePermission) => {
             if (!hasEditCodePermission) {
                 redirect('/login')
             }
         });
-        fetchTasks();
-    });
+    }, []);
     return (
         <div className="flex-1 p-4 space-y-4 " suppressHydrationWarning >
             <div className="flex items-center gap-2">
@@ -81,7 +80,7 @@ export default function Page() {
                     <CollapsibleContent >
                         <div >
                             {uncompletedTasks.map((task) => (
-                                <TaskCard key={task.id} task={task} setTasks={setTasks} />
+                                <TaskCard key={task.id} task={task} setTasks={mutate} />
                             ))}
                         </div>
                     </CollapsibleContent>
@@ -94,7 +93,7 @@ export default function Page() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                         {uncompletedTracks.map((task) => (
-                            <TaskCard key={task.id} task={task} setTasks={setTasks} />
+                            <TaskCard key={task.id} task={task} setTasks={mutate} />
                         ))}
                     </CollapsibleContent>
                 </Collapsible>
@@ -106,7 +105,7 @@ export default function Page() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                         {completedTasks.map((task) => (
-                            <TaskCard key={task.id} task={task} setTasks={setTasks} />
+                            <TaskCard key={task.id} task={task} setTasks={mutate} />
                         ))}
                     </CollapsibleContent>
                 </Collapsible>

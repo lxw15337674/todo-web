@@ -28,7 +28,7 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
                     <img
                         src={bookmark?.image || `https://placehold.co/600x400?text=${bookmark.loading ? 'Loading' : bookmark.title}`}
                         alt={bookmark.title ?? 'Bookmark Image'}
-                        className="object-cover h-56 w-full  cursor-pointer"
+                        className="object-cover h-48 w-full  cursor-pointer"
                         onClick={() => window.open(bookmark.url, '_blank')}
                     />
                 </div>
