@@ -7,6 +7,7 @@ import { CssBaseline } from '@mui/material';
 import { ThemeProvider as NextThemeProvider } from "@/components/theme-provider"
 import Header from './Header';
 import { SidebarProvider, SidebarTrigger } from '../src/components/ui/sidebar';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 
 export default function RootLayout({
@@ -28,6 +29,7 @@ export default function RootLayout({
                 <main className='w-screen h-screen'>
                   <Header />
                   {children}
+                  <SpeedInsights />
                 </main>
               </NextThemeProvider>
             </ThemeProvider>
