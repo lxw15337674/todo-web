@@ -189,7 +189,7 @@ export const getAllBookmarkTags = async (): Promise<BookmarkTagWithCount[]> => {
             ...item,
             count: item.bookmarks.length
         }
-    })
+    }).sort((a, b) => b.count - a.count);
 };
 
 // 更新标签
