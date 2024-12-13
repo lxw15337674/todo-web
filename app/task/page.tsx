@@ -3,10 +3,9 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ChevronsUpDown, Plus } from 'lucide-react'
 import TaskCard from '../../src/components/task/TaskCard'
-import { AggregatedTask, createTask, fetchAggregatedTask, NewTask } from '../../src/api/task/taskActions'
+import { createTask, fetchAggregatedTask, NewTask } from '../../src/api/task/taskActions'
 import { useImmer } from 'use-immer'
 import useConfigStore from '../../store/config'
-import { useRequest } from 'ahooks'
 import { redirect } from 'next/navigation'
 import {
     Collapsible,
@@ -14,14 +13,13 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { useEffect } from 'react'
+import useLocalStorageRequest from '../../src/hooks/useLocalStorageRequest'
 
 const cacheKey = 'AggregatedTask'
 export default function Page() {
     const { validateEditCode } = useConfigStore();
-    const { data: tasks = [], mutate } = useRequest(fetchAggregatedTask, {
+    const { data: tasks = [], mutate } = useLocalStorageRequest(fetchAggregatedTask, {
         cacheKey,
-        setCache: (data) => localStorage.setItem(cacheKey, JSON.stringify(data)),
-        getCache: () => JSON.parse(localStorage.getItem(cacheKey) || '{}'),
     });
     const [newTask, setNewTask] = useImmer<NewTask>({
         name: '',

@@ -1,11 +1,10 @@
-"use client"
-
+'use client'
 import { useState } from "react"
-import {  Search, X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { BookmarkCard } from "../../src/components/bookmark/BookmarkCard"
 import NewBookmarkCard from "../../src/components/bookmark/NewBookMarkCard"
-import { useMemoizedFn, useRequest } from "ahooks"
+import { useMemoizedFn } from "ahooks"
 import { BookmarkTagWithCount, getAllBookmarks, getSingleBookmark } from "../../src/api/bookmark"
 import { Bookmark } from "@prisma/client"
 import { produce } from "immer"
@@ -13,13 +12,14 @@ import BookmarkSidebar from "./bookmark-sidebar"
 import { useSidebar } from "../../src/components/ui/sidebar"
 import { Label } from "../../src/components/ui/label"
 import { Button } from "../../src/components/ui/button"
-
+import { isBrowser } from "@/lib/utils"
+import useLocalStorageRequest from "../../src/hooks/useLocalStorageRequest"
 const cacheKey = 'bookmarks'
 
 export default function BookmarkManager() {
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedTag, setSelectedTag] = useState<BookmarkTagWithCount | null>(null)
-    const { data: bookmarks = [], mutate } = useRequest(() => getAllBookmarks(
+    const { data: bookmarks = [], mutate } = useLocalStorageRequest(() => getAllBookmarks(
         {
             keyword: searchQuery,
             tagId: selectedTag?.id
@@ -28,7 +28,7 @@ export default function BookmarkManager() {
         debounceWait: 500,
         cacheKey,
         setCache: (data) => localStorage.setItem(cacheKey, JSON.stringify(data)),
-        getCache: () => JSON.parse(localStorage.getItem(cacheKey) || '{}'),
+        getCache: () => JSON.parse(isBrowser() && localStorage.getItem(cacheKey) || '{}'),
         refreshDeps: [searchQuery, selectedTag],
     });
     const {

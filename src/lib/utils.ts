@@ -25,3 +25,8 @@ export function startConfettiAnimation(): void {
     origin: { x: 1 ,y: 0.8},
   });
 }
+
+
+export function isBrowser() {
+  return !!(typeof window !== 'undefined' && window.document && window.document.createElement);
+}

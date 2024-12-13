@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { BookmarkTagWithCount, getAllBookmarkTags } from "../../src/api/bookmark";
-import { useRequest } from "ahooks";
 import {
     Sidebar,
     SidebarContent,
@@ -12,6 +11,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import useLocalStorageRequest from '../../src/hooks/useLocalStorageRequest';
 
 interface BookmarkSidebarProps {
     selectedTag: BookmarkTagWithCount | null;
@@ -20,10 +20,8 @@ interface BookmarkSidebarProps {
 const cacheKey= 'bookmarkTags'
 
 export default function BookmarkSidebar({ selectedTag, onSelectTag }: BookmarkSidebarProps) {
-    const { data: tags = [] } = useRequest(getAllBookmarkTags, {
+    const { data: tags = [] } = useLocalStorageRequest(getAllBookmarkTags, {
         cacheKey,
-        setCache: (data) => localStorage.setItem(cacheKey, JSON.stringify(data)),
-        getCache: () => JSON.parse(localStorage.getItem(cacheKey) || '{}'),
     });
 
     // 添加筛选输入框的状态
