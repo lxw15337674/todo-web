@@ -3,7 +3,7 @@
         "pages/**/*": {
             "maxDuration": 60
         },
-        "src/api/**/*": {
+        "src/api/**": {
             "maxDuration": 60
         }
     }
