@@ -1,9 +1,7 @@
 'use server'
 import { PrismaClient, Bookmark, BookmarkTag } from '@prisma/client';
-import getSummarizeBookmark, { OpenAICompletion } from './aiActions';
-
-import { toast } from "@/components/ui/use-toast"
-
+import getSummarizeBookmark from './aiActions';
+import { toast } from '../../hooks/use-toast';
 
 const prisma = new PrismaClient();
 
