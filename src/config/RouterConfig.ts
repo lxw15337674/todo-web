@@ -1,7 +1,6 @@
 interface MenuItem {
   name: string;
   url: string;
-  showSidebar?: boolean;
 }
 // 效率工具
 export const EfficiencyTools: MenuItem[] = [
@@ -16,7 +15,10 @@ export const EfficiencyTools: MenuItem[] = [
   {
     name: '书签',
     url: '/bookmark',
-    showSidebar: true,
+  },
+  {
+    name:'紀念日',
+    url:'/anniversary',
   }
 ];
 

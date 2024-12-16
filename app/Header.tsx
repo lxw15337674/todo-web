@@ -10,9 +10,11 @@ import { Toaster } from '../src/components/ui/toaster';
 import { APPS, EfficiencyTools, Links } from '../src/config/RouterConfig';
 import Link from 'next/link';
 import { SidebarTrigger } from '../src/components/ui/sidebar';
+import { usePermission } from '../src/hooks/usePermission';
 
 
 export default function Header() {
+  usePermission();
   const router = usePathname();
   const currentApp = [...EfficiencyTools, ...APPS].find((app) => app.url === router);
 
@@ -31,7 +33,7 @@ export default function Header() {
         }
       >
         <div className="mr-4 flex items-center space-x-2">
-         
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">

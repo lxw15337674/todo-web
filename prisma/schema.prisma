@@ -62,3 +62,14 @@ model BookmarkTag {
   deletedAt  DateTime?
   bookmarks  Bookmark[] @relation("BookmarkToBookmarkTag")
 }
+
+// 纪念日
+model Anniversary {
+  id         String    @id @default(uuid())
+  name       String
+  remark     String
+  createTime DateTime  @default(now())
+  updateTime DateTime  @default(now())
+  deletedAt  DateTime?
+  date       DateTime
+}

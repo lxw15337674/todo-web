@@ -17,7 +17,6 @@ import useLocalStorageRequest from '../../src/hooks/useLocalStorageRequest'
 
 const cacheKey = 'AggregatedTask'
 export default function Page() {
-    const { validateEditCode } = useConfigStore();
     const { data: tasks = [], mutate } = useLocalStorageRequest(fetchAggregatedTask, {
         cacheKey,
     });
@@ -41,13 +40,6 @@ export default function Page() {
     // 已完成任务
     const completedTasks = tasks.filter(task => task.status === '1');
 
-    useEffect(() => {
-        validateEditCode().then((hasEditCodePermission) => {
-            if (!hasEditCodePermission) {
-                redirect('/login')
-            }
-        });
-    }, []);
     return (
         <div className="flex-1 p-4 space-y-4 " suppressHydrationWarning >
             <div className="flex items-center gap-2">

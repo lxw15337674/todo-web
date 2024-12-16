@@ -17,14 +17,6 @@ export interface Track extends TrackMeta {
 }
 
 export default function TaskManagement() {
-    const { validateEditCode } = useConfigStore();
-    useMount(() => {
-        validateEditCode().then((hasEditCodePermission) => {
-            if (!hasEditCodePermission) {
-               redirect('/login')
-            }
-        });
-    });
     const [tasks, setTasks] = useImmer<Track[]>([]);
     const [newTask, setNewTask] = useImmer<{ name: string, type: string }>({
         name: '',
@@ -55,7 +47,7 @@ export default function TaskManagement() {
     });
 
     return (
-        <div className=" h-screen ">
+        <>
             {/* <div className="border-r  p-4">
                 <nav className="mt-4 space-y-1">
                     <Button variant="ghost className="w-full justify-start gap-2">
@@ -105,7 +97,7 @@ export default function TaskManagement() {
                     
                 </ScrollArea>
             </div>
-        </div>
+        </>
     )
 }
 
