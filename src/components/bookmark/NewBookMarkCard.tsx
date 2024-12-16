@@ -108,7 +108,7 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
                     onChange={(e) => setNewBookmarkUrl(e.target.value)}
                 />
             </CardContent>
-            <CardFooter className="space-x-2">
+            <CardFooter className="space-x-2 ">
                 <Button variant="outline" onClick={insertClipboardUrl} className="block">
                     粘贴剪切板(Ctrl+V)
                 </Button>

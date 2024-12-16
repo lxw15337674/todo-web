@@ -144,10 +144,6 @@ export const getSingleBookmark = async (id: string): Promise<CompleteBookmark | 
             include: { tags: true }
         });
     }
-    toast({
-        title: 'AI摘要生成成功',
-        description: `书签 ${bookmark!.url} AI摘要生成成功,标题为${bookmark!.title}，标签为${bookmark!.tags.map(tag => tag.name).join(', ')}`
-    })
     return bookmark;
 };
 
