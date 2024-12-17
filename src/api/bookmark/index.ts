@@ -32,7 +32,7 @@ export const findBookmarkTags = async (data: string[]): Promise<BookmarkTag[]> =
 };
 
 // 创建书签
-export const createBookmark = async (url: string): Promise<Bookmark | null> => {
+export const createBookmark = async (url: string, remark: string): Promise<Bookmark | null> => {
     // 判断是否已经存在相同的书签
     const existingBookmark = await prisma.bookmark.findFirst({
         where: { url },
@@ -43,7 +43,7 @@ export const createBookmark = async (url: string): Promise<Bookmark | null> => {
 
     // 创建新书签
     const newBookmark = await prisma.bookmark.create({
-        data: { url, loading: true },
+        data: { url, remark, loading: true },
     });
 
     // 异步处理摘要生成

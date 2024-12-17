@@ -75,6 +75,7 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
             </CardHeader>
             <CardContent className="p-2 space-y-2 relative border-t">
                 <h3 className="font-semibold text-lg">{bookmark.title}</h3>
+                <span className="text-sm text-muted-foreground">{bookmark.remark}</span>
                 {bookmark.tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                         {bookmark.tags.map(tag => (

@@ -30,6 +30,7 @@ const isValidUrl = (url: string) => {
 export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
     const { toast } = useToast();
     const [newBookmarkUrl, setNewBookmarkUrl] = useState('');
+    const [remark, setRemark] = useState('');
     const insertClipboardUrl = () => {
         if (!isBrowser()) return;
         navigator?.clipboard?.readText().then((text) => {
@@ -54,7 +55,7 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
         }
 
         try {
-            const data = await createBookmark(newBookmarkUrl);
+            const data = await createBookmark(newBookmarkUrl,remark);
             if (!data) {
                 toast({
                     title: '书签创建失败',
@@ -77,6 +78,7 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
                 description: `书签 ${newBookmarkUrl} 创建成功`
             });
             setNewBookmarkUrl('');
+            setRemark('');
             startConfettiAnimation();
         } catch (error) {
             toast({
@@ -99,13 +101,20 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
 
     return (
         <Card className="min-h-[200px]  flex flex-col">
-            <CardContent className="pt-4 flex-grow">
+            <CardContent className="pt-4 flex flex-col space-y-2 h-full">
                 <Textarea
                     autoFocus
                     value={newBookmarkUrl}
-                    className="resize-none h-full"
+                    className="resize-none flex-1"
                     placeholder="链接"
                     onChange={(e) => setNewBookmarkUrl(e.target.value)}
+                />
+                <Textarea
+                    autoFocus
+                    value={remark}
+                    className="resize-none flex-1"
+                    placeholder="备注"
+                    onChange={(e) => setRemark(e.target.value)}
                 />
             </CardContent>
             <CardFooter className="space-x-2 ">
