@@ -1,7 +1,6 @@
 'use server'
 import { PrismaClient, Bookmark, BookmarkTag } from '@prisma/client';
 import getSummarizeBookmark from './aiActions';
-import { toast } from '../../hooks/use-toast';
 
 const prisma = new PrismaClient();
 
@@ -59,7 +58,6 @@ export async function summarizeBookmark(id: string, url: string) {
         if (!data) {
             throw new Error("Failed to get summary data");
         }
-
         const tags: BookmarkTag[] = await findBookmarkTags(data.tags);
 
         // 删除之前关联的标签
@@ -84,10 +82,6 @@ export async function summarizeBookmark(id: string, url: string) {
             include: { tags: true },
         });
         console.info(`Created bookmark ${updatedBookmark.title}-${updatedBookmark.id} with tags ${tags.map(tag => tag.name).join(', ')}`);
-        toast({
-            title: 'AI摘要生成成功',
-            description: `书签 ${updatedBookmark!.url} AI摘要生成成功,标题为${updatedBookmark!.title}，标签为${updatedBookmark!.tags.map(tag => tag.name).join(', ')}`
-        });
         return updatedBookmark;
     } catch (e) {
         console.error(e);
