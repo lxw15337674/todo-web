@@ -13,6 +13,7 @@ import useLocalStorageRequest from '../../src/hooks/useLocalStorageRequest'
 import AnniversaryCard from '../../src/components/anniversary/anniversaryCard'
 import { useToast } from '../../src/hooks/use-toast'
 import { ToastAction } from '../../src/components/ui/toast'
+import { zhCN } from 'date-fns/locale'
 
 
 export default function TaskManagement() {
@@ -85,6 +86,7 @@ export default function TaskManagement() {
                                 onSelect={(date) => setNewAnniversary(draft => {
                                     draft.date = date!
                                 })}
+                                locale={zhCN}
                                 initialFocus
                             />
                         </PopoverContent>

@@ -48,23 +48,6 @@ export default function TaskManagement() {
 
     return (
         <>
-            {/* <div className="border-r  p-4">
-                <nav className="mt-4 space-y-1">
-                    <Button variant="ghost className="w-full justify-start gap-2">
-                        <Calendar className="h-4 w-4" />
-                        今天
-                    </Button>
-                    <Button variant="ghost" className="w-full justify-start gap-2">
-                        <Calendar className="h-4 w-4" />
-                        最近7天
-                    </Button>
-                    <Button variant="ghost" className="w-full justify-start gap-2">
-                        <CheckCircle2 className="h-4 w-4" />
-                        收集箱
-                        <span className="ml-auto text-xs text-muted-foreground">2</span>
-                    </Button>
-                </nav>
-            </div> */}
             <div className="flex flex-col ">
                 <header className=" border-b p-4">
                     <div className="flex items-center gap-2 flex-1 max-w-lg ml-auto ">
