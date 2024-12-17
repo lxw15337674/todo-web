@@ -10,6 +10,7 @@ import AnniversaryCard from '../../src/components/anniversary/anniversaryCard'
 import { useToast } from '../../src/hooks/use-toast'
 import { ToastAction } from '../../src/components/ui/toast'
 import { DatePicker } from '../../src/components/ui/datePicker'
+import dayjs from 'dayjs';
 
 
 export default function TaskManagement() {
@@ -47,7 +48,7 @@ export default function TaskManagement() {
         });
         toast({
             title: '添加成功',
-            description: `纪念日 ${anniversary.name} 添加成功`
+            description: `纪念日 "${anniversary.name}" 已成功添加，日期为 ${dayjs(anniversary.date).format('YYYY年MM月DD日')}`
         });
         startConfettiAnimation();
     };

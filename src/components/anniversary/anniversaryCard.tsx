@@ -21,7 +21,7 @@ const AnniversaryCard = ({ anniversary, onClick }: AnniversaryCardProps) => {
             <CardContent className="flex py-2">
                 <div className="flex-1 ">
                     <h3 className="text">{anniversary.name}</h3>
-                    <h2 className="text-muted-foreground text-sm">{day.format('YYYY-MM-DD')}</h2>
+                    <h2 className="text-muted-foreground text-sm">{day.format('YYYY年MM月DD日')}</h2>
                 </div>
                 <div className={`  flex items-center justify-center `}>
                     <h2 className="text-muted-foreground ">   {gapDay < 0 ? (
