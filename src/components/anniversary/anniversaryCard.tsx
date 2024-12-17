@@ -6,12 +6,10 @@ import { ToastAction } from '../ui/toast';
 
 interface AnniversaryCardProps {
     anniversary: Anniversary;
-    // setAnniversary: Updater<Anniversary[]>;
     onClick: () => void;
 }
 
 const AnniversaryCard = ({ anniversary, onClick }: AnniversaryCardProps) => {
-    // 计算剩余天数和是否已过，如果已过则显示已过天数
     const day = dayjs(anniversary.date)
     const gapDay = dayjs(day).diff(dayjs(), 'day');
     return (
