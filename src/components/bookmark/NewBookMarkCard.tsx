@@ -94,9 +94,6 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
         if (e.key === 'Enter' && newBookmarkUrl) {
             handleSubmit();
         }
-        if (e.ctrlKey && e.key === 'v') {
-            insertClipboardUrl()
-        }
     });
 
     return (
@@ -119,7 +116,7 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
             </CardContent>
             <CardFooter className="space-x-2 ">
                 <Button variant="outline" onClick={insertClipboardUrl} className="block">
-                    粘贴剪切板(Ctrl+V)
+                    粘贴剪切板
                 </Button>
                 <Button type="submit" className="w-full" onClick={handleSubmit}>
                     创建书签(Enter)
