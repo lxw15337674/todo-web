@@ -19,6 +19,10 @@ export const EfficiencyTools: MenuItem[] = [
   {
     name:'紀念日',
     url:'/anniversary',
+  },
+  {
+    name : '图床',
+    url: '/gallery',
   }
 ];
 
