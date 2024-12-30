@@ -15,6 +15,22 @@ export interface OpenAICompletion {
     title: string;
     image: string;
 }
+// 添加 HTML 清理函数
+const cleanHtml = (html: string): string => {
+    // 移除所有 HTML 标签，但保留其中的文本
+    let text = html.replace(/<[^>]*>/g, ' ');
+    
+    // 移除多余空白字符
+    text = text.replace(/\s+/g, ' ').trim();
+    
+    // 移除特殊字符和 HTML 实体
+    text = text.replace(/&[a-z]+;/gi, ' ')
+              .replace(/&#?[0-9]+;/g, ' ')
+              .replace(/[\r\n\t]+/g, ' ')
+              .trim();
+    
+    return text;
+};
 
 // 提取 JSON 数据的函数
 function extractJsonData(text: string): OpenAICompletion {
@@ -56,7 +72,7 @@ export default async function getSummarizeBookmark(url: string): Promise<OpenAIC
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15A372 Safari/604.1'
         }
     });
-    let html = response.data;
+    let html = cleanHtml(response.data);
     if (html.length > 60000) {
         html = html.substring(0, 60000);
     }
