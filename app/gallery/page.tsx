@@ -7,6 +7,7 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
+const Count = 100
 export default function ImagePage() {
   const { data: categories } = usePromise(getGalleryCategories, {
     initialData: [],
@@ -26,7 +27,7 @@ export default function ImagePage() {
 
   const loadImages = async (category: string | null, page: number) => {
     setLoading(true)
-    const newImages = await getImagesByUid(category || '', 20, page * 20)
+    const newImages = await getImagesByUid(category || '', Count, page * Count)
     setImages(prevImages => [...prevImages, ...newImages])
     setPage(prevPage => prevPage + 1)
     setLoading(false)
@@ -50,8 +51,8 @@ export default function ImagePage() {
         </SelectContent>
       </Select>
 
-      <ScrollArea 
-        className="h-[calc(100vh-16rem)]" 
+      <ScrollArea
+        className="h-[calc(100vh-16rem)]"
         onScrollCapture={(e) => {
           const target = e.target as HTMLDivElement;
           const isBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 100;
