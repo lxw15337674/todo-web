@@ -1,57 +1,43 @@
-'use service';
+'use server'
+import axios from "axios";
 
-import axios from 'axios'
-
-export interface ImageItem {
-    id: string
-    url: string
-    name: string
+interface Category {
+    uid: string;
+    name: string;
+}
+interface Category {
+    uid: string;
+    name: string;
 }
 
-const axiosInstance = axios.create({
-    baseURL: 'https://telegraph-image-bww.pages.dev/',
-})
+interface ImageInfo {
+    url: string;
+    width: number;
+    height: number;
+}
 
-// 添加请求拦截器以包含认证令牌
-axiosInstance.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('authToken')
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`
+export interface Image {
+    pic_id: string;
+    wb_url: string;
+    pic_info: {
+        large: ImageInfo;
+        original: ImageInfo;
+    };
+}
+
+export async function getGalleryCategories(): Promise<Category[]> {
+    const data = await axios.get(`https://awsl.api.awsl.icu/producers`)
+    return data.data;
+}
+
+
+export async function getImagesByUid(uid: string, limit: number = 20, offset: number = 0): Promise<Image[]> {
+    const data = await axios.get(`https://awsl.api.awsl.icu/v2/list`, {
+        params: {
+            uid,
+            limit,
+            offset
         }
-        return config
-    },
-    (error) => {
-        return Promise.reject(error)
-    }
-)
-
-export const getImages = async (): Promise<ImageItem[]> => {
-    try {
-        const response = await axiosInstance.get('https://telegraph-image-bww.pages.dev/api/manage/list')
-        console.log(response.data)
-        return response.data
-    } catch (error) {
-        throw new Error('获取图片列表失败')
-    }
-}
-
-export const uploadImage = async (file: File): Promise<ImageItem> => {
-    const formData = new FormData()
-    formData.append('image', file)
-
-    try {
-        const response = await axiosInstance.post('/api/images', formData)
-        return response.data
-    } catch (error) {
-        throw new Error('上传图片失败')
-    }
-}
-
-export const deleteImage = async (id: string): Promise<void> => {
-    try {
-        await axiosInstance.delete(`/api/images/${id}`)
-    } catch (error) {
-        throw new Error('删除图片失败')
-    }
+    });
+    return data.data;
 }

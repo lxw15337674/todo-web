@@ -1,128 +1,91 @@
 'use client'
-
-import { Button } from "@/components/ui/button"
+import { getGalleryCategories, getImagesByUid, Image } from "@/api/gallery"
+import { usePromise } from "wwhooks"
+import { useEffect, useState } from "react"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Input } from "@/components/ui/input"
-import { useCallback, useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
-import { getImages, uploadImage, deleteImage, ImageItem } from "@/api/gallery"
-import { englishToday } from "@/api/fishingTime"
-import { usePromise } from "wwhooks"
 
 export default function ImagePage() {
-  const { data: images, mutate: setImages } = usePromise(getImages, {
-      manual: false,
-      initialData: [],
-    });
-  const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null)
+  const { data: categories } = usePromise(getGalleryCategories, {
+    initialData: [],
+    manual: false
+  })
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [images, setImages] = useState<Image[]>([])
+  const [page, setPage] = useState(0)
+  const [loading, setLoading] = useState(false)
 
-  // 添加删除图片的函数
-  const handleDelete = (id: string) => {
-    deleteImage(id)
-      .then(() => {
-        setImages(prev => prev.filter(image => image.id !== id))
-      })
-      .catch(() => {
-        // 处理错误
-      })
-  }
+  useEffect(() => {
+    // 重置页数和图片列表，重新加载
+    setPage(0)
+    setImages([])
+    loadImages(selectedCategory, 0)
+  }, [selectedCategory])
 
-  // 修改 handleFileChange 使用 API 上传
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (!files) return
-
-    Array.from(files).forEach((file) => {
-      uploadImage(file)
-        .then((newImage: ImageItem) => {
-          setImages((prev) => [...prev, newImage])
-        })
-        .catch(() => {
-          // 处理错误
-        })
-    })
-  }
-
-  const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    const files = event.dataTransfer.files
-
-    Array.from(files).forEach((file) => {
-      if (file.type.startsWith('image/')) {
-        uploadImage(file)
-          .then((newImage: ImageItem) => {
-            setImages((prev) => [...prev, newImage])
-          })
-          .catch(() => {
-            // 处理错误
-          })
-      }
-    })
-  }, [])
-
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
+  const loadImages = async (category: string | null, page: number) => {
+    setLoading(true)
+    const newImages = await getImagesByUid(category || '', 20, page * 20)
+    setImages(prevImages => [...prevImages, ...newImages])
+    setPage(prevPage => prevPage + 1)
+    setLoading(false)
   }
   console.log(images)
   return (
     <div className="container mx-auto p-4 space-y-4">
-      <Card>
-        <CardContent className="p-6">
-          <div
-            className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-          >
-            <Input
-              type="file"
-              multiple
-              accept="image/*"
-              className="hidden"
-              id="image-upload"
-              onChange={handleFileChange}
-            />
-            <label htmlFor="image-upload" className="cursor-pointer">
-              <div className="space-y-4">
-                <p className="text-muted-foreground">
-                  拖放图片到此处，或点击上传
-                </p>
-                <Button variant="outline">
-                  选择图片
-                </Button>
-              </div>
-            </label>
-          </div>
-        </CardContent>
-      </Card>
+      <Select onValueChange={setSelectedCategory}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="默认全部分类" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Category</SelectLabel>
+            {(categories ?? []).map((category) => (
+              <SelectItem key={category.uid} value={category.uid}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
 
-      {/* <ScrollArea className="h-[calc(100vh-16rem)]">
+      <ScrollArea 
+        className="h-[calc(100vh-16rem)]" 
+        onScrollCapture={(e) => {
+          const target = e.target as HTMLDivElement;
+          const isBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 100;
+          console.log(isBottom)
+          if (isBottom && !loading) {
+            loadImages(selectedCategory, page);
+          }
+        }}
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {(images ?? [])?.map((image) => (
-            <Dialog key={image.id}>
+          {(images ?? []).map((image) => (
+            <Dialog key={image.pic_id}>
               <DialogTrigger asChild>
                 <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-2">
-                    <img
-                      src={image.url}
-                      alt={image.name}
-                      className="w-full h-48 object-cover rounded-md"
-                    />
+                    <div className="relative w-full h-[200px]">
+                      <img
+                        src={image.pic_info.large.url}
+                        alt={image.pic_id}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl">
-                <img
-                  src={image.url}
-                  alt={image.name}
-                  className="w-full h-auto"
-                />
-                <Button onClick={() => handleDelete(image.id)}>删除</Button>
-              </DialogContent>
             </Dialog>
           ))}
         </div>
-      </ScrollArea> */}
+      </ScrollArea>
+      {loading && <div>加载中...</div>}
     </div>
   )
 }
