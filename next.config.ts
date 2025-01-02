@@ -20,6 +20,7 @@ const nextConfig = withSerwist({
   },
   images: {
     dangerouslyAllowSVG: true,
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -28,7 +29,11 @@ const nextConfig = withSerwist({
       {
         protocol: 'https',
         hostname: 'placehold.co',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'awsl.azureedge.net',
+      },
     ],
   },
   rewrites: async () => {

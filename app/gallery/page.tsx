@@ -1,21 +1,30 @@
 'use client'
-import { getGalleryCategories, getImagesByUid, Image } from "@/api/gallery"
+import { getGalleryCategories, getImagesByUid, Image as GalleryImage } from "@/api/gallery"
 import { usePromise } from "wwhooks"
 import { useEffect, useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import InfiniteScroll from 'react-infinite-scroll-component'
-import Masonry from 'react-masonry-component'
+import { Masonry } from "@mui/lab"
+import Image from "next/image"
 
-const Count = 100
+const Count = 6*12
+const imageLoader = ({ src }: { src: string }) => {
+  return src
+}
+
+const getPlaceholder = (width: number, height: number) => {
+  return `https://placehold.co/${width}x${height}?text=loading`
+}
+
 export default function ImagePage() {
   const { data: categories } = usePromise(getGalleryCategories, {
     initialData: [],
     manual: false
   })
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [images, setImages] = useState<Image[]>([])
+  const [images, setImages] = useState<GalleryImage[]>([])
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false)
 
@@ -35,18 +44,10 @@ export default function ImagePage() {
   }
   console.log(images)
 
-  const masonryOptions = {
-    transitionDuration: 0,
-    gutter: 16,
-    fitWidth: false,
-    columnWidth: '.grid-sizer',
-    percentPosition: true
-  }
-
   return (
-    <div className="container mx-auto p-4 space-y-4">
+    <div className="space-y-2">
       <Select onValueChange={setSelectedCategory}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[180px] my-2">
           <SelectValue placeholder="默认全部分类" />
         </SelectTrigger>
         <SelectContent>
@@ -64,40 +65,44 @@ export default function ImagePage() {
       <InfiniteScroll
         dataLength={images.length}
         next={() => loadImages(selectedCategory, page)}
-        hasMore={!loading && images.length > 0}
+        hasMore={!loading}
         loader={<div className="text-center py-4">加载中...</div>}
         endMessage={<div className="text-center py-4">没有更多图片了</div>}
       >
-        <Masonry
-          className="w-full"
-          options={masonryOptions}
-          enableResizableChildren
-        >
-          <div className="grid-sizer w-1/4" />
+        <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 6 }} spacing={2}>
           {(images ?? []).map((image) => (
-            <div key={image.pic_id} className="w-1/4 p-2">
+            <div key={image.pic_id}>
               <Dialog>
                 <DialogTrigger asChild>
                   <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
                     <CardContent className="p-2">
-                      <img
-                        src={image.pic_info.large.url}
-                        alt={image.pic_id}
-                        className="w-full h-auto"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
+                      <div className="relative w-full aspect-square">
+                        <Image
+                          src={image.pic_info.large.url}
+                          alt={image.pic_id}
+                          loader={imageLoader}
+                          width={image.pic_info.large.width}
+                          height={image.pic_info.large.height}
+                          loading="lazy"
+                          blurDataURL={getPlaceholder(image.pic_info.large.width, image.pic_info.large.height)}
+                          placeholder="blur"
+                        />
+                      </div>
                     </CardContent>
                   </Card>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl">
-                  <img
-                    src={image.pic_info.original.url}
-                    alt={image.pic_id}
-                    className="w-full h-auto"
-                  />
+                  <div className="relative w-full aspect-auto">
+                    <Image
+                      src={image.pic_info.original.url}
+                      alt={image.pic_id}
+                      loader={imageLoader}
+                      width={image.pic_info.large.width}
+                      height={image.pic_info.large.height}
+                      blurDataURL={getPlaceholder(image.pic_info.large.width, image.pic_info.large.height)}
+                      placeholder="blur"
+                    />
+                  </div>
                 </DialogContent>
               </Dialog>
             </div>
