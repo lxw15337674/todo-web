@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Masonry } from "@mui/lab"
 import Image from "next/image"
+import { Button } from "@/components/ui/button"
+import { ExternalLink } from "lucide-react"
 
 const Count = 6 * 12
 const imageLoader = ({ src }: { src: string }) => {
@@ -74,7 +76,6 @@ export default function ImagePage() {
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectLabel>Category</SelectLabel>
             {(categories ?? []).map((category) => (
               <SelectItem key={category.uid} value={category.uid}>
                 {category.name}
@@ -85,15 +86,26 @@ export default function ImagePage() {
       </Select>
 
       <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 6 }} spacing={2}>
-        {(images ?? []).map((image) => (
-          <Image
-            src={image.pic_info.large.url}
-            alt={image.pic_id}
-            key={image.pic_id}
-            loader={imageLoader}
-            width={image.pic_info.large.width}
-            height={image.pic_info.large.height}
-          />
+        {(images ?? []).map((image, index) => (
+          <div className="relative group overflow-hidden" key={index}>
+            <div className="transform transition-transform duration-300 group-hover:scale-105">
+              <Image
+                src={image.pic_info.large.url}
+                alt={image.pic_id}
+                loader={imageLoader}
+                width={image.pic_info.large.width}
+                height={image.pic_info.large.height}
+              />
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => window.open(image.wb_url, '_blank')}
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          </div>
         ))}
       </Masonry>
 
