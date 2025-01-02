@@ -72,9 +72,6 @@ export default function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
           <span className="font-bold ">{currentApp?.name}</span>
-          {
-            currentApp?.showSidebar && <SidebarTrigger />
-          }
         </div>
         <div className="flex-1" />
         <ModeToggle />

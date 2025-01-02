@@ -28,7 +28,7 @@ async function main() {
 
         // 创建书签
         try {
-            const newBookmark = await createBookmark(url);
+            const newBookmark = await createBookmark(url,'');
             if (!newBookmark) {
                 console.warn(`创建书签 "${title}" 失败`);
                 continue;

@@ -3,13 +3,11 @@ import { Plus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { createTrackMeta, fetchTrackMetaByToday, fetchTrackMetas } from '../../src/api/habitActions1';
 import { TrackItem, TrackMeta } from '@prisma/client';
 import { useMount } from 'ahooks';
 import { useImmer } from 'use-immer';
 import HabitCard from '../../src/components/habit/HabitCard';
-import useConfigStore from '../../store/config'
-import  { redirect } from 'next/navigation'
+import { createTrackMeta, fetchTrackMetas } from '@/api/habitActions'
 
 
 export interface Track extends TrackMeta {
@@ -28,7 +26,7 @@ export default function TaskManagement() {
             draft.push(...items);
         });
     }
-  
+
     const handleAddTask = async () => {
         if (newTask.name?.trim()) {
             const task = await createTrackMeta(newTask);
@@ -74,10 +72,10 @@ export default function TaskManagement() {
                                     setTasks={setTasks}
                                 />
                             ))}
-                            
+
                         </div>
                     </div>
-                    
+
                 </ScrollArea>
             </div>
         </>

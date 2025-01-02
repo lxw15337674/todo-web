@@ -7,6 +7,7 @@ import { useToast } from "../../hooks/use-toast";
 import dayjs from "dayjs";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../ui/hover-card";
 import { useState } from "react";
+import Image from "next/image"
 
 interface BookmarkCardProps {
     bookmark: CompleteBookmark
@@ -58,9 +59,11 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
                 <div className="w-full">
                     <HoverCard>
                         <HoverCardTrigger asChild>
-                            <img
+                            <Image
                                 src={bookmark?.image || `https://placehold.co/600x400?text=${bookmark.loading ? 'Loading' : bookmark.title}`}
                                 alt={bookmark.title ?? 'Bookmark Image'}
+                                width={600}
+                                height={400}
                                 className="object-cover h-48 w-full  cursor-pointer"
                                 onClick={() => window.open(bookmark.url, '_blank')}
                             />

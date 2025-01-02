@@ -24,7 +24,7 @@ type SearchParams = { [key: string]: string | string[] | undefined };
 export default async function Page({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>
 }) {
   const { version } = await searchParams;
   const versionData = await getVersionConfig();

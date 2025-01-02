@@ -9,7 +9,7 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "cross-env next dev  -p 8080 ",
+    "dev": "cross-env next dev  -p 8080 --turbo",
     "build": "prisma generate && next build",
     "start": "next --turbo -p 8080",
     "type-check": "tsc --noEmit",
