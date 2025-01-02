@@ -3,9 +3,10 @@ import { getGalleryCategories, getImagesByUid, Image } from "@/api/gallery"
 import { usePromise } from "wwhooks"
 import { useEffect, useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import InfiniteScroll from 'react-infinite-scroll-component'
+import Masonry from 'react-masonry-component'
 
 const Count = 100
 export default function ImagePage() {
@@ -33,6 +34,15 @@ export default function ImagePage() {
     setLoading(false)
   }
   console.log(images)
+
+  const masonryOptions = {
+    transitionDuration: 0,
+    gutter: 16,
+    fitWidth: false,
+    columnWidth: '.grid-sizer',
+    percentPosition: true
+  }
+
   return (
     <div className="container mx-auto p-4 space-y-4">
       <Select onValueChange={setSelectedCategory}>
@@ -51,42 +61,49 @@ export default function ImagePage() {
         </SelectContent>
       </Select>
 
-      <ScrollArea
-        className="h-[calc(100vh-16rem)]"
-        onScrollCapture={(e) => {
-          const target = e.target as HTMLDivElement;
-          const isBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 100;
-          console.log(isBottom)
-          if (isBottom && !loading) {
-            loadImages(selectedCategory, page);
-          }
-        }}
+      <InfiniteScroll
+        dataLength={images.length}
+        next={() => loadImages(selectedCategory, page)}
+        hasMore={!loading && images.length > 0}
+        loader={<div className="text-center py-4">加载中...</div>}
+        endMessage={<div className="text-center py-4">没有更多图片了</div>}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <Masonry
+          className="w-full"
+          options={masonryOptions}
+          enableResizableChildren
+        >
+          <div className="grid-sizer w-1/4" />
           {(images ?? []).map((image) => (
-            <Dialog key={image.pic_id}>
-              <DialogTrigger asChild>
-                <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
-                  <CardContent className="p-2">
-                    <div className="relative w-full h-[200px]">
+            <div key={image.pic_id} className="w-1/4 p-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
+                    <CardContent className="p-2">
                       <img
                         src={image.pic_info.large.url}
                         alt={image.pic_id}
-                        className="w-full h-full object-cover"
+                        className="w-full h-auto"
                         loading="lazy"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
                       />
-                    </div>
-                  </CardContent>
-                </Card>
-              </DialogTrigger>
-            </Dialog>
+                    </CardContent>
+                  </Card>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl">
+                  <img
+                    src={image.pic_info.original.url}
+                    alt={image.pic_id}
+                    className="w-full h-auto"
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
           ))}
-        </div>
-      </ScrollArea>
-      {loading && <div>加载中...</div>}
+        </Masonry>
+      </InfiniteScroll>
     </div>
   )
 }
