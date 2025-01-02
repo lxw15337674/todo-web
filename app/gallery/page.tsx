@@ -4,12 +4,9 @@ import { usePromise } from "wwhooks"
 import { useEffect, useRef, useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Masonry } from "@mui/lab"
-import Image from "next/image"
 
 const Count = 6 * 12
-const imageLoader = ({ src }: { src: string }) => {
-  return src
-}
+
 
 // const getPlaceholder = (width: number, height: number) => {
 //   return `https://placehold.co/${width}x${height}?text=loading`
@@ -83,14 +80,14 @@ export default function ImagePage() {
           </SelectGroup>
         </SelectContent>
       </Select>
-      
+
       <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 6 }} spacing={2}>
-        {(images ?? []).map((image) => (
-          <Image
+        {(images ?? []).map((image, index) => (
+          <img
             src={image.pic_info.large.url}
             alt={image.pic_id}
-            key={image.pic_id}
-            loader={imageLoader}
+            loading="lazy"
+            key={index}
             width={image.pic_info.large.width}
             height={image.pic_info.large.height}
           />
