@@ -88,7 +88,7 @@ export default function ImagePage() {
       <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 6 }} spacing={2}>
         {(images ?? []).map((image, index) => (
           <div className="relative group overflow-hidden" key={index}>
-            <div className="transform transition-transform duration-300 group-hover:scale-105">
+            <div className="transform transition-transform duration-300 group-hover:scale-110">
               <Image
                 src={image.pic_info.large.url}
                 alt={image.pic_id}
@@ -98,9 +98,9 @@ export default function ImagePage() {
               />
             </div>
             <Button
-              size="sm"
+              size="icon"
               variant="secondary"
-              className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute  duration-300 top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
               onClick={() => window.open(image.wb_url, '_blank')}
             >
               <ExternalLink className="h-4 w-4" />
