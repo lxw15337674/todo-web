@@ -4,14 +4,13 @@ import { ModeToggle } from 'src/components/ModeToggle';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../src/components/ui/dropdown-menu';
 import { Button } from '../src/components/ui/button';
 import { Separator } from '../src/components/ui/separator';
-import { LayoutGrid } from 'lucide-react';
+import { LayoutGrid, Github } from 'lucide-react'; // 新增导入
 import { usePathname } from 'next/navigation';
 import { Toaster } from '../src/components/ui/toaster';
 import { APPS, EfficiencyTools, Links } from '../src/config/RouterConfig';
 import Link from 'next/link';
 import { SidebarTrigger } from '../src/components/ui/sidebar';
 import { usePermission } from '../src/hooks/usePermission';
-
 
 export default function Header() {
   usePermission();
@@ -75,6 +74,16 @@ export default function Header() {
         </div>
         <div className="flex-1" />
         <ModeToggle />
+        <Button
+          variant="outline"
+          size="icon"
+          className="ml-2" // 添加左外边距
+          onClick={() => {
+            window.open('https://github.com/lxw15337674/todo-web', '_blank')
+          }}
+        >
+          <Github />
+        </Button>
       </div>
     </header>
   );
