@@ -156,6 +156,9 @@ importers:
       react-masonry-component:
         specifier: 6.3.0
         version: 6.3.0(react@18.3.1)
+      react-photo-view:
+        specifier: 1.2.6
+        version: 1.2.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       socket.io-client:
         specifier: 4.7.4
         version: 4.7.4
@@ -3569,6 +3572,12 @@ packages:
     resolution: {integrity: sha512-4ZI78nxMfCpU5yQiS6Rup07Ju++YzcOGAyvbMcl2GfpZTw8GRwT548lkKr0PJarNicRV1qE2D/NiT26UPg1T7A==}
     peerDependencies:
       react: ^0.14.0 || ^15.0.0-0 || ^16.0.0-0 || ^17.0.0
+
+  react-photo-view@1.2.6:
+    resolution: {integrity: sha512-Fq17yxkMIv0oFp7HOJr39HgCZRP6A9K5T5rixJ4flSUYT2OO3V8vNxEExjhIKgIrfmTu+mDnHYEsI9RRWi1JHw==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   react-popper@2.3.0:
     resolution: {integrity: sha512-e1hj8lL3uM+sgSR4Lxzn5h1GxBlpa4CQz0XLF8kx4MDrDRWY0Ena4c97PUeSX9i5W3UAfDP0z0FXCTQkoXUl3Q==}
@@ -8008,6 +8017,11 @@ snapshots:
       masonry-layout: 4.2.2
       prop-types: 15.8.1
       react: 18.3.1
+
+  react-photo-view@1.2.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   react-popper@2.3.0(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:

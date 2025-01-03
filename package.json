@@ -66,6 +66,7 @@
     "react-infinite-scroll-component": "6.1.0",
     "react-markdown": "9.0.1",
     "react-masonry-component": "6.3.0",
+    "react-photo-view": "1.2.6",
     "socket.io-client": "4.7.4",
     "tailwind-merge": "2.5.5",
     "tailwindcss-animate": "1.0.7",

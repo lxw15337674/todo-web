@@ -7,6 +7,8 @@ import { Masonry } from "@mui/lab"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ExternalLink } from "lucide-react"
+import { PhotoProvider, PhotoView } from 'react-photo-view'
+import 'react-photo-view/dist/react-photo-view.css'
 
 const Count = 6 * 12
 const imageLoader = ({ src }: { src: string }) => {
@@ -85,29 +87,36 @@ export default function ImagePage() {
         </SelectContent>
       </Select>
 
-      <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 6 }} spacing={2}>
-        {(images ?? []).map((image, index) => (
-          <div className="relative group overflow-hidden" key={index}>
-            <div className="transform transition-transform duration-300 group-hover:scale-110">
-              <Image
-                src={image.pic_info.large.url}
-                alt={image.pic_id}
-                loader={imageLoader}
-                width={image.pic_info.large.width}
-                height={image.pic_info.large.height}
-              />
-            </div>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="absolute  duration-300 top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
-              onClick={() => window.open(image.wb_url, '_blank')}
+      <PhotoProvider>
+        <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 6 }} spacing={2}>
+          {(images ?? []).map((image, index) => (
+            <div
+              className={`relative group overflow-hidden`}
+              key={index}
             >
-              <ExternalLink className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
-      </Masonry>
+              <PhotoView src={image.pic_info.large.url}>
+                <div className="transform transition-transform duration-300 group-hover:scale-105">
+                  <Image
+                    src={image.pic_info.large.url}
+                    alt={image.pic_id}
+                    loader={imageLoader}
+                    width={image.pic_info.large.width}
+                    height={image.pic_info.large.height}
+                  />
+                </div>
+              </PhotoView>
+              <Button
+                size="icon"
+                variant="secondary"
+                className="absolute duration-300 top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
+                onClick={() => window.open(image.wb_url, '_blank')}
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </Masonry>
+      </PhotoProvider>
 
       <div ref={loadingRef} className="py-4 text-center">
         {loading && <p className="text-muted-foreground">加载中...</p>}
