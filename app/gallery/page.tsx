@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Masonry } from "@mui/lab"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, Video } from "lucide-react"
+import { ExternalLink, Video, User } from "lucide-react"
 import { PhotoProvider, PhotoView } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/components/producer/producer-dialog"
 import { formatDate } from "@/utils/date"
+import { WeiboMedia } from "@prisma/client"
 
 const PAGE_SIZE = 72 // 6 * 12
 const imageLoader = ({ src }: { src: string }) => {
@@ -25,7 +26,7 @@ export default function ImagePage() {
     manual: false
   })
   const [selectedProducer, setSelectedProducer] = useState<string | null>(null)
-  const [images, setImages] = useState<any[]>([])
+  const [images, setImages] = useState<WeiboMedia[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -94,6 +95,7 @@ export default function ImagePage() {
       setLoading(false)
     }
   }
+  console.log('images', images, producers)
   return (
     <div className="space-y-2 p-2">
       <div className="flex items-center gap-2">
@@ -113,16 +115,25 @@ export default function ImagePage() {
           </SelectContent>
         </Select>
 
-        <Button
-          variant="outline"
-          onClick={() => setProducerDialogOpen(true)}
-        >
-          管理制作者
-        </Button>
+
 
         <div className="text-sm text-muted-foreground">
           共 {total} 张图片
         </div>
+
+        {selectedProducer && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              const producer = producers.find(p => p.id === selectedProducer)
+              if (producer?.weiboId) {
+                window.open(`https://weibo.com/u/${producer.weiboId}`, '_blank')
+              }
+            }}
+          >
+            查看{producers.find(p => p.id === selectedProducer)?.name}的微博
+          </Button>
+        )}
 
         <ProducerDialog
           open={producerDialogOpen}
@@ -130,6 +141,13 @@ export default function ImagePage() {
           producers={producers}
           onSuccess={refreshProducers}
         />
+        <Button
+          variant="outline"
+          className="ml-auto"
+          onClick={() => setProducerDialogOpen(true)}
+        >
+          管理制作者
+        </Button>
       </div>
 
       <PhotoProvider>
@@ -155,7 +173,7 @@ export default function ImagePage() {
                     playsInline
                     className="w-full h-auto transform transition-transform duration-300 group-hover:scale-105"
                   />
-                  <div className="absolute top-2 left-2 bg-black/50 p-1 rounded-full">
+                  <div className="absolute top-2 left-2 bg-black/50 p-2 ">
                     <Video className="h-4 w-4 text-white" />
                   </div>
                 </div>
@@ -173,10 +191,19 @@ export default function ImagePage() {
                   </div>
                 </PhotoView>
               )}
-              <div className="absolute duration-300 bottom-0 right-0 p-2 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                <p className="text-white text-sm">
-                  {formatDate(image.createdAt)}
-                </p>
+              <div className="absolute duration-300 bottom-0 right-0 p-2 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity w-full">
+                <div className="flex justify-between items-center">
+                  <span
+                    className="text-white text-sm hover:underline cursor-pointer"
+                    title={`查看${producers.find(p => p.weiboId === image.userId.toString())?.name}的微博`}
+                    onClick={() => window.open(`https://weibo.com/u/${image.userId}`, '_blank')}
+                  >
+                    {producers.find(p => p.weiboId === image.userId.toString())?.name}
+                  </span>
+                  <span className="text-white text-sm">
+                    {formatDate(image.createTime)}
+                  </span>
+                </div>
               </div>
               {image.weiboUrl && (
                 <Button
