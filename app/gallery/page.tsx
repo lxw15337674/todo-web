@@ -1,6 +1,6 @@
 'use client'
-import { getGalleryCategories, getImagesByUid, Image as GalleryImage } from "@/api/gallery/gallery"
 import { getProducers } from "@/api/gallery/producer"
+import { getPics } from "@/api/gallery/weiboMedia"
 import { ProducerForm } from "@/components/producer/producer-form"
 import { usePromise } from "wwhooks"
 import { useEffect, useRef, useState } from "react"
@@ -18,38 +18,46 @@ const imageLoader = ({ src }: { src: string }) => {
   return src
 }
 
-// const getPlaceholder = (width: number, height: number) => {
-//   return `https://placehold.co/${width}x${height}?text=loading`
-// }
 
 export default function ImagePage() {
-  const { data: categories } = usePromise(getGalleryCategories, {
-    initialData: [],
-    manual: false
-  })
   const { data: producers, reload: refreshProducers } = usePromise(getProducers, {
     initialData: [],
     manual: false
   })
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [images, setImages] = useState<GalleryImage[]>([])
-  const [page, setPage] = useState(0)
+  const [selectedProducer, setSelectedProducer] = useState<string | null>(null)
+  const [images, setImages] = useState<any[]>([])
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
   const loadingRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver>()
-  const [producerDialogOpen, setProducerDialogOpen] = useState(false)  // 新增
+  const [producerDialogOpen, setProducerDialogOpen] = useState(false)
+  const [fallbackImages, setFallbackImages] = useState<Set<number>>(new Set())
+
+  const getImageUrl = (image: any) => {
+    return fallbackImages.has(image.id) ? image.galleryUrl : image.weiboImgUrl
+  }
+
+  const handleImageError = (imageId: number) => {
+    setFallbackImages(prev => {
+      const newSet = new Set(prev)
+      newSet.add(imageId)
+      return newSet
+    })
+  }
 
   useEffect(() => {
-    setPage(0)
+    setPage(1)
     setImages([])
-    loadImages(selectedCategory, 0)
-  }, [selectedCategory])
+    setHasMore(true)
+    loadImages(1)
+  }, [selectedProducer])
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loading) {
-          loadImages(selectedCategory, page)
+        if (entries[0].isIntersecting && !loading && hasMore) {
+          loadImages(page)
         }
       },
       { threshold: 0.1 }
@@ -64,32 +72,40 @@ export default function ImagePage() {
         observerRef.current.disconnect()
       }
     }
-  }, [selectedCategory, page, loading])
+  }, [loading, hasMore, page])
 
-  const loadImages = async (category: string | null, page: number) => {
+  const loadImages = async (currentPage: number) => {
     if (loading) return
     setLoading(true)
     try {
-      const newImages = await getImagesByUid(category || '', Count, page * Count)
-      setImages(prevImages => [...prevImages, ...newImages])
-      setPage(prevPage => prevPage + 1)
+      const result = await getPics(currentPage, 30, selectedProducer)
+      if (currentPage === 1) {
+        setImages(result.items)
+      } else {
+        setImages(prev => [...prev, ...result.items])
+      }
+      setHasMore(currentPage < result.totalPages)
+      setPage(currentPage + 1)
+    } catch (error) {
+      console.error('Failed to load images:', error)
     } finally {
       setLoading(false)
     }
   }
-
+  console.log(producers)
   return (
     <div className="space-y-2 p-2">
       <div className="flex items-center gap-2">
-        <Select onValueChange={setSelectedCategory}>
+        <Select value={selectedProducer ?? 'all'} onValueChange={(value) => setSelectedProducer(value === 'all' ? null : value)}>
           <SelectTrigger className="w-[180px] my-2">
-            <SelectValue placeholder="默认全部分类" />
+            <SelectValue placeholder="全部制作者" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {(categories ?? []).map((category) => (
-                <SelectItem key={category.uid} value={category.uid}>
-                  {category.name}
+              <SelectItem value="all">全部制作者</SelectItem>
+              {(producers ?? []).map((producer) => (
+                <SelectItem key={producer.id} value={producer.id}>
+                  {producer.name}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -116,27 +132,31 @@ export default function ImagePage() {
           {(images ?? []).map((image, index) => (
             <div
               className={`relative group overflow-hidden`}
-              key={index}
+              key={selectedProducer + '_' + index}
             >
-              <PhotoView src={image.pic_info.large.url}>
+              <PhotoView src={getImageUrl(image)}>
                 <div className="transform transition-transform duration-300 group-hover:scale-105">
                   <Image
-                    src={image.pic_info.large.url}
-                    alt={image.pic_id}
+                    src={getImageUrl(image)}
+                    alt={image.id.toString()}
                     loader={imageLoader}
-                    width={image.pic_info.large.width}
-                    height={image.pic_info.large.height}
+                    width={image.width}
+                    height={image.height}
+                    className="w-full h-auto"
+                    onError={() => handleImageError(image.id)}
                   />
                 </div>
               </PhotoView>
-              <Button
-                size="icon"
-                variant="secondary"
-                className="absolute duration-300 top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
-                onClick={() => window.open(image.wb_url, '_blank')}
-              >
-                <ExternalLink className="h-4 w-4" />
-              </Button>
+              {image.weiboUrl && (
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="absolute duration-300 top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
+                  onClick={() => window.open(image.weiboUrl, '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           ))}
         </Masonry>

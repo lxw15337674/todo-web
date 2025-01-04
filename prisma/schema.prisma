@@ -75,7 +75,7 @@ model Anniversary {
 model Producer {
   id         String    @id @default(uuid())
   name       String?
-  weiboId    Int?
+  weiboId    String?
   createTime DateTime  @default(now())
   updateTime DateTime  @default(now())
   deletedAt  DateTime?

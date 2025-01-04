@@ -11,7 +11,7 @@ import { UpdateProducer } from "@/api/gallery/type"
 interface ProducerDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  producers: (Producer & { weiboId?: string })[]
+  producers: Producer[]
   onSuccess?: () => void
 }
 
@@ -51,7 +51,7 @@ export function ProducerDialog({ open, onOpenChange, producers, onSuccess }: Pro
   }
 
   function handleWeiboIdChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setEditingProducer(prev => prev ? ({ ...prev, weiboId: parseInt(e.target.value) || 0 }) : null)
+    setEditingProducer(prev => prev ?   ({ ...prev, weiboId: e.target.value }) : null)
   }
 
   return (
@@ -63,16 +63,15 @@ export function ProducerDialog({ open, onOpenChange, producers, onSuccess }: Pro
         <Table className="table-fixed w-full">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-1/2">名称</TableHead>
-              <TableHead className="w-1/3">微博ID</TableHead>
-              <TableHead className="w-1/6">操作</TableHead>
+              <TableHead className="w-1/4">名称</TableHead>
+              <TableHead className="w-1/4">微博ID</TableHead>
+              <TableHead >操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {producers.map((producer) => (
               <TableRow
                 key={producer.id}
-                onClick={() => setEditingProducer({ id: producer.id, name: producer.name, weiboId: producer.weiboId || "" })}
                 className="cursor-pointer hover:bg-muted"
               >
                 <TableCell>
@@ -80,13 +79,6 @@ export function ProducerDialog({ open, onOpenChange, producers, onSuccess }: Pro
                     <Input
                       value={editingProducer?.name ?? ''}
                       onChange={handleNameChange}
-                      onBlur={() => handleEdit(editingProducer)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleEdit(editingProducer)
-                        }
-                      }}
-                      autoFocus
                     />
                   ) : (
                     <div className="px-2 py-1 rounded">
@@ -99,12 +91,6 @@ export function ProducerDialog({ open, onOpenChange, producers, onSuccess }: Pro
                     <Input
                       value={editingProducer?.weiboId?.toString() ?? ''}
                       onChange={handleWeiboIdChange}
-                      onBlur={() => handleEdit(editingProducer)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleEdit(editingProducer)
-                        }
-                      }}
                     />
                   ) : (
                     <div className="px-2 py-1 rounded">
@@ -112,7 +98,32 @@ export function ProducerDialog({ open, onOpenChange, producers, onSuccess }: Pro
                     </div>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="flex space-x-2">
+                  {editingProducer?.id === producer.id ? (
+                    <Button
+                      onClick={() => handleEdit(editingProducer)}
+                      size="sm"
+                      variant="default"
+
+                    >
+                      提交
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() =>
+                        setEditingProducer({
+                          id: producer.id,
+                          name: producer.name,
+                          weiboId: producer.weiboId || ""
+                        })
+                      }
+                      size="sm"
+                      variant="outline"
+
+                    >
+                      编辑
+                    </Button>
+                  )}
                   <Button
                     variant="destructive"
                     size="sm"
