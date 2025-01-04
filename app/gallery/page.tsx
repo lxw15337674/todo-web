@@ -7,10 +7,11 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Masonry } from "@mui/lab"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, Video } from "lucide-react"
 import { PhotoProvider, PhotoView } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/components/producer/producer-dialog"
+import { formatDate } from "@/utils/date"
 
 const PAGE_SIZE = 72 // 6 * 12
 const imageLoader = ({ src }: { src: string }) => {
@@ -31,19 +32,22 @@ export default function ImagePage() {
   const loadingRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver>()
   const [producerDialogOpen, setProducerDialogOpen] = useState(false)
-  const [fallbackImages, setFallbackImages] = useState<Set<number>>(new Set())
   const [total, setTotal] = useState(0)
+  const videoRefs = useRef<{ [key: string]: HTMLVideoElement }>({})
 
-  const getImageUrl = (image: any) => {
-    return fallbackImages.has(image.id) ? image.galleryUrl : image.weiboImgUrl
+  const handleMouseEnter = (videoKey: string) => {
+    const video = videoRefs.current[videoKey]
+    if (video) {
+      video.play()
+    }
   }
 
-  const handleImageError = (imageId: number) => {
-    setFallbackImages(prev => {
-      const newSet = new Set(prev)
-      newSet.add(imageId)
-      return newSet
-    })
+  const handleMouseLeave = (videoKey: string) => {
+    const video = videoRefs.current[videoKey]
+    if (video) {
+      video.pause()
+      video.currentTime = 0
+    }
   }
 
   useEffect(() => {
@@ -90,7 +94,6 @@ export default function ImagePage() {
       setLoading(false)
     }
   }
-  console.log(producers)
   return (
     <div className="space-y-2 p-2">
       <div className="flex items-center gap-2">
@@ -130,25 +133,51 @@ export default function ImagePage() {
       </div>
 
       <PhotoProvider>
-        <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 6 }} spacing={2}>
+        <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 6 }} spacing={2}>
           {(images ?? []).map((image, index) => (
             <div
               className={`relative group overflow-hidden`}
               key={selectedProducer + '_' + index}
+              onMouseEnter={() => handleMouseEnter(selectedProducer + '_' + index)}
+              onMouseLeave={() => handleMouseLeave(selectedProducer + '_' + index)}
             >
-              <PhotoView src={getImageUrl(image)}>
-                <div className="transform transition-transform duration-300 group-hover:scale-105">
-                  <Image
-                    src={getImageUrl(image)}
-                    alt={image.id.toString()}
-                    loader={imageLoader}
-                    width={image.width}
-                    height={image.height}
-                    className="w-full h-auto"
-                    onError={() => handleImageError(image.id)}
+              {image.videoSrc ? (
+                <div className="relative">
+                  <video
+                    ref={el => {
+                      if (el) {
+                        videoRefs.current[selectedProducer + '_' + index] = el
+                      }
+                    }}
+                    src={image.videoSrc}
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-auto transform transition-transform duration-300 group-hover:scale-105"
                   />
+                  <div className="absolute top-2 left-2 bg-black/50 p-1 rounded-full">
+                    <Video className="h-4 w-4 text-white" />
+                  </div>
                 </div>
-              </PhotoView>
+              ) : (
+                <PhotoView src={image.galleryUrl}>
+                  <div className="transform transition-transform duration-300 group-hover:scale-105">
+                    <Image
+                      src={image.galleryUrl}
+                      alt={image.id.toString()}
+                      loader={imageLoader}
+                      width={image.width}
+                      height={image.height}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                </PhotoView>
+              )}
+              <div className="absolute duration-300 bottom-0 right-0 p-2 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                <p className="text-white text-sm">
+                  {formatDate(image.createdAt)}
+                </p>
+              </div>
               {image.weiboUrl && (
                 <Button
                   size="icon"
