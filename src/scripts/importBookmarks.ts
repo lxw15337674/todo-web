@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
-import { createBookmark } from '../src/api/bookmark';
+import { createBookmark } from '../api/bookmark';
 
 const prisma = new PrismaClient();
 

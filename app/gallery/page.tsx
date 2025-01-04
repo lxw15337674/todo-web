@@ -178,10 +178,10 @@ export default function ImagePage() {
                   </div>
                 </div>
               ) : (
-                <PhotoView src={image.galleryWeiboUrl??''}>
+                  <PhotoView src={image.galleryImgUrl ??''}>
                   <div className="transform transition-transform duration-300 group-hover:scale-105">
                     <Image
-                      src={image.galleryWeiboUrl??''}
+                        src={image.galleryImgUrl ??''}
                       alt={image.id.toString()}
                       loader={imageLoader}
                       width={image.width}
@@ -210,7 +210,7 @@ export default function ImagePage() {
                   size="icon"
                   variant="secondary"
                   className="absolute duration-300 top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
-                  onClick={() => window.open(image.weiboUrl, '_blank')}
+                  onClick={() => window.open(image.weiboUrl??'', '_blank')}
                 >
                   <ExternalLink className="h-4 w-4" />
                 </Button>

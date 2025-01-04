@@ -82,13 +82,13 @@ model Producer {
 }
 
 model WeiboMedia {
-  weiboImgUrl String
+  originImgUrl String
   width       Int
   height      Int
-  videoSrc    String?
+  originVideoSrc    String?
+  weiboUrl    String?
+  galleryImgUrl  String?
   galleryVideoSrc String?
-  weiboUrl    String
-  galleryWeiboUrl  String
   createTime  DateTime  @default(now())
   updateTime  DateTime  @default(now())
   deletedAt   DateTime?
