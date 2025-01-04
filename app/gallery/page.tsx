@@ -12,7 +12,7 @@ import { PhotoProvider, PhotoView } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/components/producer/producer-dialog"
 
-const Count = 6 * 12
+const PAGE_SIZE = 72 // 6 * 12
 const imageLoader = ({ src }: { src: string }) => {
   return src
 }
@@ -32,6 +32,7 @@ export default function ImagePage() {
   const observerRef = useRef<IntersectionObserver>()
   const [producerDialogOpen, setProducerDialogOpen] = useState(false)
   const [fallbackImages, setFallbackImages] = useState<Set<number>>(new Set())
+  const [total, setTotal] = useState(0)
 
   const getImageUrl = (image: any) => {
     return fallbackImages.has(image.id) ? image.galleryUrl : image.weiboImgUrl
@@ -78,12 +79,9 @@ export default function ImagePage() {
     setLoading(true)
     try {
       const weiboId = selectedProducer === 'all' ? null : producers.find(p => p.id === selectedProducer)?.weiboId
-      const result = await getPics(currentPage, Count, weiboId)
-      if (currentPage === 1) {
-        setImages(result.items)
-      } else {
-        setImages(prev => [...prev, ...result.items])
-      }
+      const result = await getPics(currentPage, PAGE_SIZE, weiboId)
+      setImages(prev => currentPage === 1 ? result.items : [...prev, ...result.items])
+      setTotal(result.total)
       setHasMore(currentPage < result.totalPages)
       setPage(currentPage + 1)
     } catch (error) {
@@ -118,6 +116,10 @@ export default function ImagePage() {
         >
           管理制作者
         </Button>
+
+        <div className="text-sm text-muted-foreground">
+          共 {total} 张图片
+        </div>
 
         <ProducerDialog
           open={producerDialogOpen}
@@ -165,7 +167,7 @@ export default function ImagePage() {
       <div ref={loadingRef} className="py-4 text-center">
         {loading && <p className="text-muted-foreground">加载中...</p>}
         {!loading && images.length > 0 && (
-          <p className="text-muted-foreground">---- 已加载 {images.length} 张图片 ----</p>
+          <p className="text-muted-foreground">---- 已加载 {images.length} / {total} 张图片 ----</p>
         )}
       </div>
     </div>
