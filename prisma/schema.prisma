@@ -35,8 +35,7 @@ model Task {
   createTime DateTime  @default(now())
   updateTime DateTime  @default(now())
   deletedAt  DateTime?
-  // 完成状态
-  status     String //0 未完成 1 完成
+  status     String
 }
 
 model Bookmark {
@@ -63,7 +62,6 @@ model BookmarkTag {
   bookmarks  Bookmark[] @relation("BookmarkToBookmarkTag")
 }
 
-// 纪念日
 model Anniversary {
   id         String    @id @default(uuid())
   name       String
@@ -72,4 +70,30 @@ model Anniversary {
   updateTime DateTime  @default(now())
   deletedAt  DateTime?
   date       DateTime
+}
+
+model Producer {
+  id         String    @id @default(uuid())
+  name       String?
+  weiboId    Int?
+  createTime DateTime  @default(now())
+  updateTime DateTime  @default(now())
+  deletedAt  DateTime?
+}
+
+model WeiboMedia {
+  weiboImgUrl String
+  width       Int
+  height      Int
+  videoSrc    String?
+  weiboUrl    String
+  galleryUrl  String
+  createTime  DateTime  @default(now())
+  updateTime  DateTime  @default(now())
+  deletedAt   DateTime?
+  id          Int       @id @default(autoincrement())
+  userId      BigInt
+
+  @@index([createTime])
+  @@index([userId])
 }

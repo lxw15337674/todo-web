@@ -67,26 +67,33 @@ CONTENT END HERE
 `;
 
 export default async function getSummarizeBookmark(url: string): Promise<OpenAICompletion> {
-    const response = await axios.get(url, {
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15A372 Safari/604.1'
-        }
-    });
-    let html = cleanHtml(response.data);
-    if (html.length > 60000) {
-        html = html.substring(0, 60000);
-    }
-    const prompt = constructPrompt(html)
     try {
-        const completion = await openai.chat.completions.create({
-            messages: [{ role: "system", content: prompt }],
-            model: "deepseek-chat",
+        const response = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15A372 Safari/604.1'
+            },
+            timeout: 10000,  // 添加超时限制
+            maxRedirects: 5  // 添加最大重定向次数
         });
+        let html = cleanHtml(response.data);
+        if (html.length > 60000) {
+            html = html.substring(0, 60000);
+        }
+        const prompt = constructPrompt(html)
+        try {
+            const completion = await openai.chat.completions.create({
+                messages: [{ role: "system", content: prompt }],
+                model: "deepseek-chat",
+            });
 
-        const res = extractJsonData(completion.choices[0].message?.content ?? '')
-        return res
+            const res = extractJsonData(completion.choices[0].message?.content ?? '')
+            return res
+        } catch (error) {
+            console.error("OpenAI 请求错误：", error);
+            return { tags: [], summary: "", title: '', image: '' };
+        }
     } catch (error) {
-        console.error("OpenAI 请求错误：", error);
+        console.error("获取网页内容失败：", error);
         return { tags: [], summary: "", title: '', image: '' };
     }
 }

@@ -1,5 +1,7 @@
 'use client'
-import { getGalleryCategories, getImagesByUid, Image as GalleryImage } from "@/api/gallery"
+import { getGalleryCategories, getImagesByUid, Image as GalleryImage } from "@/api/gallery/gallery"
+import { getProducers } from "@/api/gallery/producer"
+import { ProducerForm } from "@/components/producer/producer-form"
 import { usePromise } from "wwhooks"
 import { useEffect, useRef, useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -9,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { ExternalLink } from "lucide-react"
 import { PhotoProvider, PhotoView } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
+import { ProducerDialog } from "@/components/producer/producer-dialog"
 
 const Count = 6 * 12
 const imageLoader = ({ src }: { src: string }) => {
@@ -24,12 +27,17 @@ export default function ImagePage() {
     initialData: [],
     manual: false
   })
+  const { data: producers, reload: refreshProducers } = usePromise(getProducers, {
+    initialData: [],
+    manual: false
+  })
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [images, setImages] = useState<GalleryImage[]>([])
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false)
   const loadingRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver>()
+  const [producerDialogOpen, setProducerDialogOpen] = useState(false)  // 新增
 
   useEffect(() => {
     setPage(0)
@@ -72,20 +80,36 @@ export default function ImagePage() {
 
   return (
     <div className="space-y-2 p-2">
-      <Select onValueChange={setSelectedCategory}>
-        <SelectTrigger className="w-[180px] my-2">
-          <SelectValue placeholder="默认全部分类" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {(categories ?? []).map((category) => (
-              <SelectItem key={category.uid} value={category.uid}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-2">
+        <Select onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-[180px] my-2">
+            <SelectValue placeholder="默认全部分类" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {(categories ?? []).map((category) => (
+                <SelectItem key={category.uid} value={category.uid}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
+        <Button 
+          variant="outline" 
+          onClick={() => setProducerDialogOpen(true)}
+        >
+          管理制作者
+        </Button>
+
+        <ProducerDialog 
+          open={producerDialogOpen} 
+          onOpenChange={setProducerDialogOpen}
+          producers={producers}
+          onSuccess={refreshProducers}
+        />
+      </div>
 
       <PhotoProvider>
         <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 6 }} spacing={2}>
