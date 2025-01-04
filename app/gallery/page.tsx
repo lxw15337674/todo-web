@@ -78,7 +78,7 @@ export default function ImagePage() {
     setLoading(true)
     try {
       const weiboId = selectedProducer === 'all' ? null : producers.find(p => p.id === selectedProducer)?.weiboId
-      const result = await getPics(currentPage, 30, weiboId)
+      const result = await getPics(currentPage, Count, weiboId)
       if (currentPage === 1) {
         setImages(result.items)
       } else {
