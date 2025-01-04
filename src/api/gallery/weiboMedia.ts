@@ -4,13 +4,13 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export const getPics = async (page: number = 1, pageSize: number = 10, producerId?: string | null) => {
+export const getPics = async (page: number = 1, pageSize: number = 10, userId?: string | null) => {
   const skip = (page - 1) * pageSize;
   const take = pageSize;
 
   const whereClause = {
     deletedAt: null,
-    ...(producerId ? { producerId } : {}),
+      ...(userId ? { userId: Number(userId) } : {}),
   };
 
   const [total, items] = await Promise.all([

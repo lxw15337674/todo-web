@@ -4,7 +4,7 @@ import { getPics } from "@/api/gallery/weiboMedia"
 import { ProducerForm } from "@/components/producer/producer-form"
 import { usePromise } from "wwhooks"
 import { useEffect, useRef, useState } from "react"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Masonry } from "@mui/lab"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -78,7 +78,8 @@ export default function ImagePage() {
     if (loading) return
     setLoading(true)
     try {
-      const result = await getPics(currentPage, 30, selectedProducer)
+      const weiboId = selectedProducer === 'all' ? null : producers.find(p => p.id === selectedProducer)?.weiboId
+      const result = await getPics(currentPage, 30, weiboId)
       if (currentPage === 1) {
         setImages(result.items)
       } else {
@@ -112,15 +113,15 @@ export default function ImagePage() {
           </SelectContent>
         </Select>
 
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => setProducerDialogOpen(true)}
         >
           管理制作者
         </Button>
 
-        <ProducerDialog 
-          open={producerDialogOpen} 
+        <ProducerDialog
+          open={producerDialogOpen}
           onOpenChange={setProducerDialogOpen}
           producers={producers}
           onSuccess={refreshProducers}
