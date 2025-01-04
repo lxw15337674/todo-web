@@ -74,11 +74,11 @@ model Anniversary {
 
 model Producer {
   id         String    @id @default(uuid())
-  name       String?
   weiboId    String?
   createTime DateTime  @default(now())
   updateTime DateTime  @default(now())
   deletedAt  DateTime?
+  name       String?
 }
 
 model WeiboMedia {
@@ -86,13 +86,14 @@ model WeiboMedia {
   width       Int
   height      Int
   videoSrc    String?
+  galleryVideoSrc String?
   weiboUrl    String
-  galleryUrl  String
+  galleryWeiboUrl  String
   createTime  DateTime  @default(now())
   updateTime  DateTime  @default(now())
   deletedAt   DateTime?
   id          Int       @id @default(autoincrement())
-  userId      BigInt
+  userId      String
 
   @@index([createTime])
   @@index([userId])

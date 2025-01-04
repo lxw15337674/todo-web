@@ -159,7 +159,7 @@ export default function ImagePage() {
               onMouseEnter={() => handleMouseEnter(selectedProducer + '_' + index)}
               onMouseLeave={() => handleMouseLeave(selectedProducer + '_' + index)}
             >
-              {image.videoSrc ? (
+              {image.galleryVideoSrc ? (
                 <div className="relative">
                   <video
                     ref={el => {
@@ -167,7 +167,7 @@ export default function ImagePage() {
                         videoRefs.current[selectedProducer + '_' + index] = el
                       }
                     }}
-                    src={image.videoSrc}
+                    src={image.galleryVideoSrc}
                     loop
                     muted
                     playsInline
@@ -178,10 +178,10 @@ export default function ImagePage() {
                   </div>
                 </div>
               ) : (
-                <PhotoView src={image.galleryUrl}>
+                <PhotoView src={image.galleryWeiboUrl??''}>
                   <div className="transform transition-transform duration-300 group-hover:scale-105">
                     <Image
-                      src={image.galleryUrl}
+                      src={image.galleryWeiboUrl??''}
                       alt={image.id.toString()}
                       loader={imageLoader}
                       width={image.width}
