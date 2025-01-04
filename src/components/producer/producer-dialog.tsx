@@ -60,12 +60,12 @@ export function ProducerDialog({ open, onOpenChange, producers, onSuccess }: Pro
         <DialogHeader>
           <DialogTitle>制作者管理</DialogTitle>
         </DialogHeader>
-        <Table>
+        <Table className="table-fixed w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>名称</TableHead>
-              <TableHead>微博ID</TableHead>
-              <TableHead>操作</TableHead>
+              <TableHead className="w-1/2">名称</TableHead>
+              <TableHead className="w-1/3">微博ID</TableHead>
+              <TableHead className="w-1/6">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
