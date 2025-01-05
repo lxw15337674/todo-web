@@ -1,9 +1,9 @@
 'use server';
 
-import { Prisma, PrismaClient, WeiboMedia } from '@prisma/client';
+import { Media, Prisma, PrismaClient } from '@prisma/client';
 
 interface GetPicsResponse {
-  items: WeiboMedia[];
+  items: Media[];
   total: number;
   page: number;
   pageSize: number;
@@ -16,11 +16,14 @@ export const getPics = async (page: number = 1, pageSize: number = 10, weiboIds?
   try {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
-
+    console.log('weiboIds', weiboIds)
     // 构建查询条件
     const whereClause: Prisma.MediaWhereInput = {
       deletedAt: null,
-      galleryMediaUrl: null,
+      AND: [
+        { galleryMediaUrl: { not: null } },
+        { galleryMediaUrl: { not: '' } }
+      ],
       ...(weiboIds ? { userId: { in: weiboIds } } : {})
     };
 
