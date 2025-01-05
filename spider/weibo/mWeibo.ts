@@ -48,8 +48,9 @@ export const mWeibo = async (producers: Producer[]) => {
                         for (const post of posts) {
                             try {
                                 const pics = post?.pics || [];
+                                const originSrc = `https://weibo.com/${userId}/${post.bid}`
                                 if (!pics || (typeof pics === 'object' && Object.keys(pics).length === 0)) {
-                                    log('没有图片，跳过', 'warn');
+                                    log(`没有图片，跳过,源链接: ${originSrc}`, 'warn');
                                     continue;
                                 }
 
@@ -68,7 +69,7 @@ export const mWeibo = async (producers: Producer[]) => {
                                     createTime: new Date(post.created_at || Date.now()),
                                     width: Number(picsArray[i].large.geo.width),
                                     height: Number(picsArray[i].large.geo.height),
-                                    originSrc: `https://weibo.com/${userId}/${post.bid}`
+                                    originSrc
                                 }));
                                 await saveMedias(medias);
                                 processedCount += medias.length;
