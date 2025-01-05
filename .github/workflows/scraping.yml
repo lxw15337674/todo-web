@@ -2,73 +2,82 @@ name: Crawl and Upload Images
 
 on:
   schedule:
-    - cron: '0 */12 * * *'  
-  workflow_dispatch:
+    - cron: '0 */12 * * *'  # 每 12 小时运行一次
+  workflow_dispatch:         # 支持手动触发
 
 jobs:
   setup:
     runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-dependencies.outputs.cache-key }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '22'
-      - uses: pnpm/action-setup@v2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 8
+
       - name: Install Dependencies
         run: pnpm install
+
       - name: Cache Dependencies
-        uses: actions/cache/save@v3
+        id: cache-dependencies
+        uses: actions/cache@v3
         with:
           path: |
             node_modules
             .pnpm-store
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
   crawl:
     needs: setup
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/cache/restore@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Restore Cached Dependencies
+        uses: actions/cache/restore@v3
         with:
           path: |
             node_modules
             .pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: Crawl Images
-        run: pnpm crawl
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run crawl
 
   upload:
     needs: setup
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/cache/restore@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Restore Cached Dependencies
+        uses: actions/cache/restore@v3
         with:
           path: |
             node_modules
             .pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: Upload Images
-        run: pnpm upload
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run upload
