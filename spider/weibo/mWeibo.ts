@@ -27,8 +27,8 @@ export const mWeibo = async (producers: Producer[]) => {
 
                 let processedCount = 0;
                 for (const post of posts) {
-                    const pics = post.pics;
-                    if (!pics || pics.length === 0) {
+                    const pics = post.pics || []
+                    if (pics.length === 0) {
                         console.log('⏭️ 没有图片，跳过');
                         continue;
                     }
@@ -44,7 +44,7 @@ export const mWeibo = async (producers: Producer[]) => {
                             userId,
                             originMediaUrl: img.originImgUrl,
                             galleryMediaUrl: img.galleryUrl,
-                            createTime: new Date(post.created_at|| Date.now()),
+                            createTime: new Date(post.created_at || Date.now()),
                             width: Number(pics[i].large.geo.width),
                             height: Number(pics[i].large.geo.height),
                             originSrc: `https://weibo.com/${userId}/${post.bid}`
