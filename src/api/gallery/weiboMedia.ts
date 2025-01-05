@@ -1,6 +1,6 @@
 'use server';
 
-import { PrismaClient, WeiboMedia } from '@prisma/client';
+import { Prisma, PrismaClient, WeiboMedia } from '@prisma/client';
 
 interface GetPicsResponse {
   items: WeiboMedia[];
@@ -12,23 +12,23 @@ interface GetPicsResponse {
 
 const prisma = new PrismaClient();
 
-export const getPics = async (page: number = 1, pageSize: number = 10, userId?: string | null): Promise<GetPicsResponse> => {
+export const getPics = async (page: number = 1, pageSize: number = 10, weiboIds?: string[] | null): Promise<GetPicsResponse> => {
   try {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
 
     // 构建查询条件
-    const whereClause = {
+    const whereClause: Prisma.MediaWhereInput = {
       deletedAt: null,
-      ...(userId ? { userId: userId } : {})
+      ...(weiboIds ? { userId: { in: weiboIds } } : {})
     };
 
     // 并行查询总数和分页数据
     const [total, items] = await Promise.all([
-      prisma.weiboMedia.count({
+      prisma.media.count({
         where: whereClause,
       }),
-      prisma.weiboMedia.findMany({
+      prisma.media.findMany({
         skip,
         take,
         where: whereClause,

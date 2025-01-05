@@ -1,4 +1,4 @@
-import { Producer, WeiboMedia } from '@prisma/client'
+import { Producer, Media } from '@prisma/client'
 import { Button } from "@/components/ui/button"
 import { ExternalLink, Video } from "lucide-react"
 import { PhotoView } from 'react-photo-view'
@@ -7,7 +7,7 @@ import { formatDate } from "@/utils/date"
 import { useEffect, useRef } from 'react'
 
 interface Props {
-    image: WeiboMedia
+    image: Media
     index: number
     selectedProducer: string | null
     producers: Producer[]
@@ -19,31 +19,30 @@ const imageLoader = ({ src }: { src: string }) => {
 
 export const GalleryItem = ({ image, producers }: Props) => {
     const videoRef = useRef<HTMLVideoElement>(null)
-
     const handleMouseEnter = () => {
         if (videoRef.current) {
             videoRef.current.play()
         }
     }
-
+    const producer = producers.find(p => p.weiboIds.includes(image.userId??""))
     const handleMouseLeave = () => {
         if (videoRef.current) {
             videoRef.current.pause()
             videoRef.current.currentTime = 0
         }
     }
-    const imageUrl = image.galleryImgUrl ?? image.originImgUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`
+    const imageUrl = image.galleryMediaUrl ?? image.originMediaUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`
     return (
         <div
             className={`relative group overflow-hidden`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
-            {image.galleryVideoSrc ? (
+            {image.galleryMediaUrl?.endsWith('.mp4') ? (
                 <div className="relative">
                     <video
                         ref={videoRef}
-                        src={image.galleryVideoSrc}
+                        src={image.galleryMediaUrl}
                         loop
                         muted
                         playsInline
@@ -60,8 +59,8 @@ export const GalleryItem = ({ image, producers }: Props) => {
                             src={imageUrl}
                             alt={image.id.toString()}
                             loader={imageLoader}
-                            width={image.width}
-                            height={image.height}
+                            width={image?.width??undefined}
+                            height={image?.height??undefined}
                             className="w-full h-auto"
                         />
                     </div>
@@ -71,22 +70,22 @@ export const GalleryItem = ({ image, producers }: Props) => {
                 <div className="flex justify-between items-center">
                     <span
                         className="text-white text-sm hover:underline cursor-pointer"
-                        title={`查看${producers.find(p => p.weiboId === image.userId.toString())?.name}的微博`}
+                        title={`查看${producer?.name}的微博`}
                         onClick={() => window.open(`https://weibo.com/u/${image.userId}`, '_blank')}
                     >
-                        {producers.find(p => p.weiboId === image.userId.toString())?.name}
+                        {producer?.name}
                     </span>
                     <span className="text-white text-sm">
                         {formatDate(image.createTime)}
                     </span>
                 </div>
             </div>
-            {image.weiboUrl && (
+            {image.originSrc && (
                 <Button
                     size="icon"
                     variant="secondary"
                     className="absolute duration-300 top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
-                    onClick={() => window.open(image.weiboUrl ?? '', '_blank')}
+                    onClick={() => window.open(image.originSrc ?? '', '_blank')}
                 >
                     <ExternalLink className="h-4 w-4" />
                 </Button>

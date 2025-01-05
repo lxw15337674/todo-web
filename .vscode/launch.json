@@ -25,6 +25,21 @@
         "uriFormat": "%s",
         "action": "debugWithEdge"
       }
+    },
+    {
+      "name": "Crawl: debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/spider/index.ts",
+      "runtimeExecutable": "bun",
+      "sourceMaps": true,
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/**/*.js"
+      ],
+      "console": "integratedTerminal"
     }
   ]
 }

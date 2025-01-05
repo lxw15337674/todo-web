@@ -5,21 +5,14 @@ import { usePromise } from "wwhooks"
 import { useEffect, useRef, useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Masonry } from "@mui/lab"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, Video, User } from "lucide-react"
-import { PhotoProvider, PhotoView } from 'react-photo-view'
+import { PhotoProvider } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
-import { ProducerDialog } from "@/components/producer/producer-dialog"
-import { formatDate } from "@/utils/date"
-import { WeiboMedia } from "@prisma/client"
+import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
+import { Media } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
 
 const PAGE_SIZE = 72 // 6 * 12
-const imageLoader = ({ src }: { src: string }) => {
-  return src
-}
-
 
 export default function ImagePage() {
   const { data: producers, reload: refreshProducers } = usePromise(getProducers, {
@@ -27,7 +20,7 @@ export default function ImagePage() {
     manual: false
   })
   const [selectedProducer, setSelectedProducer] = useState<string | null>(null)
-  const [images, setImages] = useState<WeiboMedia[]>([])
+  const [images, setImages] = useState<Media[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -36,21 +29,6 @@ export default function ImagePage() {
   const [producerDialogOpen, setProducerDialogOpen] = useState(false)
   const [total, setTotal] = useState(0)
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement }>({})
-
-  const handleMouseEnter = (videoKey: string) => {
-    const video = videoRefs.current[videoKey]
-    if (video) {
-      video.play()
-    }
-  }
-
-  const handleMouseLeave = (videoKey: string) => {
-    const video = videoRefs.current[videoKey]
-    if (video) {
-      video.pause()
-      video.currentTime = 0
-    }
-  }
 
   useEffect(() => {
     setPage(1)
@@ -84,8 +62,8 @@ export default function ImagePage() {
     if (loading) return
     setLoading(true)
     try {
-      const weiboId = selectedProducer === 'all' ? null : producers.find(p => p.id === selectedProducer)?.weiboId
-      const result = await getPics(currentPage, PAGE_SIZE, weiboId)
+      const weiboIds = selectedProducer === 'all' ? null : producers.find(p => p.id === selectedProducer)?.weiboIds
+      const result = await getPics(currentPage, PAGE_SIZE, weiboIds)
       setImages(prev => currentPage === 1 ? result.items : [...prev, ...result.items])
       setTotal(result.total)
       setHasMore(currentPage < result.totalPages)
@@ -121,20 +99,6 @@ export default function ImagePage() {
         <div className="text-sm text-muted-foreground">
           共 {total} 张图片
         </div>
-
-        {selectedProducer && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              const producer = producers.find(p => p.id === selectedProducer)
-              if (producer?.weiboId) {
-                window.open(`https://weibo.com/u/${producer.weiboId}`, '_blank')
-              }
-            }}
-          >
-            查看{producers.find(p => p.id === selectedProducer)?.name}的微博
-          </Button>
-        )}
 
         <ProducerDialog
           open={producerDialogOpen}

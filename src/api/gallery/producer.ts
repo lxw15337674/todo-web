@@ -11,7 +11,7 @@ export const createProducer = async (data: NewProducer): Promise<Producer> => {
   });
 };
 
-export const getProducers = async () => {
+export const getProducers = async (): Promise<Producer[]> => {
   return await prisma.producer.findMany({
     where: {
       deletedAt: null

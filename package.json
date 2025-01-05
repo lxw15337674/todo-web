@@ -15,7 +15,8 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
-    "prisma-migrate": "npx prisma db push  && npx prisma generate"
+    "prisma-migrate": "npx prisma db push  && npx prisma generate",
+    "crawl": "vite-node spider/index.ts"
   },
   "dependencies": {
     "@emotion/cache": "11.13.5",
@@ -67,12 +68,14 @@
     "react-markdown": "9.0.1",
     "react-masonry-component": "6.3.0",
     "react-photo-view": "1.2.6",
+    "sharp": "^0.32.6",
     "socket.io-client": "4.7.4",
     "tailwind-merge": "2.5.5",
     "tailwindcss-animate": "1.0.7",
     "use-count-up": "3.0.1",
     "use-immer": "0.10.0",
     "vaul": "1.1.1",
+    "vite-node": "2.1.8",
     "wwhooks": "2.0.2",
     "www-components": "1.1.0",
     "zustand": "4.4.1",

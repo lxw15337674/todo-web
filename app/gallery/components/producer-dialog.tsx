@@ -18,14 +18,12 @@ interface ProducerDialogProps {
 export function ProducerDialog({ open, onOpenChange, producers, onSuccess }: ProducerDialogProps) {
   const [editingProducer, setEditingProducer] = useState<UpdateProducer | null>(null)
 
-  const handleEdit = async ({ id, name, weiboId }: UpdateProducer) => {
-    weiboId = weiboId || null
+  const handleEdit = async ({ id, name, weiboIds }: UpdateProducer) => {
     try {
-      await updateProducer({ id, name, weiboId })
+      await updateProducer({ id, name, weiboIds })
       setEditingProducer(null)
       onSuccess?.()
     } catch (error) {
-      debugger
       alert('更新失败,请重试')
     }
   }
@@ -51,7 +49,10 @@ export function ProducerDialog({ open, onOpenChange, producers, onSuccess }: Pro
   }
 
   function handleWeiboIdChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setEditingProducer(prev => prev ?   ({ ...prev, weiboId: e.target.value }) : null)
+    setEditingProducer(prev => prev ? ({
+      ...prev,
+      weiboIds: e.target.value ? e.target.value.split(',').map(id => id.trim()) : []
+    }) : null)
   }
 
   return (
@@ -89,12 +90,13 @@ export function ProducerDialog({ open, onOpenChange, producers, onSuccess }: Pro
                 <TableCell>
                   {editingProducer?.id === producer.id ? (
                     <Input
-                      value={editingProducer?.weiboId?.toString() ?? ''}
+                      value={editingProducer?.weiboIds?.join(', ') ?? ''}
                       onChange={handleWeiboIdChange}
+                      placeholder="多个ID用逗号分隔"
                     />
                   ) : (
                     <div className="px-2 py-1 rounded">
-                      {producer.weiboId}
+                      {Array.isArray(producer.weiboIds) ? producer.weiboIds.join(', ') : ''}
                     </div>
                   )}
                 </TableCell>
@@ -114,7 +116,7 @@ export function ProducerDialog({ open, onOpenChange, producers, onSuccess }: Pro
                         setEditingProducer({
                           id: producer.id,
                           name: producer.name,
-                          weiboId: producer.weiboId || ""
+                          weiboIds: producer.weiboIds || []
                         })
                       }
                       size="sm"
