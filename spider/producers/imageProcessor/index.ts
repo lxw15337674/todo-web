@@ -37,4 +37,4 @@ class ImageProcessor {
     }
 }
 
-export default new ImageProcessor(1);
+export default new ImageProcessor(2);
