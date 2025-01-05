@@ -1,9 +1,8 @@
 import { Producer } from '@prisma/client';
 import { WeiboProducer } from '../producers/weiboProducer';
-import imageProcessor from '../producers/imageProcessor';
 import { Media } from '../types';
-import databaseProducer from '../producers/databaseProducer';
 import { log } from '../utils/log';
+import { saveMedias } from '../utils/db/media';
 
 export const mWeibo = async (producers: Producer[]) => {
     try {
@@ -36,23 +35,20 @@ export const mWeibo = async (producers: Producer[]) => {
 
                     const uploadPics = pics.map(pic => pic.videoSrc || pic.large.url);
                     log(`📸 开始处理 ${uploadPics.length} 张图片`);
-                    const uploadedImages = await imageProcessor.process(uploadPics)
-                    processedCount += uploadedImages.length;
-                    log(`图片转存完成: ${uploadedImages.length} 张`, 'success');
 
-                    const medias: Media[] = uploadedImages.map((img, i) => ({
+                    const medias: Media[] = uploadPics.map((url, i) => ({
                         userId,
                         postId: post.id,
-                        originMediaUrl: img.originImgUrl,
-                        galleryMediaUrl: img.galleryUrl,
+                        originMediaUrl: url,
                         createTime: new Date(post.created_at || Date.now()),
                         width: Number(pics[i].large.geo.width),
                         height: Number(pics[i].large.geo.height),
                         originSrc: `https://weibo.com/${userId}/${post.bid}`
                     }));
-                    await databaseProducer.save(medias);
+                    await saveMedias(medias);
                     log(`保存到数据库完成: ${medias.length} 条,🔗 原始链接: ${medias[0].originSrc}`, 'success');
                 }
+                log(`用户 ${userId} 处理完成，共处理 ${processedCount} 张图片`, 'success');
             }
         }
         log('\n==== 微博数据获取完成 ====', 'success');

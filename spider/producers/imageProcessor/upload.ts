@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { sleep } from '../../utils';
 import sharp from 'sharp';
-import { checkExistingImages } from '../databaseProducer/db';
 
 // 根据URL获取文件扩展名
 const getFileExtension = (url: string): string => {

@@ -1,6 +1,7 @@
 import { getProducers } from './utils/db/producer';
 import { mWeibo } from './weibo/mWeibo';
 import { log } from './utils/log';
+import uploadImageToGallery from './producers/imageProcessor';
 
 async function main() {
     try {
@@ -9,6 +10,7 @@ async function main() {
 
         // 爬取所有生产者的微博数据
         mWeibo(producers);
+        await uploadImageToGallery();
     } catch (error) {
         log('主函数出错:' + error, 'error');
     }

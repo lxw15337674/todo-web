@@ -1,40 +1,23 @@
-import { UploadedImageInfo } from '../../types';
-import { TaskQueue } from '../../utils/task';
-import { checkExistingImages } from '../databaseProducer/db';
+import { getUploadMedias, updateMediaGalleryUrl } from '../../utils/db/media';
+import { log } from '../../utils/log';
 import { transferImage } from './upload';
 
+async function uploadImageToGallery() {
+    const medias = await getUploadMedias();
+    for (let media of medias) {
+        const startTime = Date.now();
+        if (!media.originMediaUrl) continue;
 
-class ImageProcessor {
-    private taskQueue: TaskQueue;
-    constructor(concurrency = 1) {
-        this.taskQueue = new TaskQueue(concurrency);
-    }
-
-    async process(urls: string[]): Promise<UploadedImageInfo[]> {
-        const validUrls = await checkExistingImages(urls)
-        if (!validUrls.length) {
-            return [];
+        try {
+            const galleryUrl = await transferImage(media.originMediaUrl);
+            await updateMediaGalleryUrl(media.id, galleryUrl);
+            log(`🔗 图片上传完成: ${galleryUrl}`, 'success');
+            return true
+        } catch (error) {
+            const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+            log(`❌ 失败(${duration}s):`, 'error');
+            return false
         }
-        const results = await Promise.all(
-            validUrls.
-                map(async (url, index) => {
-                    return this.taskQueue.add(async () => {
-                        const startTime = Date.now();
-                        try {
-                            const galleryUrl = await transferImage(url);
-                            const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-                            return galleryUrl ? { originImgUrl: url, galleryUrl } : null;
-                        } catch (error) {
-                            const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-                            console.error(`❌ [${index + 1}/${validUrls.length}] 失败(${duration}s):`, error);
-                            return null;
-                        }
-                    });
-                })
-        );
-
-        return results.filter((result): result is UploadedImageInfo => result !== null);
     }
 }
-
-export default new ImageProcessor(1);
+export default uploadImageToGallery
