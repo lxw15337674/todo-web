@@ -1,6 +1,7 @@
 import { getUploadMedias, updateMediaGalleryUrl } from '../db/media';
 import { log } from '../../utils/log';
 import { transferImage } from './upload';
+import { sleep } from '..';
 
 async function uploadImageToGallery() {
     let hasMore = true;
