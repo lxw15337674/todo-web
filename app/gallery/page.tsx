@@ -28,7 +28,6 @@ export default function ImagePage() {
   const observerRef = useRef<IntersectionObserver>()
   const [producerDialogOpen, setProducerDialogOpen] = useState(false)
   const [total, setTotal] = useState(0)
-  const videoRefs = useRef<{ [key: string]: HTMLVideoElement }>({})
 
   useEffect(() => {
     setPage(1)

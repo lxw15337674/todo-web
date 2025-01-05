@@ -20,6 +20,7 @@ export const getPics = async (page: number = 1, pageSize: number = 10, weiboIds?
     // 构建查询条件
     const whereClause: Prisma.MediaWhereInput = {
       deletedAt: null,
+      galleryMediaUrl: null,
       ...(weiboIds ? { userId: { in: weiboIds } } : {})
     };
 
