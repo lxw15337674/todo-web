@@ -82,7 +82,7 @@ model Producer {
 }
 
 model WeiboMedia {
-  originImgUrl String
+  originImgUrl String?
   width       Int
   height      Int
   originVideoSrc    String?
