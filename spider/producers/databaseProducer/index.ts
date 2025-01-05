@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Media } from '../../types';
-import { checkExistingImages } from './db';
+import { log } from '../../utils/log';
 
 class DatabaseProducer {
     private prisma = new PrismaClient();
@@ -8,7 +8,7 @@ class DatabaseProducer {
     async save(data: Media[]) {
         try {
             if (!data?.length) {
-                console.log('⚠️ 没有需要保存的数据');
+                log('没有需要保存的数据', 'warn');
                 return { count: 0 };
             }
 
@@ -25,11 +25,11 @@ class DatabaseProducer {
             const newImages = data.filter(img => !existingSet.has(img.originSrc));
 
             if (existingUrls.length) {
-                console.log(`⏭️ 跳过已存在的图片 ${existingUrls.length} 张`);
+                log(`跳过已存在的图片 ${existingUrls.length} 张`, 'info');
             }
 
             if (!newImages.length) {
-                console.log('✨ 所有图片都已存在');
+                log('所有图片都已存在', 'info');
                 return { count: 0 };
             }
 
@@ -40,10 +40,10 @@ class DatabaseProducer {
                 }))
             });
 
-            console.log(`✅ 保存成功 ${result.count} 张图片`);
+            log(`保存成功 ${result.count} 张图片`, 'success');
             return result;
         } catch (error) {
-            console.error('❌ 保存失败:', error);
+            log(`保存失败: ${error}`, 'error');
             throw error;
         }
     }

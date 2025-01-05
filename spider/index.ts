@@ -1,7 +1,6 @@
 import { getProducers } from './utils/db/producer';
 import { mWeibo } from './weibo/mWeibo';
-
-
+import { log } from './utils/log';
 
 async function main() {
     try {
@@ -11,7 +10,7 @@ async function main() {
         // 爬取所有生产者的微博数据
         mWeibo(producers);
     } catch (error) {
-        console.error('主函数出错:', error);
+        log('主函数出错:' + error, 'error');
     }
 }
 

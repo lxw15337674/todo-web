@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { log } from './utils/log';
 
 export async function getPersonWeibo() {
     try {
@@ -29,6 +30,6 @@ export async function getPersonWeibo() {
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        log('获取个人微博失败: ' + error, 'error');
     }
 }
