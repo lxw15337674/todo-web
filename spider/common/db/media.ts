@@ -63,7 +63,7 @@ export const saveMedias = async (data: Media[]):Promise<number> => {
                 createTime: img.createTime || new Date(),
             }))
         });
-        log(`保存成功 ${result.count} 张图片,跳过 ${existingUrls.length} 张`, 'success');
+        log(`保存成功 ${result.count} 张图片记录,跳过 ${existingUrls.length} 张`, 'success');
         return  result.count
     } catch (error) {
         log(`保存失败: ${error}`, 'error');
