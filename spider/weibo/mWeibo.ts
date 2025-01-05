@@ -35,23 +35,22 @@ export const mWeibo = async (producers: Producer[]) => {
 
                     const uploadPics = pics.map(pic => pic.videoSrc || pic.large.url);
                     console.log(`📸 开始处理 ${uploadPics.length} 张图片`);
+                    const uploadedImages = await imageProcessor.process(uploadPics)
+                    processedCount += uploadedImages.length;
+                    console.log(`✨ 图片转存完成: ${uploadedImages.length} 张`);
 
-                    imageProcessor.process(uploadPics).then((uploadedImages) => {
-                        processedCount += uploadedImages.length;
-                        console.log(`✨ 图片转存完成: ${uploadedImages.length} 张`);
-
-                        const medias: Media[] = uploadedImages.map((img, i) => ({
-                            userId,
-                            originMediaUrl: img.originImgUrl,
-                            galleryMediaUrl: img.galleryUrl,
-                            createTime: new Date(post.created_at || Date.now()),
-                            width: Number(pics[i].large.geo.width),
-                            height: Number(pics[i].large.geo.height),
-                            originSrc: `https://weibo.com/${userId}/${post.bid}`
-                        }));
-                        databaseProducer.save(medias);
-                        console.log(`📥 保存到数据库完成: ${medias.length} 条,🔗 原始链接: ${medias[0].originSrc}`);
-                    });
+                    const medias: Media[] = uploadedImages.map((img, i) => ({
+                        userId,
+                        postId: post.id,
+                        originMediaUrl: img.originImgUrl,
+                        galleryMediaUrl: img.galleryUrl,
+                        createTime: new Date(post.created_at || Date.now()),
+                        width: Number(pics[i].large.geo.width),
+                        height: Number(pics[i].large.geo.height),
+                        originSrc: `https://weibo.com/${userId}/${post.bid}`
+                    }));
+                    await databaseProducer.save(medias);
+                    console.log(`📥 保存到数据库完成: ${medias.length} 条,🔗 原始链接: ${medias[0].originSrc}`);
                 }
             }
         }
