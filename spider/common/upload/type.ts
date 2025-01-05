@@ -1,12 +1,3 @@
-
-export interface UploadedImageInfo {
-  galleryUrl: string;    // 转存后的图片URL
-  originImgUrl: string;  // 原始图片URL
-}
-
-export type ImageProcessCallback = (uploadedImages: UploadedImageInfo[]) => void;
-
-
 export interface Media {
   width?: number;
   height?: number;

@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { Media } from '../../types';
-import { log } from '../log';
+import { Media } from '../upload/type';
+import { log } from '../../utils/log';
 const prisma = new PrismaClient();
 export const checkExistingImages = async (data: string[]) => {
     const existingImages = await prisma.media.findMany({

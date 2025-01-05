@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { sleep } from '../../utils';
+import { sleep } from '..';
 import sharp from 'sharp';
 
 // 根据URL获取文件扩展名

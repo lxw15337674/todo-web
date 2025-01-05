@@ -1,4 +1,4 @@
-import { getUploadMedias, updateMediaGalleryUrl } from '../../common/db/media';
+import { getUploadMedias, updateMediaGalleryUrl } from '../db/media';
 import { log } from '../../utils/log';
 import { transferImage } from './upload';
 

@@ -1,14 +1,12 @@
 import { Producer } from '@prisma/client';
-import { WeiboProducer } from '../producers/weiboProducer';
-import { Media } from '../types';
+import { Media } from '../common/upload/type';
 import { log } from '../utils/log';
-import { saveMedias } from '../utils/db/media';
+import { saveMedias } from '../common/db/media';
+import { produceWeiboPosts } from './weiboProducer';
 
 export const mWeibo = async (producers: Producer[]) => {
     try {
         log('==== 开始微博数据获取 ====');
-        const weiboProducer = new WeiboProducer();
-
         for (let producer of producers) {
             if (producer.weiboIds.length === 0) {
                 log('未找到生产者的微博ID，跳过', 'warn');
@@ -22,13 +20,13 @@ export const mWeibo = async (producers: Producer[]) => {
             for (const userId of ids) {
                 log(`\n🔄 开始处理用户 ${userId} 的微博`);
 
-                const posts = await weiboProducer.produceWeiboPosts(userId);
+                const posts = await produceWeiboPosts(userId);
                 log(`获取用户微博完成，共 ${posts.length} 条`, 'success');
 
                 let processedCount = 0;
                 for (const post of posts) {
                     const pics = post.pics || []
-                    if (pics.length === 0) {
+                    if (pics?.length === 0) {
                         log('没有图片，跳过', 'warn');
                         continue;
                     }
