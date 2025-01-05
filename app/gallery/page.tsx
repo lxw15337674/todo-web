@@ -13,6 +13,7 @@ import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/components/producer/producer-dialog"
 import { formatDate } from "@/utils/date"
 import { WeiboMedia } from "@prisma/client"
+import { GalleryItem } from './components/GalleryItem'
 
 const PAGE_SIZE = 72 // 6 * 12
 const imageLoader = ({ src }: { src: string }) => {
@@ -153,69 +154,13 @@ export default function ImagePage() {
       <PhotoProvider>
         <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 6 }} spacing={2}>
           {(images ?? []).map((image, index) => (
-            <div
-              className={`relative group overflow-hidden`}
+            <GalleryItem 
               key={selectedProducer + '_' + index}
-              onMouseEnter={() => handleMouseEnter(selectedProducer + '_' + index)}
-              onMouseLeave={() => handleMouseLeave(selectedProducer + '_' + index)}
-            >
-              {image.galleryVideoSrc ? (
-                <div className="relative">
-                  <video
-                    ref={el => {
-                      if (el) {
-                        videoRefs.current[selectedProducer + '_' + index] = el
-                      }
-                    }}
-                    src={image.galleryVideoSrc}
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-auto transform transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute top-2 left-2 bg-black/50 p-2 ">
-                    <Video className="h-4 w-4 text-white" />
-                  </div>
-                </div>
-              ) : (
-                  <PhotoView src={image.galleryImgUrl ??''}>
-                  <div className="transform transition-transform duration-300 group-hover:scale-105">
-                    <Image
-                        src={image.galleryImgUrl ??''}
-                      alt={image.id.toString()}
-                      loader={imageLoader}
-                      width={image.width}
-                      height={image.height}
-                      className="w-full h-auto"
-                    />
-                  </div>
-                </PhotoView>
-              )}
-              <div className="absolute duration-300 bottom-0 right-0 p-2 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity w-full">
-                <div className="flex justify-between items-center">
-                  <span
-                    className="text-white text-sm hover:underline cursor-pointer"
-                    title={`查看${producers.find(p => p.weiboId === image.userId.toString())?.name}的微博`}
-                    onClick={() => window.open(`https://weibo.com/u/${image.userId}`, '_blank')}
-                  >
-                    {producers.find(p => p.weiboId === image.userId.toString())?.name}
-                  </span>
-                  <span className="text-white text-sm">
-                    {formatDate(image.createTime)}
-                  </span>
-                </div>
-              </div>
-              {image.weiboUrl && (
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="absolute duration-300 top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
-                  onClick={() => window.open(image.weiboUrl??'', '_blank')}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+              image={image}
+              index={index}
+              selectedProducer={selectedProducer}
+              producers={producers}
+            />
           ))}
         </Masonry>
       </PhotoProvider>
