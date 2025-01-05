@@ -3,41 +3,42 @@ import { WeiboProducer } from '../producers/weiboProducer';
 import imageProcessor from '../producers/imageProcessor';
 import { Media } from '../types';
 import databaseProducer from '../producers/databaseProducer';
+import { log } from '../utils/log';
 
 export const mWeibo = async (producers: Producer[]) => {
     try {
-        console.log('==== 开始微博数据获取 ====');
+        log('==== 开始微博数据获取 ====');
         const weiboProducer = new WeiboProducer();
 
         for (let producer of producers) {
             if (producer.weiboIds.length === 0) {
-                console.log('⚠️ 未找到生产者的微博ID，跳过');
+                log('未找到生产者的微博ID，跳过', 'warn');
                 continue;
             }
 
             const ids = producer.weiboIds;
-            console.log(`\n👤 处理生产者: ${producer.name}`);
-            console.log(`📋 找到 ${ids.length} 个微博ID待处理`);
+            log(`\n👤 处理生产者: ${producer.name}`);
+            log(`📋 找到 ${ids.length} 个微博ID待处理`);
 
             for (const userId of ids) {
-                console.log(`\n🔄 开始处理用户 ${userId} 的微博`);
+                log(`\n🔄 开始处理用户 ${userId} 的微博`);
 
                 const posts = await weiboProducer.produceWeiboPosts(userId);
-                console.log(`✅ 获取用户微博完成，共 ${posts.length} 条`);
+                log(`获取用户微博完成，共 ${posts.length} 条`, 'success');
 
                 let processedCount = 0;
                 for (const post of posts) {
                     const pics = post.pics || []
                     if (pics.length === 0) {
-                        console.log('⏭️ 没有图片，跳过');
+                        log('没有图片，跳过', 'warn');
                         continue;
                     }
 
                     const uploadPics = pics.map(pic => pic.videoSrc || pic.large.url);
-                    console.log(`📸 开始处理 ${uploadPics.length} 张图片`);
+                    log(`📸 开始处理 ${uploadPics.length} 张图片`);
                     const uploadedImages = await imageProcessor.process(uploadPics)
                     processedCount += uploadedImages.length;
-                    console.log(`✨ 图片转存完成: ${uploadedImages.length} 张`);
+                    log(`图片转存完成: ${uploadedImages.length} 张`, 'success');
 
                     const medias: Media[] = uploadedImages.map((img, i) => ({
                         userId,
@@ -50,12 +51,12 @@ export const mWeibo = async (producers: Producer[]) => {
                         originSrc: `https://weibo.com/${userId}/${post.bid}`
                     }));
                     await databaseProducer.save(medias);
-                    console.log(`📥 保存到数据库完成: ${medias.length} 条,🔗 原始链接: ${medias[0].originSrc}`);
+                    log(`保存到数据库完成: ${medias.length} 条,🔗 原始链接: ${medias[0].originSrc}`, 'success');
                 }
             }
         }
-        console.log('\n==== 微博数据获取完成 ====');
+        log('\n==== 微博数据获取完成 ====', 'success');
     } catch (error) {
-        console.error('❌ 主函数出错:', error);
+        log('主函数出错:' + error, 'error');
     }
 };
