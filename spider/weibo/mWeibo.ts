@@ -1,7 +1,7 @@
 import { Producer } from '@prisma/client';
 import { WeiboProducer } from '../producers/weiboProducer';
 import imageProcessor from '../producers/imageProcessor';
-import { ImageProcessCallback, Media } from '../types';
+import { Media } from '../types';
 import databaseProducer from '../producers/databaseProducer';
 
 export const mWeibo = async (producers: Producer[]) => {
@@ -22,7 +22,7 @@ export const mWeibo = async (producers: Producer[]) => {
             for (const userId of ids) {
                 console.log(`\n🔄 开始处理用户 ${userId} 的微博`);
 
-                const posts = await weiboProducer.produceWeiboPosts(userId,1);
+                const posts = await weiboProducer.produceWeiboPosts(userId);
                 console.log(`✅ 获取用户微博完成，共 ${posts.length} 条`);
 
                 let processedCount = 0;
@@ -32,7 +32,7 @@ export const mWeibo = async (producers: Producer[]) => {
                         console.log('⏭️ 没有图片，跳过');
                         continue;
                     }
-                    
+
                     const uploadPics = pics.map(pic => pic.videoSrc || pic.large.url);
                     console.log(`📸 开始处理 ${uploadPics.length} 张图片`);
 

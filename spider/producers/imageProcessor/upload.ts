@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { sleep } from '../../utils';
 import sharp from 'sharp';
+import { checkExistingImages } from '../databaseProducer/db';
 
 // 根据URL获取文件扩展名
 const getFileExtension = (url: string): string => {
@@ -65,6 +66,7 @@ const isImageFile = (extension: string): boolean => {
 
 // 处理单个图片的上传
 export const transferImage = async (url: string): Promise<string> => {
+
     return retryRequest(async () => {
         // 下载图片
         const imageBuffer = await downloadImage(url);
@@ -76,10 +78,9 @@ export const transferImage = async (url: string): Promise<string> => {
         // 只对图片类型进行webp转换
         if (isImageFile(extension)) {
             const image = sharp(imageBuffer);
-            const metadata = await image.metadata();
-            
+
             uploadBuffer = await image
-                .webp({ 
+                .webp({
                     quality: 90,
                 })
                 .toBuffer();
@@ -92,7 +93,7 @@ export const transferImage = async (url: string): Promise<string> => {
             const ratio = (compressedSize / originalSize * 100).toFixed(2);
             console.log(`压缩为原来的 ${ratio}% (${(originalSize / 1024).toFixed(2)}KB -> ${(compressedSize / 1024).toFixed(2)}KB)`);
         }
-        
+
         const formData = new FormData();
         const blob = new Blob([uploadBuffer], { type: mimeType });
         formData.append('file', blob, fileName);
@@ -101,7 +102,7 @@ export const transferImage = async (url: string): Promise<string> => {
             method: 'POST',
             body: formData
         });
-        
+
         if (!response.ok) {
             throw new Error(`Upload failed with status: ${response.status}`);
         }

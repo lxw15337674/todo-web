@@ -9,7 +9,7 @@ export class WeiboProducer {
   };
 
   
-  async produceWeiboPosts(userId: string,maxPage=10) {
+  async produceWeiboPosts(userId: string,maxPage=20) {
     const posts: WeiboMblog[] = [];
     let containerid: string | null = null;
     let since_id: string | null = null;
