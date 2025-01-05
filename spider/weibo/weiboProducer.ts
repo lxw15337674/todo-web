@@ -45,7 +45,11 @@ const fetchPage = async (userId: string, containerId: string, sinceId?: string) 
     };
 };
 
-export const produceWeiboPosts = async (userId: string, maxPage = 20): Promise<WeiboMblog[]> => {
+export const produceWeiboPosts = async (
+    userId: string, 
+    onPage?: (posts: WeiboMblog[]) => Promise<void>,
+    maxPage = 20
+): Promise<WeiboMblog[]> => {
     const posts: WeiboMblog[] = [];
     let sinceId: string | undefined;
 
@@ -64,6 +68,11 @@ export const produceWeiboPosts = async (userId: string, maxPage = 20): Promise<W
                 sinceId = newSinceId;
                 posts.push(...cards);
                 log(`成功获取第 ${page + 1} 页微博`, 'success');
+                
+                // Process this page's data if callback provided
+                if (onPage) {
+                    await onPage(cards);
+                }
                 
                 await sleep(delayMs);
             } catch (error) {

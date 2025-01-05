@@ -33,11 +33,11 @@ export const updateMediaGalleryUrl = async (id:number,galleryMediaUrl:string) =>
     }
 }
 
-export const saveMedias = async (data: Media[]): Promise<{ count: number }> => {
+export const saveMedias = async (data: Media[]):Promise<number> => {
     try {
         if (!data?.length) {
             log('没有需要保存的数据', 'warn');
-            return Promise.resolve({ count: 0 });
+            return 0
         }
 
         const existingUrls = await prisma.media.findMany({
@@ -52,13 +52,9 @@ export const saveMedias = async (data: Media[]): Promise<{ count: number }> => {
         const existingSet = new Set(existingUrls.map((img) => img.originSrc));
         const newImages = data.filter((img: Media) => !existingSet.has(img.originSrc));
 
-        if (existingUrls.length) {
-            log(`跳过已存在的图片 ${existingUrls.length} 张`, 'info');
-        }
-
         if (!newImages.length) {
-            log('所有图片都已存在', 'info');
-            return Promise.resolve({ count: 0 });
+            // log('所有图片都已存在', 'info');
+            return 0
         }
 
         const result = await prisma.media.createMany({
@@ -67,12 +63,11 @@ export const saveMedias = async (data: Media[]): Promise<{ count: number }> => {
                 createTime: img.createTime || new Date(),
             }))
         });
-
-        log(`保存成功 ${result.count} 张图片`, 'success');
-        return Promise.resolve({ count: result.count });
+        log(`保存成功 ${result.count} 张图片,跳过 ${existingUrls.length} 张`, 'success');
+        return  result.count
     } catch (error) {
         log(`保存失败: ${error}`, 'error');
-        return { count: 0 };
+        return 0
     }
 }
 

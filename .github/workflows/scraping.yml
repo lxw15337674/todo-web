@@ -6,46 +6,54 @@ on:
   workflow_dispatch:
 
 jobs:
-  crawl:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
       - uses: pnpm/action-setup@v2
         with:
           version: 8
-          
       - name: Install Dependencies
         run: pnpm install
-        
+      - name: Cache Dependencies
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            node_modules
+            .pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+  crawl:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache/restore@v3
+        with:
+          path: |
+            node_modules
+            .pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
       - name: Crawl Images
         run: pnpm crawl
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
   upload:
-    needs: crawl
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/cache/restore@v3
         with:
-          node-version: '18'
-          
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - name: Install Dependencies
-        run: pnpm install
-        
+          path: |
+            node_modules
+            .pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
       - name: Upload Images
         run: pnpm upload
         env:
