@@ -6,10 +6,11 @@ on:
   workflow_dispatch:         # 支持手动触发
 
 jobs:
-  setup:
+  crawl-and-upload:
     runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.cache-dependencies.outputs.cache-key }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -27,57 +28,5 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
 
-      - name: Cache Dependencies
-        id: cache-dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            node_modules
-            .pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-  crawl:
-    needs: setup
-    runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Restore Cached Dependencies
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            node_modules
-            .pnpm-store
-          key: ${{ needs.setup.outputs.cache-key }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
       - name: Crawl Images
         run: npm run crawl
-
-  upload:
-    needs: setup
-    runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Restore Cached Dependencies
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            node_modules
-            .pnpm-store
-          key: ${{ needs.setup.outputs.cache-key }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Upload Images
-        run: npm run upload

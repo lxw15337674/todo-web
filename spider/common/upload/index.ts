@@ -4,7 +4,7 @@ import { transferImage } from './upload';
 
 async function uploadImageToGallery() {
     let hasMore = true;
-    let retryCount = 5;
+    let retryCount = 3;
     while (hasMore && retryCount > 0) {
         retryCount--;
         const medias = await getUploadMedias();
@@ -28,6 +28,7 @@ async function uploadImageToGallery() {
                 return false;
             }
         }
+        await sleep(10000);
     }
     return true;
 }
