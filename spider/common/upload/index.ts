@@ -10,6 +10,7 @@ async function uploadImageToGallery() {
 
     while (hasMore) {
         const medias = await getUploadMedias();
+        const count = medias.length;
         if (!medias.length) {
             hasMore = false;
             continue;
@@ -31,7 +32,7 @@ async function uploadImageToGallery() {
                 }
 
                 await updateMediaGalleryUrl(media.id, galleryUrl);
-                log(`🔗 图片上传完成: ${media.id} -> ${galleryUrl}`, 'success');
+                log(`🔗 图片上传完成: ${media.id} -> ${galleryUrl}, 已处理: ${totalProcessed}/${count}`, 'success');
                 totalProcessed++;
             } catch (error: any) {
                 const duration = ((Date.now() - startTime) / 1000).toFixed(2);
