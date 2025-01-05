@@ -16,6 +16,7 @@ interface Props {
 const imageLoader = ({ src }: { src: string }) => {
     return src
 }
+const VIDEO_EXTENSIONS = ['.mov', '.mp4']
 
 export const GalleryItem = ({ image, producers }: Props) => {
     const videoRef = useRef<HTMLVideoElement>(null)
@@ -38,7 +39,7 @@ export const GalleryItem = ({ image, producers }: Props) => {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
-            {image.galleryMediaUrl?.endsWith('.mp4') ? (
+            {image.galleryMediaUrl && VIDEO_EXTENSIONS.some(ext => image.galleryMediaUrl?.endsWith(ext)) ? (
                 <div className="relative">
                     <video
                         ref={videoRef}
