@@ -115,7 +115,7 @@ export default function ImagePage() {
       </div>
 
       <PhotoProvider>
-        <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 6 }} spacing={2}>
+        <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 6 }} spacing={1}>
           {(images ?? []).map((image, index) => (
             <GalleryItem 
               key={selectedProducer + '_' + index}
