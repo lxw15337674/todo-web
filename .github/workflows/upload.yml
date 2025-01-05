@@ -1,4 +1,4 @@
-name: Crawl Images
+name: Upload Images to Gallery
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  crawl:
+  upload:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,7 +23,7 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
         
-      - name: Crawl Images
-        run: pnpm crawl
+      - name: Upload Images
+        run: pnpm upload
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }} 
