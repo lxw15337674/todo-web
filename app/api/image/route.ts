@@ -35,8 +35,17 @@ export async function GET(request: Request) {
         }
 
         await prisma.$disconnect();
-        // 返回图片URL
-        return Response.json({ image: randomMedia.galleryMediaUrl });
+        // 使用 URL 对象处理地址替换
+        if (!randomMedia.galleryMediaUrl) {
+            return new Response('Invalid image URL', { status: 404 });
+        }
+        const originalUrl = new URL(randomMedia.galleryMediaUrl);
+        originalUrl.host = 'proxy.404174262.workers.dev';
+        
+        // 返回代理后的图片URL
+        return Response.json({ image: originalUrl,
+            originalUrl: randomMedia.galleryMediaUrl
+         });
 
     } catch (error) {
         await prisma.$disconnect();
