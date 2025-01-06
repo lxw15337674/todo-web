@@ -1,7 +1,6 @@
 'use client'
 import { getProducers } from "@/api/gallery/producer"
 import { getPics } from "@/api/gallery/media"
-import { usePromise } from "wwhooks"
 import { useEffect, useRef, useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Masonry } from "@mui/lab"
@@ -11,12 +10,12 @@ import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
 import { Media } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
+import { useRequest } from "ahooks"
 
 const PAGE_SIZE = 6 * 6
 
 export default function ImagePage() {
-  const { data: producers, reload: refreshProducers } = usePromise(getProducers, {
-    initialData: [],
+  const { data: producers=[], refresh: refreshProducers } = useRequest(getProducers, {
     manual: false
   })
   const [selectedProducer, setSelectedProducer] = useState<string | null>(null)
