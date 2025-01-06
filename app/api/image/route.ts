@@ -25,7 +25,7 @@ export async function GET(request: Request) {
             },
             skip: skip,
             select: {
-                galleryMediaUrl: true,
+              galleryMediaUrl: true,
             }
         });
 

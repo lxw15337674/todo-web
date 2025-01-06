@@ -1,6 +1,6 @@
 'use client'
 import { getProducers } from "@/api/gallery/producer"
-import { getPics } from "@/api/gallery/media"
+import { getPics, getPicsCount } from "@/api/gallery/media"
 import { useEffect, useRef, useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Masonry } from "@mui/lab"
@@ -29,11 +29,17 @@ export default function ImagePage() {
   const [total, setTotal] = useState(0)
 
   useEffect(() => {
-    setPage(1)
-    setImages([])
-    setHasMore(true)
-    loadImages(1)
-  }, [selectedProducer])
+    const fetchTotal = async () => {
+      const weiboIds = selectedProducer === 'all' ? null : producers.find(p => p.id === selectedProducer)?.weiboIds;
+      const total = await getPicsCount(weiboIds);
+      setTotal(total);
+      setHasMore(PAGE_SIZE * page < total);
+    };
+    fetchTotal();
+    setPage(1);
+    setImages([]);
+    loadImages(1);
+  }, [selectedProducer]);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -63,8 +69,7 @@ export default function ImagePage() {
       const weiboIds = selectedProducer === 'all' ? null : producers.find(p => p.id === selectedProducer)?.weiboIds
       const result = await getPics(currentPage, PAGE_SIZE, weiboIds)
       setImages(prev => currentPage === 1 ? result.items : [...prev, ...result.items])
-      setTotal(result.total)
-      setHasMore(currentPage < result.totalPages)
+      setHasMore(PAGE_SIZE * currentPage < total)
       setPage(currentPage + 1)
     } catch (error) {
       console.error('Failed to load images:', error)
@@ -95,7 +100,7 @@ export default function ImagePage() {
 
 
         <div className="text-sm text-muted-foreground">
-          共 {total} 张图片
+          共 {total} 张图片 · 已加载 {images.length} 张 · 剩余 {total - images.length} 张
         </div>
 
         <ProducerDialog
