@@ -53,7 +53,7 @@ const retryRequest = async <T>(fn: () => Promise<T>, maxRetries = 3): Promise<T>
 };
 
 
-const Gallery_URL = 'https://gallery233.pages.dev';
+const Gallery_URL = 'https://telegraph-image-bww.pages.dev';
 
 // 判断是否为图片类型
 const isImageFile = (extension: string): boolean => {
