@@ -11,11 +11,11 @@ interface GetPicsResponse {
 const prisma = new PrismaClient();
 
 // 获取总数的独立函数
-export const getPicsCount = async (weiboIds?: string[] | null): Promise<number> => {
+export const getPicsCount = async (weiboIds?: string[] | null, status: UploadStatus = UploadStatus.UPLOADED): Promise<number> => {
   try {
     const whereClause: Prisma.MediaWhereInput = {
       deletedAt: null,
-      status: UploadStatus.UPLOADED,
+      status,
       ...(weiboIds ? { userId: { in: weiboIds } } : {})
     };
 

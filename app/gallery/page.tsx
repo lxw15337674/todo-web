@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { PhotoProvider } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
-import { Media } from "@prisma/client"
+import { Media, UploadStatus } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
 import { useRequest } from "ahooks"
 
@@ -27,12 +27,14 @@ export default function ImagePage() {
   const observerRef = useRef<IntersectionObserver>()
   const [producerDialogOpen, setProducerDialogOpen] = useState(false)
   const [total, setTotal] = useState(0)
-
+  const [unUploadedCount, setUnUploadedCount] = useState(0)
   useEffect(() => {
     const fetchTotal = async () => {
       const weiboIds = selectedProducer === 'all' ? null : producers.find(p => p.id === selectedProducer)?.weiboIds;
       const total = await getPicsCount(weiboIds);
+      const unUploadedCount = await getPicsCount(weiboIds, UploadStatus.PENDING);
       setTotal(total);
+      setUnUploadedCount(unUploadedCount);
       setHasMore(PAGE_SIZE * page < total);
     };
     fetchTotal();
@@ -96,8 +98,6 @@ export default function ImagePage() {
           </SelectContent>
         </Select>
 
-
-
         <div className="text-sm text-muted-foreground">
           共 {total} 张图片 · 已加载 {images.length} 张 · 剩余 {total - images.length} 张
         </div>
@@ -108,9 +108,11 @@ export default function ImagePage() {
           producers={producers}
           onSuccess={refreshProducers}
         />
+        <div className="ml-auto text-sm text-muted-foreground">
+          {unUploadedCount} 张未上传
+        </div>
         <Button
           variant="outline"
-          className="ml-auto"
           onClick={() => setProducerDialogOpen(true)}
         >
           管理生产者
