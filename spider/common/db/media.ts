@@ -1,17 +1,18 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UploadStatus } from '@prisma/client';
 import { Media } from '../upload/type';
 import { log } from '../../utils/log';
 
 const prisma = new PrismaClient();
 
-export const updateMediaGalleryUrl = async (id:number,galleryMediaUrl:string) => {
+export const updateMediaGalleryUrl = async (id:number,galleryMediaUrl:string,status:UploadStatus) => {
     try {
         await prisma.media.update({
             where: {
                 id
             },
             data: {
-                galleryMediaUrl
+                galleryMediaUrl,
+                status
             }
         });
         return true
@@ -79,10 +80,11 @@ export async function getUploadMedias(limit: number = 100) {
     return await prisma.media.findMany({
         where: {
             galleryMediaUrl: null,
-            originMediaUrl: {
-                not: null
-            }
+            status: UploadStatus.PENDING
         },
         take: limit,
+        orderBy: {
+            createTime: 'desc'
+        }
     });
 }

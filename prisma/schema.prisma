@@ -85,9 +85,16 @@ model Media {
   updateTime      DateTime  @default(now())
   galleryMediaUrl String?
   originMediaUrl  String?
+  status         UploadStatus @default(PENDING)
 
   @@index([userId])
   @@index([createTime])
+}
+
+enum UploadStatus {
+  PENDING   // 待上传
+  UPLOADED  // 已上传
+  FAILED    // 上传失败
 }
 
 model Producer {

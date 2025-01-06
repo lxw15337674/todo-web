@@ -1,4 +1,4 @@
-import { Producer } from '@prisma/client';
+import { Producer, UploadStatus } from '@prisma/client';
 import { Media } from '../common/upload/type';
 import { log } from '../utils/log';
 import { saveMedias } from '../common/db/media';
@@ -69,7 +69,8 @@ export const mWeibo = async (producers: Producer[]) => {
                                     createTime: new Date(post.created_at || Date.now()),
                                     width: Number(picsArray[i].large.geo.width),
                                     height: Number(picsArray[i].large.geo.height),
-                                    originSrc
+                                    originSrc,
+                                    status: UploadStatus.PENDING
                                 }));
                                 await saveMedias(medias);
                                 processedCount += medias.length;

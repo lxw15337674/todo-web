@@ -2,6 +2,7 @@ import { getUploadMedias, updateMediaGalleryUrl, getRemainingUploadCount } from 
 import { log } from '../../utils/log';
 import { transferImage } from './upload';
 import { sleep } from '..';
+import { UploadStatus } from '@prisma/client';
 
 async function retryOperation<T>(
     operation: () => Promise<T>,
@@ -55,11 +56,12 @@ async function uploadImageToGallery() {
                 const result = await transferImage(media.originMediaUrl);
                 if (!result) {
                     log(`❌ 上传失败: 未返回图库 URL, 剩余: ${remainingCount}条`, 'error');
+                    await updateMediaGalleryUrl(media.id, '', UploadStatus.FAILED)
                     totalFailed++;
                     continue;
                 }
 
-                await retryOperation(() => updateMediaGalleryUrl(media.id, result.url));
+                await updateMediaGalleryUrl(media.id, result.url, UploadStatus.UPLOADED)
                 totalProcessed++;
                 const duration = ((Date.now() - startTime) / 1000).toFixed(2);
                 const compressionRatio = ((result.compressedSize / result.originalSize) * 100).toFixed(1);
