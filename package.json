@@ -16,7 +16,8 @@
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
     "prisma-migrate": "npx prisma db push  && npx prisma generate",
-    "crawl": "vite-node ./spider/index.ts"
+    "produce": "vite-node ./spider/produce.ts",
+    "consume": "vite-node ./spider/consume.ts"
   },
   "dependencies": {
     "@emotion/cache": "11.13.5",
@@ -56,7 +57,6 @@
     "date-fns": "4.1.0",
     "dayjs": "1.11.9",
     "immer": "10.1.1",
-    "lodash": "4.17.21",
     "lucide-react": "0.461.0",
     "next": "15.1.0",
     "next-themes": "0.4.3",
@@ -69,21 +69,18 @@
     "react-masonry-component": "6.3.0",
     "react-photo-view": "1.2.6",
     "sharp": "^0.32.6",
-    "socket.io-client": "4.7.4",
     "tailwind-merge": "2.5.5",
     "tailwindcss-animate": "1.0.7",
     "use-count-up": "3.0.1",
     "use-immer": "0.10.0",
     "vaul": "1.1.1",
     "vite-node": "2.1.8",
-    "wwhooks": "2.0.2",
     "www-components": "1.1.0",
     "zustand": "4.4.1",
     "zustand-middleware-computed": "1.2.1"
   },
   "devDependencies": {
     "@types/canvas-confetti": "1.6.4",
-    "@types/lodash": "4.14.198",
     "@types/node": "18.17.11",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",

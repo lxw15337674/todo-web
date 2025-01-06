@@ -21,9 +21,8 @@ const getMimeType = (extension: string): string => {
     };
     return mimeTypes[extension] || 'image/jpeg';
 };
-
 // 下载图片并返回数据
-export const downloadImage = async (url: string): Promise<Uint8Array> => {
+export const downloadImage = async (url: string): Promise<Uint8Array|null> => {
     try {
         const response = await axios({
             url,
@@ -32,8 +31,7 @@ export const downloadImage = async (url: string): Promise<Uint8Array> => {
         return new Uint8Array(response.data);
     } catch (error) {
         console.error(`❌ 图片下载失败: ${url}`);
-        console.error(`错误信息:`, error);
-        throw error;
+        return null
     }
 };
 
@@ -55,7 +53,7 @@ const retryRequest = async <T>(fn: () => Promise<T>, maxRetries = 3): Promise<T>
 };
 
 
-const Gallery_URL = 'https://gallery233.pages.dev';
+const Gallery_URL = 'https://telegraph-image-bww.pages.dev';
 
 // 判断是否为图片类型
 const isImageFile = (extension: string): boolean => {
@@ -63,21 +61,30 @@ const isImageFile = (extension: string): boolean => {
     return imageExtensions.includes(extension.toLowerCase());
 };
 
-// 处理单个图片的上传
-export const transferImage = async (url: string): Promise<string> => {
+interface TransferResult {
+    url: string;
+    originalSize: number;
+    compressedSize: number;
+}
 
+export async function transferImage(url: string): Promise<TransferResult | null> {
     return retryRequest(async () => {
         // 下载图片
         const imageBuffer = await downloadImage(url);
         const extension = getFileExtension(url);
+        if (!imageBuffer) {
+            throw new Error('Download image failed');
+        }
+        const originalSize = imageBuffer.length;
+        
+        
         let uploadBuffer: Buffer | Uint8Array = imageBuffer;
         let mimeType = getMimeType(extension);
         let fileName = `file.${extension || 'jpg'}`;
 
-        // 只对图片类型进行webp转换
+        // 只对图片类型进行webp转换和压缩
         if (isImageFile(extension)) {
             const image = sharp(imageBuffer);
-
             uploadBuffer = await image
                 .webp({
                     quality: 90,
@@ -85,14 +92,11 @@ export const transferImage = async (url: string): Promise<string> => {
                 .toBuffer();
             mimeType = 'image/webp';
             fileName = 'file.webp';
-
-            // 计算并输出压缩比例
-            const originalSize = imageBuffer.length;
-            const compressedSize = uploadBuffer.length;
-            const ratio = (compressedSize / originalSize * 100).toFixed(2);
-            console.log(`压缩为原来的 ${ratio}% (${(originalSize / 1024).toFixed(2)}KB -> ${(compressedSize / 1024).toFixed(2)}KB)`);
         }
 
+        const compressedSize = uploadBuffer.length;
+
+        // 上传到图床
         const formData = new FormData();
         const blob = new Blob([uploadBuffer], { type: mimeType });
         formData.append('file', blob, fileName);
@@ -105,18 +109,22 @@ export const transferImage = async (url: string): Promise<string> => {
         if (!response.ok) {
             throw new Error(`Upload failed with status: ${response.status}`);
         }
-
+        
         const data = await response.json();
-        const galleryUrl = `${Gallery_URL}${data[0]?.src}`;
-
         if (!data[0]?.src) {
             throw new Error('Upload response missing image URL');
         }
 
-        return galleryUrl;
+        const galleryUrl = `${Gallery_URL}${data[0].src}`;
+        
+        return {
+            url: galleryUrl,
+            originalSize,
+            compressedSize
+        };
     }, 3).catch(error => {
-        console.error(`\n❌ 图床上传失败 (已重试3次): ${url}`, error);
-        return '';
+        console.error(`Transfer image failed:`, error);
+        return null;
     });
-};
+}
 

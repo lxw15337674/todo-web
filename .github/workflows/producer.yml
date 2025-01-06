@@ -1,12 +1,12 @@
-name: Crawl and Upload Images
+name: Weibo Image Producer
 
 on:
   schedule:
-    - cron: '0 */12 * * *'  # 每 12 小时运行一次
+    - cron: '0 */12 * * *'  # 每12小时运行一次
   workflow_dispatch:         # 支持手动触发
 
 jobs:
-  crawl-and-upload:
+  produce-images:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -28,5 +28,5 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
 
-      - name: Crawl Images
-        run: pnpm run crawl
+      - name: Run Producer
+        run: pnpm run produce  # 需要在 package.json 中添加这个命令 

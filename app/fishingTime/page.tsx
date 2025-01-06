@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { usePromise } from 'wwhooks';
 import { englishToday, holiday } from '@/api/fishingTime';
 import Countdown from './Countdown';
 import { Progress } from "@/components/ui/progress"
@@ -18,12 +17,13 @@ import {
   calculateRestDays,
   getTime,
 } from '@/utils/time';
+import { useRequest } from 'ahooks';
 
 const Chat = () => {
-  const { data: englishTodayData } = usePromise(englishToday, {
+  const { data: englishTodayData } = useRequest(englishToday, {
     manual: false,
   });
-  const { data: nextHolidayData } = usePromise(holiday, {
+  const { data: nextHolidayData } = useRequest(holiday, {
     manual: false,
   });
 
