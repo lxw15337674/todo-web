@@ -1,11 +1,12 @@
-export const dynamic = 'force-dynamic';
-import { UploadStatus, PrismaClient } from '@prisma/client';
+import { PrismaClient, UploadStatus } from "@prisma/client";
 
-export async function GET(request: Request) {
+export async function GET() {
     const prisma = new PrismaClient();
+    // 添加随机数作为查询参数，确保每次请求都是唯一的
+    const timestamp = Date.now();
+    const random = Math.random();
 
     try {
-        // 获取所有已上传状态且为webp格式的媒体记录数量
         const count = await prisma.media.count({
             where: {
                 status: UploadStatus.UPLOADED,
@@ -20,8 +21,7 @@ export async function GET(request: Request) {
             return new Response('No webp images found', { status: 404 });
         }
 
-        // 随机获取一张webp图片
-        const skip = Math.floor(Math.random() * count);
+        const skip = Math.floor(random * count);
         const randomMedia = await prisma.media.findFirst({
             where: {
                 status: UploadStatus.UPLOADED,
@@ -42,29 +42,26 @@ export async function GET(request: Request) {
 
         await prisma.$disconnect();
 
-        // 获取图片内容
-        try {
-            const imageResponse = await fetch(randomMedia.galleryMediaUrl);
-            if (!imageResponse.ok) {
-                throw new Error('Failed to fetch image');
-            }
-            // 获取图片数据
-            const imageData = await imageResponse.arrayBuffer();
-            
-            // 返回图片内容，设置正确的content-type
-            return new Response(imageData, {
-                headers: {
-                    'Content-Type': 'image/webp',
-                    'Cache-Control': 'public, max-age=31536000',
-                },
-            });
-        } catch (fetchError) {
-            console.error('Error fetching image content:', fetchError);
-            return new Response('Failed to fetch image content', { status: 502 });
+        const imageUrl = `${randomMedia.galleryMediaUrl}?t=${timestamp}&r=${random}`;
+        const imageResponse = await fetch(imageUrl);
+
+        if (!imageResponse.ok) {
+            throw new Error('Failed to fetch image');
         }
+
+        const imageData = await imageResponse.arrayBuffer();
+
+        return new Response(imageData, {
+            headers: {
+                'Content-Type': 'image/webp',
+                // 禁用所有缓存
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+            },
+        });
     } catch (error) {
-        await prisma.$disconnect();
-        console.error('Error fetching random image:', error);
+        console.error('Error:', error);
         return new Response('Internal Server Error', { status: 500 });
     }
 }
