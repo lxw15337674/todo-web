@@ -9,7 +9,7 @@ const headers = {
 } as const;
 
 const baseUrl = 'https://m.weibo.cn/api/container/getIndex';
-const delayMs = 2000;
+const delayMs = 10000;
 
 const getContainerId = async (userId: string): Promise<string> => {
     try {
