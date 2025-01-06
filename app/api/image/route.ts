@@ -5,23 +5,29 @@ export async function GET(request: Request) {
     const prisma = new PrismaClient();
 
     try {
-        // 获取所有已上传状态的媒体记录数量
+        // 获取所有已上传状态且为webp格式的媒体记录数量
         const count = await prisma.media.count({
             where: {
-                status: UploadStatus.UPLOADED
+                status: UploadStatus.UPLOADED,
+                galleryMediaUrl: {
+                    endsWith: '.webp'
+                }
             }
         });
 
         if (count === 0) {
             await prisma.$disconnect();
-            return new Response('No images found', { status: 404 });
+            return new Response('No webp images found', { status: 404 });
         }
 
-        // 随机获取一张图片
+        // 随机获取一张webp图片
         const skip = Math.floor(Math.random() * count);
         const randomMedia = await prisma.media.findFirst({
             where: {
-                status: UploadStatus.UPLOADED
+                status: UploadStatus.UPLOADED,
+                galleryMediaUrl: {
+                    endsWith: '.webp'
+                }
             },
             skip: skip,
             select: {
