@@ -73,17 +73,16 @@ export default function ImagePage() {
       setLoading(false)
     }
   }
-  console.log('images', images, producers)
   return (
     <div className="space-y-2 p-2">
       <div className="flex items-center gap-2">
         <Select value={selectedProducer ?? 'all'} onValueChange={(value) => setSelectedProducer(value === 'all' ? null : value)}>
           <SelectTrigger className="w-[180px] my-2">
-            <SelectValue placeholder="全部制作者" />
+            <SelectValue placeholder="全部生产者" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="all">全部制作者</SelectItem>
+              <SelectItem value="all">全部生产者</SelectItem>
               {(producers ?? []).map((producer) => (
                 <SelectItem key={producer.id} value={producer.id}>
                   {producer.name}
@@ -110,7 +109,7 @@ export default function ImagePage() {
           className="ml-auto"
           onClick={() => setProducerDialogOpen(true)}
         >
-          管理制作者
+          管理生产者
         </Button>
       </div>
 
