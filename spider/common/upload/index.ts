@@ -4,18 +4,6 @@ import { transferImage } from './upload';
 import { sleep } from '..';
 import { UploadStatus } from '@prisma/client';
 
-interface ProcessResult {
-    success: boolean;
-    processed: boolean;
-    error?: string;
-}
-
-interface UploadStats {
-    totalProcessed: number;
-    totalFailed: number;
-    startTime: number;
-}
-
 async function retryOperation<T>(
     operation: () => Promise<T>,
     retries = 3,
@@ -39,114 +27,67 @@ async function retryOperation<T>(
     throw new Error('Maximum retries reached');
 }
 
-async function processMedia(
-    media: any, 
-    currentRemaining: number,
-): Promise<ProcessResult> {
+async function processMedia(media: any, taskId: number) {
     const startTime = Date.now();
+    const remainingCount = await retryOperation(() => getRemainingUploadCount());
 
     if (!media.originMediaUrl) {
-        log(`⚠️ 跳过无原始 URL 的媒体文件: ${media.id}, 剩余: ${currentRemaining}条`, 'warn');
-        return { success: false, processed: false };
+        log(`[任务${taskId}] ⚠️ 跳过无原始 URL 的媒体文件: ${media.id}, 剩余: ${remainingCount}条`, 'warn');
+        return;
     }
 
     try {
         const result = await transferImage(media.originMediaUrl);
         if (!result) {
+            log(`[任务${taskId}] ❌ 上传失败: 未返回图库 URL, 剩余: ${remainingCount}条`, 'error');
             await updateMediaGalleryUrl(media.id, '', UploadStatus.FAILED);
-            log(`❌ 上传失败: 未返回图库 URL, 剩余: ${currentRemaining}条`, 'error');
-            return { success: false, processed: true, error: '未返回图库 URL' };
+            return;
         }
 
         await updateMediaGalleryUrl(media.id, result.url, UploadStatus.UPLOADED);
-        logSuccess(media, result, startTime, currentRemaining);
-        return { success: true, processed: true };
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        const compressionRatio = ((result.compressedSize / result.originalSize) * 100).toFixed(1);
+        
+        log(`[任务${taskId}] 🔗 图片上传完成: ${media.id} | 来源: ${media.originSrc} | 源图: ${media.originMediaUrl} | 目标: ${result.url} | 压缩率: ${compressionRatio}% (${(result.originalSize/1024).toFixed(1)}KB->${(result.compressedSize/1024).toFixed(1)}KB) | 耗时: ${duration}s | 剩余: ${remainingCount}条`, 'success');
     } catch (error: any) {
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
         const errorMessage = error?.message || '未知错误';
-        log(`❌ 失败(${duration}s): ${media.id} | 源图: ${media.originMediaUrl} | 错误: ${errorMessage} | 剩余: ${currentRemaining}条`, 'error');
-        return { success: false, processed: true, error: errorMessage };
+        log(`[任务${taskId}] ❌ 失败(${duration}s): ${media.id} | 源图: ${media.originMediaUrl} | 错误: ${errorMessage} | 剩余: ${remainingCount}条`, 'error');
     }
-}
-
-function logSuccess(media: any, result: any, startTime: number, currentRemaining: number): void {
-    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    const compressionRatio = ((result.compressedSize / result.originalSize) * 100).toFixed(1);
-    const originalSize = (result.originalSize / 1024).toFixed(1);
-    const compressedSize = (result.compressedSize / 1024).toFixed(1);
-    
-    log(
-        `🔗 图片上传完成: ${media.id} | ` +
-        `来源: ${media.originSrc} | ` +
-        `源图: ${media.originMediaUrl} | ` +
-        `目标: ${result.url} | ` +
-        `压缩率: ${compressionRatio}% (${originalSize}KB->${compressedSize}KB) | ` +
-        `耗时: ${duration}s | ` +
-        `剩余: ${currentRemaining}条`,
-        'success'
-    );
 }
 
 async function uploadImageToGallery() {
-    const stats: UploadStats = {
-        totalProcessed: 0,
-        totalFailed: 0,
-        startTime: Date.now()
-    };
+    let hasMore = true;
+    let totalProcessed = 0;
+    let totalFailed = 0;
+    const globalStartTime = Date.now();
     const CONCURRENT_LIMIT = 5;
-    
-    while (true) {
+
+    while (hasMore) {
         try {
             const medias = await retryOperation(() => getUploadMedias(CONCURRENT_LIMIT));
             if (!medias.length) {
-                logCompletion(stats);
+                hasMore = false;
+                const totalDuration = ((Date.now() - globalStartTime) / 1000).toFixed(2);
+                log(`🔄 上传完成, 成功: ${totalProcessed}, 失败: ${totalFailed}, 总耗时: ${totalDuration}s`, 'info');
                 return;
             }
 
-            const remainingCount = await retryOperation(() => getRemainingUploadCount());
-            await processBatch(medias, remainingCount, stats);
+            // 并发处理多个媒体文件，添加任务ID
+            await Promise.all(
+                medias.map((media, index) => processMedia(media, index + 1))
+            );
 
         } catch (error: any) {
-            handleBatchError(error, stats);
+            log(`❌ 发生严重错误: ${error.message}`, 'error');
             if (error?.name === 'PrismaClientInitializationError') {
+                log('数据库连接失败，程序退出', 'error');
                 return;
             }
-            await sleep(30000);
+            totalFailed++;
+            await sleep(30000); // 发生错误后等待较长时间再继续
         }
     }
-}
-
-async function processBatch(medias: any[], remainingCount: number, stats: UploadStats): Promise<void> {
-    const results = await Promise.all(
-        medias.map((media, index) => 
-            processMedia(media, remainingCount - index)
-        )
-    );
-
-    const processedResults = results.filter(r => r.processed);
-    const successResults = results.filter(r => r.success);
-    
-    stats.totalProcessed += successResults.length;
-    stats.totalFailed += (processedResults.length - successResults.length);
-}
-
-function handleBatchError(error: Error, stats: UploadStats): void {
-    log(`❌ 发生严重错误: ${error.message}`, 'error');
-    if (error?.name === 'PrismaClientInitializationError') {
-        log('数据库连接失败，程序退出', 'error');
-    }
-    stats.totalFailed++;
-}
-
-function logCompletion(stats: UploadStats): void {
-    const totalDuration = ((Date.now() - stats.startTime) / 1000).toFixed(2);
-    log(
-        `🔄 上传完成, ` +
-        `成功: ${stats.totalProcessed}, ` +
-        `失败: ${stats.totalFailed}, ` +
-        `总耗时: ${totalDuration}s`,
-        'info'
-    );
 }
 
 export default uploadImageToGallery;
