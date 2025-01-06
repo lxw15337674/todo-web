@@ -9,7 +9,7 @@ export const getFetter = (
   races: TFTCard[],
   chesses: TFTChess[],
 ): Item[][] => {
-  if (!chesses.length || !jobs.length || !chesses.length) return [[]];
+  if (!chesses.length || !jobs.length || !races.length) return [[]];
   // 处理没有职业的情况，就拿第一个羁绊作为职业合入jobs里，这样才能显示,例如异画师 彗
   chesses.forEach((chess) => {
     if (!chess.jobIds) {

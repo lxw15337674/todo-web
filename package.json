@@ -11,11 +11,12 @@
   "scripts": {
     "dev": "cross-env next dev  -p 8080 --turbo",
     "build": "prisma generate && next build",
-    "start": "next --turbo -p 8080",
+    "start": "bun --bun run dev",
     "type-check": "tsc --noEmit",
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
-    "prisma-migrate": "npx prisma migrate dev --name migrate --create-only && npx prisma generate"
+    "prisma-migrate": "npx prisma db push  && npx prisma generate",
+    "crawl": "vite-node ./spider/index.ts"
   },
   "dependencies": {
     "@emotion/cache": "11.13.5",
@@ -26,7 +27,7 @@
     "@mui/material": "6.1.8",
     "@mui/material-nextjs": "6.1.8",
     "@mui/x-date-pickers": "6.13.0",
-    "@prisma/client": "6.0.1",
+    "@prisma/client": "6.1.0",
     "@radix-ui/react-avatar": "1.1.1",
     "@radix-ui/react-checkbox": "1.1.2",
     "@radix-ui/react-collapsible": "1.1.1",
@@ -67,12 +68,14 @@
     "react-markdown": "9.0.1",
     "react-masonry-component": "6.3.0",
     "react-photo-view": "1.2.6",
+    "sharp": "^0.32.6",
     "socket.io-client": "4.7.4",
     "tailwind-merge": "2.5.5",
     "tailwindcss-animate": "1.0.7",
     "use-count-up": "3.0.1",
     "use-immer": "0.10.0",
     "vaul": "1.1.1",
+    "vite-node": "2.1.8",
     "wwhooks": "2.0.2",
     "www-components": "1.1.0",
     "zustand": "4.4.1",
@@ -95,7 +98,7 @@
     "eslint-plugin-prettier": "5.0.0",
     "postcss": "8.4.32",
     "prettier": "3.0.2",
-    "prisma": "6.0.1",
+    "prisma": "6.1.0",
     "serwist": "9.0.10",
     "tailwindcss": "3.3.3",
     "typescript": "5.2.2"
