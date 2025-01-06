@@ -16,8 +16,8 @@
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
     "prisma-migrate": "npx prisma db push  && npx prisma generate",
-    "produce": "vite-node ./spider/index.ts",
-    "consume": "vite-node ./spider/index.ts"
+    "produce": "vite-node ./spider/produce.ts",
+    "consume": "vite-node ./spider/consume.ts"
   },
   "dependencies": {
     "@emotion/cache": "11.13.5",

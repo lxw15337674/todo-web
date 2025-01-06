@@ -32,8 +32,6 @@ export const downloadImage = async (url: string): Promise<Uint8Array> => {
         return new Uint8Array(response.data);
     } catch (error) {
         console.error(`❌ 图片下载失败: ${url}`);
-        console.error(`错误信息:`, error);
-        throw error;
     }
 };
 
