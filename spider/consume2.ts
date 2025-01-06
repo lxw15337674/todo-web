@@ -1,3 +1,5 @@
+import { getProducers } from './common/db/producer';
+import { mWeibo } from './weibo/mWeibo';
 import { log } from './utils/log';
 import uploadImageToGallery from './common/upload';
 

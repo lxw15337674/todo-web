@@ -1,0 +1,36 @@
+name: Image Consumer
+
+on:
+  schedule:
+    - cron: '30 */12 * * *'  # 错开生产者30分钟后运行
+  workflow_dispatch:
+
+jobs:
+  consume-images:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+      OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+      OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
+      OSS_REGION: ${{ secrets.OSS_REGION }}
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Run Consumer
+        run: pnpm run consume  # 需要在 package.json 中添加这个命令 
