@@ -29,7 +29,11 @@ const convertPicsToArray = (pics: any): PicItem[] => {
 export const mWeibo = async (producers: Producer[]) => {
     try {
         log('==== 开始微博数据获取 ====');
+        log(`总共有 ${producers.length} 个生产者需要处理`);
+
         for (let producer of producers) {
+            log(`\n开始处理生产者: ${producer.name} (${producer.id})`);
+            
             if (producer.weiboIds.length === 0) {
                 log('未找到生产者的微博ID，跳过', 'warn');
                 continue;
