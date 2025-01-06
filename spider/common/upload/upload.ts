@@ -21,9 +21,8 @@ const getMimeType = (extension: string): string => {
     };
     return mimeTypes[extension] || 'image/jpeg';
 };
-
 // 下载图片并返回数据
-export const downloadImage = async (url: string): Promise<Uint8Array> => {
+export const downloadImage = async (url: string): Promise<Uint8Array|null> => {
     try {
         const response = await axios({
             url,
@@ -32,6 +31,7 @@ export const downloadImage = async (url: string): Promise<Uint8Array> => {
         return new Uint8Array(response.data);
     } catch (error) {
         console.error(`❌ 图片下载失败: ${url}`);
+        return null
     }
 };
 
@@ -72,7 +72,11 @@ export async function transferImage(url: string): Promise<TransferResult | null>
         // 下载图片
         const imageBuffer = await downloadImage(url);
         const extension = getFileExtension(url);
+        if (!imageBuffer) {
+            throw new Error('Download image failed');
+        }
         const originalSize = imageBuffer.length;
+        
         
         let uploadBuffer: Buffer | Uint8Array = imageBuffer;
         let mimeType = getMimeType(extension);
