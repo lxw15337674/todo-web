@@ -71,8 +71,6 @@ async function uploadImageToGallery() {
                 log(`❌ 失败(${duration}s): ${media.id} | 源图: ${media.originMediaUrl} | 错误: ${errorMessage} | 剩余: ${remainingCount}条`, 'error');
                 totalFailed++;
             }
-
-            await sleep(10000);
         } catch (error: any) {
             log(`❌ 发生严重错误: ${error.message}`, 'error');
             if (error?.name === 'PrismaClientInitializationError') {
