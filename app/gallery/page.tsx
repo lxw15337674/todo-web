@@ -1,6 +1,6 @@
 'use client'
 import { getProducers } from "@/api/gallery/producer"
-import { getPics } from "@/api/gallery/weiboMedia"
+import { getPics } from "@/api/gallery/media"
 import { usePromise } from "wwhooks"
 import { useEffect, useRef, useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
