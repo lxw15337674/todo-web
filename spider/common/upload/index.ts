@@ -39,7 +39,7 @@ async function processMedia(media: any, taskId: number) {
     try {
         const result = await transferImage(media.originMediaUrl);
         if (!result) {
-            log(`[任务${taskId}] ❌ 上传失败: 未返回图库 URL, 剩余: ${remainingCount}条`, 'error');
+            log(`[任务${taskId}] ❌ 上传失败: 未返回图库 URL | 源图: ${media.originMediaUrl}, 剩余: ${remainingCount}条`, 'error');
             await updateMediaGalleryUrl(media.id, '', UploadStatus.FAILED);
             return;
         }
