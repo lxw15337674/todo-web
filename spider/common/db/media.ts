@@ -1,19 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { Media } from '../upload/type';
 import { log } from '../../utils/log';
-const prisma = new PrismaClient();
-export const checkExistingImages = async (data: string[]) => {
-    const existingImages = await prisma.media.findMany({
-        where: {
-            originSrc: {
-                in:data
-            }
-        }
-    });
 
-    const existingUrls = new Set(existingImages.map(img => img.originSrc));
-    return data.filter(url => !existingUrls.has(url))
-}
+const prisma = new PrismaClient();
 
 export const updateMediaGalleryUrl = async (id:number,galleryMediaUrl:string) => {
     try {
@@ -71,12 +60,29 @@ export const saveMedias = async (data: Media[]):Promise<number> => {
     }
 }
 
-export const getUploadMedias = async () => {
-    return await prisma.media.findMany({
+export async function getRemainingUploadCount(): Promise<number> {
+    const result = await prisma.media.count({
         where: {
-            galleryMediaUrl: {
+            galleryMediaUrl: null,
+            originMediaUrl: {
                 not: null
             }
+        },
+        orderBy: {
+            createTime: 'desc'
         }
+    });
+    return result;
+}
+
+export async function getUploadMedias(limit: number = 100) {
+    return await prisma.media.findMany({
+        where: {
+            galleryMediaUrl: null,
+            originMediaUrl: {
+                not: null
+            }
+        },
+        take: limit,
     });
 }

@@ -12,7 +12,7 @@ import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
 import { Media } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
 
-const PAGE_SIZE = 72 // 6 * 12
+const PAGE_SIZE = 6 * 6
 
 export default function ImagePage() {
   const { data: producers, reload: refreshProducers } = usePromise(getProducers, {
