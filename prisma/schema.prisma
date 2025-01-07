@@ -36,6 +36,7 @@ model Task {
   updateTime DateTime  @default(now())
   deletedAt  DateTime?
   status     String
+  tags       TaskTag[] @relation("TaskToTaskTag")
 }
 
 model Bookmark {
@@ -109,4 +110,14 @@ model Producer {
   name          String?
 
   @@map("producer")
+}
+
+model TaskTag {
+  id         String    @id @default(uuid())
+  name       String    @unique
+  remark     String?
+  createTime DateTime  @default(now())
+  updateTime DateTime  @default(now())
+  deletedAt  DateTime?
+  tasks      Task[]    @relation("TaskToTaskTag")
 }
