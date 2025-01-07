@@ -1,4 +1,4 @@
-name: Image Consumer
+name: Weibo Producer
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  consume-images:
+  produce-weibo:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -23,5 +23,5 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
-      - name: Run Consumer
+      - name: Run Producer
         run: bun run produce 
