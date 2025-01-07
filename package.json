@@ -9,15 +9,15 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "cross-env next dev  -p 8080 --turbo",
-    "build": "prisma generate && next build",
-    "start": "bun --bun run dev",
-    "type-check": "tsc --noEmit",
-    "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
-    "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
-    "prisma-migrate": "npx prisma db push  && npx prisma generate",
-    "produce": "vite-node ./spider/produce.ts",
-    "consume": "vite-node ./spider/consume.ts"
+    "dev": "cross-env bun run next dev -p 8080 --turbo",
+    "build": "bun run prisma generate && bun run next build",
+    "start": "bun run dev",
+    "type-check": "bun run tsc --noEmit",
+    "lint": "bun run eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
+    "format": "bun run prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
+    "prisma-migrate": "bun run prisma db push && bun run prisma generate",
+    "produce": "bun run ./spider/produce.ts",
+    "consume": "bun run ./spider/consume.ts"
   },
   "dependencies": {
     "@emotion/cache": "11.13.5",

@@ -1,53 +1,47 @@
+# Todo Web 应用
+
+一个基于 Next.js 构建的功能丰富的 Web 应用，集成了生产力工具和娱乐功能。
+
+## 功能特性
+
+### 核心功能
+- **用户认证**
+  - 安全的登录和登出功能
+  - 用户会话管理
+
+- **待办事项管理**
+  - 待办事项的增删改查
+  - 用户自定义待办类型
+  - 高级筛选功能
+  - 任务组织与管理
+
+- **计数系统**
+  - 计数器的跟踪和管理
+  - 数据统计和可视化
+  - 数据追踪功能
+
+### 娱乐与工具
+- **游戏功能**
+  - 云顶之弈助手
+    - 羁绊可视化
+    - 装备合成指南
+  
+- **社交功能**
+  - 今日热榜
+  - 摸鱼办公区
 
 
-# todo项目集合
+## 技术栈
 
-为了学习nest.js写的东西
+### 前端
+- Next.js
+- [zustand-middleware-computed](https://github.com/lxw15337674/zustand-middleware-computed) - 状态管理
 
-[访问地址](https://todo-web-liart-two.vercel.app/)
-
-
-## feature
-
-- [x] 用户登录登出。
-- [x] todo 待办事项
-  - [x] 待办增删改查
-  - [x] 待办类型自定义，保存到用户下
-  - [x] 事项筛选
-  - [ ] 事项排序
-- [x] 计数
-  - [x] 增删改查。
-  - [x] 数据统计
-- [x] 摸鱼办
-- [x] 云顶之弈一图流
-  - [x] 羁绊图
-  - [x] 装备图
-- [x] 今日热榜
-- [ ] 阅后即焚
-- [x] 聊天室
-- [x] 后台
+## 项目链接
+- [前端仓库](https://github.com/lxw15337674/todo-web)
+- [后端仓库](https://github.com/lxw15337674/todo-backend)
 
 
-
-## 依赖
-
-- [脚手架](https://github.com/lxw15337674/todo-web)
-
-- [zustand中间件](https://github.com/lxw15337674/zustand-middleware-computed)
-- [www-components 组件库](https://github.com/lxw15337674/www-components)
-- [wwhooks hooks库](https://github.com/lxw15337674/ww-hooks)
-
-
-
-
-
-
-## 项目地址
-
-[前端项目地址](https://github.com/lxw15337674/todo-web)
-
-[后端项目地址](https://github.com/lxw15337674/todo-backend)
-
-
-## 一些坑
-[vercel部署next-auth 404](https://github.com/nextauthjs/next-auth/issues/4986)
+## 开发计划
+- 待办事项排序功能
+- 阅后即焚消息功能

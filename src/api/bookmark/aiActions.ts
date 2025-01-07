@@ -83,7 +83,7 @@ export default async function getSummarizeBookmark(url: string): Promise<OpenAIC
         try {
             const completion = await openai.chat.completions.create({
                 messages: [{ role: "system", content: prompt }],
-                model: "deepseek-chat",
+                model: "gemini-1.5-flash",
             });
 
             const res = extractJsonData(completion.choices[0].message?.content ?? '')

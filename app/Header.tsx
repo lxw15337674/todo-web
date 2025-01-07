@@ -17,6 +17,7 @@ export default function Header() {
   const router = usePathname();
   const currentApp = [...EfficiencyTools, ...APPS].find((app) => app.url === router);
 
+  
   useEffect(() => {
     if (currentApp) {
       document.title = currentApp.name;
