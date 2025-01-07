@@ -1,11 +1,16 @@
 'use server';
-import { PrismaClient, Task, TrackItem, TaskTag } from '@prisma/client';
+import { PrismaClient, Task as PrismaTask, TrackItem, TaskTag } from '@prisma/client';
 import { createTrackItem, fetchTrackMetas } from '../habitActions';
 
 const prisma = new PrismaClient();
 export type TaskType = 'task' | 'track';
+
+export type Task = PrismaTask & {
+  tags: TaskTag[];
+};
+
 export type NewTask = Omit<
-  Task,
+  PrismaTask,
   'id' | 'createTime' | 'updateTime' | 'deletedAt'
 > & {
   tagIds?: string[];
@@ -39,8 +44,8 @@ export const fetchTasks = async (): Promise<Task[]> => {
 export interface AggregatedTask extends Task {
   type: TaskType;
   countItems?: TrackItem[];
-  tags: TaskTag[];
 }
+
 export const fetchAggregatedTask = async () => {
   const tasks = await fetchTasks();
   const tracks = await fetchTrackMetas();
@@ -52,13 +57,13 @@ export const fetchAggregatedTask = async () => {
         new Date().toDateString()
       );
     });
-    return { ...item, type: 'track', status: todayTrackItem ? '1' : '0' };
+    return { ...item, type: 'track', status: todayTrackItem ? '1' : '0', tags: [] };
   });
   return [...taskItems, ...trackItems] as AggregatedTask[];
 };
 
 interface UpdateTaskParams
-  extends Partial<Omit<Task, 'id' | 'createTime' | 'updateTime'>> {
+  extends Partial<Omit<PrismaTask, 'id' | 'createTime' | 'updateTime'>> {
   type: TaskType;
 }
 
@@ -69,14 +74,20 @@ export const updateTask = async (id: string, Params: UpdateTaskParams) => {
     return;
   }
 
-  await prisma.task.update({
+  return await prisma.task.update({
     where: { id },
     data,
+    include: {
+      tags: true
+    }
   });
 };
 
 export const deleteTask = async (id: string): Promise<Task> => {
   return await prisma.task.delete({
     where: { id },
+    include: {
+      tags: true
+    }
   });
 };

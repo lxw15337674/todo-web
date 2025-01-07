@@ -21,6 +21,8 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import { cn, getTagColor } from '../../src/lib/utils'
+import { useThrottleFn } from 'ahooks'
 
 const cacheKey = 'AggregatedTask'
 export default function Page() {
@@ -49,38 +51,56 @@ export default function Page() {
         }
     };
 
-    const handleTaskInput = (value: string) => {
+    const parseTaskAndTags = (taskInput: string) => {
         // 解析输入中的标签
-        const tagPattern = /#\[(.*?)\]/g;
-        const matches = Array.from(value.matchAll(tagPattern));
+        const tagPattern = /#([^\s]+)/g;  // 修改正则表达式，匹配 # 后面的非空白字符
+        const matches = Array.from(taskInput.matchAll(tagPattern));
         const tagNames = matches.map(match => match[1]);
         
         // 从输入中移除标签标记
-        const cleanName = value.replace(tagPattern, '').trim();
+        const cleanName = taskInput.replace(tagPattern, '').trim();
         
-        // 找到匹配的标签ID
-        const tagIds = tags
-            .filter(tag => tagNames.includes(tag.name))
-            .map(tag => tag.id);
+        // 分离已存在的标签和新标签
+        const existingTags = tags.filter(tag => tagNames.includes(tag.name));
+        const newTagNames = tagNames.filter(name => !tags.find(tag => tag.name === name));
 
-        setNewTask(draft => {
-            draft.name = cleanName;
-            draft.tagIds = tagIds;
-        });
+        return { 
+            name: cleanName, 
+            existingTagIds: existingTags.map(tag => tag.id),
+            newTagNames 
+        };
     };
 
-    const handleAddTask = async () => {
+    const { run: handleAddTask } = useThrottleFn(async () => {
         if (newTask.name?.trim()) {
-            const task = await createTask(newTask);
-            mutate((tasks = []) => [{ ...task, type: 'task' }, ...tasks]);
+            const { name, existingTagIds, newTagNames } = parseTaskAndTags(newTask.name);
+            
+            // 创建新标签
+            const newTags = await Promise.all(
+                newTagNames.map(name => createTaskTag({ name }))
+            );
+            
+            // 合并已有标签ID和新标签ID
+            const allTagIds = [...existingTagIds, ...newTags.map(tag => tag.id)];
+
+            const taskToCreate = {
+                ...newTask,
+                name,
+                tagIds: allTagIds,
+            };
+            
+            const task = await createTask(taskToCreate);
+            mutate((tasks = []) => [{ ...task, type: 'task', tags: task.tags || [] }, ...tasks]);
             setNewTask(draft => {
                 draft.name = '';
-                draft.tagIds = undefined;
             });
+            
+            // 更新标签列表
+            await loadTags();
         }
-    };
+    }, { wait: 1000 });
 
-    const handleAddTag = async () => {
+    const { run: handleAddTag } = useThrottleFn(async () => {
         if (newTagName.trim()) {
             try {
                 await createTaskTag({ name: newTagName });
@@ -90,7 +110,7 @@ export default function Page() {
                 console.error('Failed to create tag:', error);
             }
         }
-    };
+    }, { wait: 1000 });
 
     const handleDeleteTag = async (tagId: string) => {
         try {
@@ -111,9 +131,11 @@ export default function Page() {
         <div className="flex-1 p-4 space-y-4" suppressHydrationWarning >
             <div className="flex items-center gap-2">
                 <Input
-                    placeholder="添加任务 (使用 #[标签名] 添加标签)"
+                    placeholder="添加任务 (使用 #标签名 添加标签)"  // 更新提示文本
                     value={newTask.name}
-                    onChange={(e) => handleTaskInput(e.target.value)}
+                    onChange={(e) => setNewTask(draft => {
+                        draft.name = e.target.value;
+                    })}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             handleAddTask()
@@ -153,7 +175,10 @@ export default function Page() {
                                     <Badge
                                         key={tag.id}
                                         variant="secondary"
-                                        className="flex items-center gap-1"
+                                        className={cn(
+                                            "flex items-center gap-1",
+                                            getTagColor(tag.name)
+                                        )}
                                     >
                                         {tag.name}
                                         <button

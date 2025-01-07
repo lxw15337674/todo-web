@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { cn, startConfettiAnimation } from '../../../src/lib/utils';
+import { cn, startConfettiAnimation, getTagColor } from '../../../src/lib/utils';
 import { AggregatedTask, updateTask } from '../../../src/api/task/taskActions';
 import { TaskTag } from '../../../src/api/task/tagActions';
 import { FlagTriangleRight } from 'lucide-react';
@@ -94,7 +94,14 @@ const TaskCard = ({ task, setTasks, tags }: TaskCardProps) => {
         {task.tags?.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {task.tags.map(tag => (
-              <Badge key={tag.id} variant="secondary" className="text-xs">
+              <Badge 
+                key={tag.id} 
+                className={cn(
+                  "text-xs font-normal",
+                  getTagColor(tag.name)
+                )}
+                variant="secondary"
+              >
                 {tag.name}
               </Badge>
             ))}
