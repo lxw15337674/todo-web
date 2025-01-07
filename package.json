@@ -9,7 +9,7 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "cross-env bun run next dev -p 8080 --turbo",
+    "dev": "cross-env bun run next dev -p 8080 ",
     "build": "bun run prisma generate && bun run next build",
     "start": "bun run dev",
     "type-check": "bun run tsc --noEmit",

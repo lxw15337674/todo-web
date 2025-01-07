@@ -1,6 +1,26 @@
 # Todo Web 应用
 
-一个基于 Next.js 构建的功能丰富的 Web 应用，集成了生产力工具和娱乐功能。
+一个基于 Next.js 构建的功能丰富的 Web 应用，集成了生产力工具和娱乐功能。使用 Bun 作为运行时和包管理器，提供更快的开发体验。
+
+## 开发环境
+
+### 环境要求
+- [Bun](https://bun.sh/) >= 1.0.0
+
+### 快速开始
+```bash
+# 安装依赖
+bun install
+
+# 开发环境运行
+bun dev
+
+# 构建
+bun run build
+
+# 生产环境运行
+bun start
+```
 
 ## 功能特性
 
@@ -30,17 +50,16 @@
   - 今日热榜
   - 摸鱼办公区
 
-
 ## 技术栈
 
 ### 前端
+- Bun - JavaScript 运行时和包管理器
 - Next.js
 - [zustand-middleware-computed](https://github.com/lxw15337674/zustand-middleware-computed) - 状态管理
 
 ## 项目链接
 - [前端仓库](https://github.com/lxw15337674/todo-web)
 - [后端仓库](https://github.com/lxw15337674/todo-backend)
-
 
 ## 开发计划
 - 待办事项排序功能
