@@ -3,10 +3,9 @@ import { Producer, UploadStatus } from '@prisma/client';
 import { Media } from '../../common/upload/type';
 import { sleep } from '../../common';
 import { log } from '../../utils/log';
-import { saveMedias } from '../../common/db/media';
 
 
-// Constants
+//Constants
 const API_CONFIG = {
     baseUrl: 'https://m.weibo.cn/api/container/getIndex',
     headers: {
@@ -17,33 +16,39 @@ const API_CONFIG = {
     maxPages: 20
 } as const;
 
-const processPost = async (post: WeiboTopicCard['mblog'], topicId: string): Promise<number> => {
+
+
+const processPost = async (post: Card['mblog'], topicId: string): Promise<number> => {
     const medias: Media[] = [];
     const originSrc = `https://weibo.com/detail/${post.id}`;
-
-    // Handle images
     if (post.pics && post.pics.length > 0) {
         post.pics.forEach((pic) => {
-            if(pic.type==='video'){
-                handleVideoUrl(pic.large.pid)
-            }
             if (pic.large?.url) {
-                medias.push({
-                    userId: topicId,
-                    postId: post.id,
-                    originMediaUrl: pic.large.url,
-                    createTime: new Date(post.created_at),
-                    width: parseInt(pic.large.geo.width),
-                    height: parseInt(pic.large.geo.height),
-                    originSrc,
-                    status: UploadStatus.PENDING
-                });
-            }
-        });
-    }
+            //     medias.push({
+            //         userId: topicId,
+            //         postId: post.id,
+            //         originMediaUrl: pic.large.url,
+            //         createTime: new Date(post.created_at),
+            //         width: parseInt(pic.large.geo.width),
+            //         height: parseInt(pic.large.geo.height),
+            //         originSrc,
+            //         status: UploadStatus.PENDING
+                    medias.push({
+                        userId: topicId,
+                        postId: post.id,
+                        originMediaUrl: pic.large.url,
+                        createTime: new Date(post.created_at),
+                        width: parseInt(pic.large.geo.width),
+                        height: parseInt(pic.large.geo.height),
+                        originSrc,
+                        status: UploadStatus.PENDING
+                    });
+                }
+            });
+        }
 
-    if (medias.length > 0) {
-        await saveMedias(medias);
+        if (medias.length > 0) {
+            await saveMedias(medias);
         return medias.length;
     }
 
@@ -53,7 +58,7 @@ const processPost = async (post: WeiboTopicCard['mblog'], topicId: string): Prom
 export const processWeiboTopic = async (producers: Producer[]): Promise<void> => {
     try {
         log('==== 开始微博话题数据获取 ====');
-        
+
         for (const producer of producers) {
             if (!producer.weiboTopicIds?.length) {
                 log(`生产者 ${producer.name} 未找到话题ID，跳过`, 'warn');
@@ -79,7 +84,7 @@ export const processWeiboTopic = async (producers: Producer[]): Promise<void> =>
                         if (!response.data.ok || !response.data.data.cards?.length) break;
 
                         sinceId = response.data.data.pageInfo.since_id;
-                        const validCards = response.data.data.cards.filter((card: any) => 
+                        const validCards = response.data.data.cards.filter((card: any) =>
                             card.card_type === '9' && card.mblog
                         );
 
@@ -108,7 +113,7 @@ export const processWeiboTopic = async (producers: Producer[]): Promise<void> =>
                 log(`话题 ${topicId} 处理完成，共处理 ${totalProcessed} 个媒体文件`, 'success');
             }
         }
-        
+
         log('\n==== 微博话题数据获取完成 ====', 'success');
     } catch (error) {
         log('微博话题处理失败: ' + error, 'error');

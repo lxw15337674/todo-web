@@ -18,7 +18,7 @@ interface VideoResponse {
 export async function handleVideoUrl(objectId: string): Promise<string> {
   try {
     // Fetch video details from Weibo TV endpoint
-    const response = await fetch(`https://weibo.com/tv/show/${objectId}`);
+    const response = await fetch(`https://weibo.com/tv/api/component?page=${objectId}`);
     const data: VideoResponse = await response.json();
 
     const urls = data.data.Component_Play_Playinfo.urls;
