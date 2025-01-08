@@ -69,7 +69,7 @@ export const Links: MenuItem[] = [
   },
   {
     name: '随想',
-    url: 'https://feishu-next-memos.vercel.app',
+    url: 'https://feishu-memos.vercel.app/',
     icon: StickyNote
   },
   {
