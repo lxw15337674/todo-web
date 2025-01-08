@@ -1,5 +1,5 @@
 'use server';
-import { PrismaClient, Task as PrismaTask, TrackItem, TaskTag } from '@prisma/client';
+import { PrismaClient, Task as PrismaTask, TrackItem, TaskTag, Priority } from '@prisma/client';
 import { createTrackItem, fetchTrackMetas } from '../habitActions';
 
 const prisma = new PrismaClient();
@@ -44,6 +44,7 @@ export const fetchTasks = async (): Promise<Task[]> => {
 export interface AggregatedTask extends Task {
   type: TaskType;
   countItems?: TrackItem[];
+  updatedAt: string | Date;
 }
 
 export const fetchAggregatedTask = async () => {
@@ -67,8 +68,8 @@ interface UpdateTaskParams
   type: TaskType;
 }
 
-export const updateTask = async (id: string, Params: UpdateTaskParams) => {
-  const { type, ...data } = Params
+export const updateTask = async (id: string, params: UpdateTaskParams) => {
+  const { type, tags, ...data } = params;
   if (type === 'track') {
     await createTrackItem(id);
     return;

@@ -10,7 +10,7 @@ import {
   Eraser,
   CalendarOff,
 } from 'lucide-react';
-import { use, useMemo, useState } from 'react';
+import { use, useMemo, useState, useEffect } from 'react';
 import {
   createTrackItem,
   deleteTrackItem,
@@ -53,6 +53,7 @@ import {
 } from '../ui/dialog';
 import { TimePicker } from '../ui/TimePicker';
 import { startConfettiAnimation } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface HabitCardProps {
   task: Track;
@@ -76,6 +77,11 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
       completeTodayTrack(task.id);
     },
   });
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const isTaskCompletedToday = useMemo(() => {
     const today = dayjs().format('YYYY-MM-DD');
@@ -193,7 +199,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
   });
 
   return (
-    <>
+    <div suppressHydrationWarning={true}>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -381,7 +387,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
           ''
         )}
       </Card>
-    </>
+    </div>
   );
 };
 HabitCard.displayName = 'HabitCard';

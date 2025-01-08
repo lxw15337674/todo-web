@@ -23,6 +23,16 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { cn, getTagColor } from '../../src/lib/utils'
 import { useThrottleFn } from 'ahooks'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Priority } from '@prisma/client'
+import { Textarea } from '@/components/ui/textarea'
+import { AutosizeTextarea } from '../../src/components/ui/AutosizeTextarea'
 
 const cacheKey = 'AggregatedTask'
 export default function Page() {
@@ -33,6 +43,7 @@ export default function Page() {
         name: '',
         remark: '',
         status: '0',
+        priority: Priority.NOT_IMPORTANT_NOT_URGENT,
     });
     const [tags, setTags] = useState<TaskTag[]>([]);
     const [newTagName, setNewTagName] = useState('');
@@ -122,77 +133,119 @@ export default function Page() {
     };
 
     // 未完成任务
-    const uncompletedTasks = tasks.filter(task => task.status === '0' && task.type === 'task');
+    const uncompletedTasks = tasks
+        .filter(task => task.status === '0' && task.type === 'task')
+        .sort((a, b) => {
+            // 定义优先级权重
+            const priorityWeight: Record<Priority, number> = {
+                [Priority.IMPORTANT_URGENT]: 4,
+                [Priority.IMPORTANT_NOT_URGENT]: 3,
+                [Priority.URGENT_NOT_IMPORTANT]: 2,
+                [Priority.NOT_IMPORTANT_NOT_URGENT]: 1
+            };
+            
+            // 为可能为 null 的优先级提供默认值
+            const priorityA = a.priority || Priority.NOT_IMPORTANT_NOT_URGENT;
+            const priorityB = b.priority || Priority.NOT_IMPORTANT_NOT_URGENT;
+            
+            return priorityWeight[priorityB] - priorityWeight[priorityA];
+        });
     const uncompletedTracks = tasks.filter(task => task.status === '0' && task.type === 'track');
     // 已完成任务
-    const completedTasks = tasks.filter(task => task.status === '1');
+    const completedTasks = tasks
+        .filter(task => task.status === '1')
+        .sort((a, b) => new Date((b as any).updatedAt).getTime() - new Date((a as any).updatedAt).getTime())
+        .slice(0, 50); // 只显示最近的50条记录
 
     return (
         <div className="flex-1 p-4 space-y-4" suppressHydrationWarning >
-            <div className="flex items-center gap-2">
-                <Input
-                    placeholder="添加任务 (使用 #标签名 添加标签)"  // 更新提示文本
+            <div className="space-y-2">
+                <AutosizeTextarea
+                    placeholder="添加任务 (使用 #标签名 添加标签)"
                     value={newTask.name}
                     onChange={(e) => setNewTask(draft => {
                         draft.name = e.target.value;
                     })}
                     onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            handleAddTask()
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleAddTask();
                         }
                     }}
-                    className="flex-1"
+                    className="w-full resize-none"
                 />
-                <Button size="icon" onClick={handleAddTask}>
-                    <Plus className="w-4 h-4" />
-                </Button>
-                <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button variant="outline" size="icon">
-                            <Tag className="w-4 h-4" />
+                <div className="flex items-center justify-between gap-2">
+                    <Select
+                        value={newTask.priority || Priority.NOT_IMPORTANT_NOT_URGENT}
+                        onValueChange={(value: Priority) => 
+                            setNewTask(draft => {
+                                draft.priority = value;
+                            })
+                        }
+                    >
+                        <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="优先级" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={Priority.IMPORTANT_URGENT}>重要且紧急</SelectItem>
+                            <SelectItem value={Priority.IMPORTANT_NOT_URGENT}>重要不紧急</SelectItem>
+                            <SelectItem value={Priority.URGENT_NOT_IMPORTANT}>紧急不重要</SelectItem>
+                            <SelectItem value={Priority.NOT_IMPORTANT_NOT_URGENT}>不重要不紧急</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-2">
+                        <Button size="icon" onClick={handleAddTask}>
+                            <Plus className="w-4 h-4" />
                         </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>管理标签</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    placeholder="新标签名称"
-                                    value={newTagName}
-                                    onChange={(e) => setNewTagName(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            handleAddTag()
-                                        }
-                                    }}
-                                />
-                                <Button onClick={handleAddTag}>添加</Button>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                {tags.map((tag) => (
-                                    <Badge
-                                        key={tag.id}
-                                        variant="secondary"
-                                        className={cn(
-                                            "flex items-center gap-1",
-                                            getTagColor(tag.name)
-                                        )}
-                                    >
-                                        {tag.name}
-                                        <button
-                                            onClick={() => handleDeleteTag(tag.id)}
-                                            className="hover:text-destructive"
-                                        >
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </Badge>
-                                ))}
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                        <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="icon">
+                                    <Tag className="w-4 h-4" />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>管理标签</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            placeholder="新标签名称"
+                                            value={newTagName}
+                                            onChange={(e) => setNewTagName(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    handleAddTag()
+                                                }
+                                            }}
+                                        />
+                                        <Button onClick={handleAddTag}>添加</Button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {tags.map((tag) => (
+                                            <Badge
+                                                key={tag.id}
+                                                variant="secondary"
+                                                className={cn(
+                                                    "flex items-center gap-1",
+                                                    getTagColor(tag.name)
+                                                )}
+                                            >
+                                                {tag.name}
+                                                <button
+                                                    onClick={() => handleDeleteTag(tag.id)}
+                                                    className="hover:text-destructive"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </div>
             </div>
             <div className="space-y-2">
                 <Collapsible defaultOpen>

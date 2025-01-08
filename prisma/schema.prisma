@@ -28,6 +28,13 @@ model TrackItem {
   countMeta   TrackMeta? @relation(fields: [countMetaId], references: [id])
 }
 
+enum Priority {
+  IMPORTANT_URGENT       // 重要且紧急
+  IMPORTANT_NOT_URGENT   // 重要不紧急
+  URGENT_NOT_IMPORTANT   // 紧急不重要
+  NOT_IMPORTANT_NOT_URGENT // 不重要不紧急
+}
+
 model Task {
   id         String    @id @default(uuid())
   name       String
@@ -36,6 +43,7 @@ model Task {
   updateTime DateTime  @default(now())
   deletedAt  DateTime?
   status     String
+  priority   Priority?  @default(NOT_IMPORTANT_NOT_URGENT)
   tags       TaskTag[] @relation("TaskToTaskTag")
 }
 
