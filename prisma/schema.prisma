@@ -116,7 +116,7 @@ model Producer {
   updateTime    DateTime  @default(now())
   deletedAt     DateTime?
   name          String?
-
+  weiboTopicIds String[] @default([])
   @@map("producer")
 }
 

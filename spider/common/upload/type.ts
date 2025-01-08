@@ -1,14 +1,12 @@
+import { UploadStatus } from '@prisma/client';
+
 export interface Media {
-  width?: number;
-  height?: number;
-  // 图片所在文章链接
+  userId: string;
+  postId: string;
+  originMediaUrl: string;
+  createTime: Date;
+  width: number;
+  height: number;
   originSrc: string;
-  userId?: string;
-  // 图片所在文章创建时间
-  createTime?: Date;
-  // 图床链接
-  galleryMediaUrl?: string;
-  // 原始链接
-  originMediaUrl?: string;
-  postId?: string;
+  status: UploadStatus;
 }
