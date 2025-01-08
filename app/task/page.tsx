@@ -2,9 +2,9 @@
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ChevronsUpDown, Plus, Tag, X } from 'lucide-react'
-import TaskCard from './task/TaskCard'
+import TaskCard from './components/TaskCard'
 import { createTask, fetchAggregatedTask, NewTask } from '../../src/api/task/taskActions'
-import { fetchTaskTags, createTaskTag, deleteTaskTag, TaskTag } from '../../src/api/task/tagActions'
+import { fetchTaskTags, createTaskTag, deleteTaskTag } from '../../src/api/task/tagActions'
 import { useImmer } from 'use-immer'
 import {
     Collapsible,
@@ -34,138 +34,89 @@ import { Priority } from '@prisma/client'
 import { Textarea } from '@/components/ui/textarea'
 import { AutosizeTextarea } from '../../src/components/ui/AutosizeTextarea'
 
-const cacheKey = 'AggregatedTask'
+// 新增常量定义
+const TASK_STATUS = {
+    UNCOMPLETED: '0',
+    COMPLETED: '1'
+} as const
+
+const PRIORITY_WEIGHTS: Record<Priority, number> = {
+    [Priority.IMPORTANT_URGENT]: 4,
+    [Priority.IMPORTANT_NOT_URGENT]: 3,
+    [Priority.URGENT_NOT_IMPORTANT]: 2,
+    [Priority.NOT_IMPORTANT_NOT_URGENT]: 1
+}
+
+const DEFAULT_NEW_TASK: NewTask = {
+    name: '',
+    remark: '',
+    status: TASK_STATUS.UNCOMPLETED,
+    priority: Priority.NOT_IMPORTANT_NOT_URGENT,
+}
+
+const COMPLETED_TASKS_LIMIT = 50
+
 export default function Page() {
-    const { data: tasks = [], mutate } = useLocalStorageRequest(fetchAggregatedTask, {
-        cacheKey,
+    const { data: tasks = [], mutate, refresh: refreshTasks } = useLocalStorageRequest(fetchAggregatedTask, {
+        cacheKey: 'AggregatedTask',
     });
-    const [newTask, setNewTask] = useImmer<NewTask>({
-        name: '',
-        remark: '',
-        status: '0',
-        priority: Priority.NOT_IMPORTANT_NOT_URGENT,
+    const { data: tags = [], refresh: refreshTags } = useLocalStorageRequest(fetchTaskTags, {
+        cacheKey: 'TaskTags',
     });
-    const [tags, setTags] = useState<TaskTag[]>([]);
+    
+    const [newTask, setNewTask] = useImmer<NewTask>(DEFAULT_NEW_TASK);
     const [newTagName, setNewTagName] = useState('');
     const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
 
     useEffect(() => {
-        loadTags();
+        refreshTasks();
     }, []);
 
-    const loadTags = async () => {
+    // 优化任务处理逻辑
+    const handleAddTask = useThrottleFn(async () => {
+        const trimmedName = newTask.name?.trim();
+        if (!trimmedName) return;
+
+        setNewTask(draft => { draft.name = ''; });
+        await createTask({ ...newTask, name: trimmedName });
+        await Promise.all([refreshTasks(), refreshTags()]);
+    }, { wait: 1000 }).run;
+
+    // 优化标签处理逻辑
+    const handleAddTag = useThrottleFn(async () => {
+        const trimmedTagName = newTagName.trim();
+        if (!trimmedTagName) return;
+
         try {
-            const fetchedTags = await fetchTaskTags();
-            setTags(fetchedTags);
+            await createTaskTag({ name: trimmedTagName });
+            setNewTagName('');
+            await refreshTags();
         } catch (error) {
-            console.error('Failed to load tags:', error);
+            console.error('Failed to create tag:', error);
         }
+    }, { wait: 1000 }).run;
+
+    // 简化任务过滤和排序逻辑
+    const filteredTasks = {
+        uncompleted: tasks
+            .filter(task => task.status === TASK_STATUS.UNCOMPLETED && task.type === 'task')
+            .sort((a, b) => PRIORITY_WEIGHTS[b.priority || Priority.NOT_IMPORTANT_NOT_URGENT] - 
+                           PRIORITY_WEIGHTS[a.priority || Priority.NOT_IMPORTANT_NOT_URGENT]),
+        tracks: tasks.filter(task => task.status === TASK_STATUS.UNCOMPLETED && task.type === 'track'),
+        completed: tasks
+            .filter(task => task.status === TASK_STATUS.COMPLETED)
+            .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+            .slice(0, COMPLETED_TASKS_LIMIT)
     };
 
-    const parseTaskAndTags = (taskInput: string) => {
-        // 解析输入中的标签
-        const tagPattern = /#([^\s]+)/g;  // 修改正则表达式，匹配 # 后面的非空白字符
-        const matches = Array.from(taskInput.matchAll(tagPattern));
-        const tagNames = matches.map(match => match[1]);
-        
-        // 从输入中移除标签标记
-        const cleanName = taskInput.replace(tagPattern, '').trim();
-        
-        // 分离已存在的标签和新标签
-        const existingTags = tags.filter(tag => tagNames.includes(tag.name));
-        const newTagNames = tagNames.filter(name => !tags.find(tag => tag.name === name));
-
-        return { 
-            name: cleanName, 
-            existingTagIds: existingTags.map(tag => tag.id),
-            newTagNames 
-        };
-    };
-
-    const { run: handleAddTask } = useThrottleFn(async () => {
-        if (newTask.name?.trim()) {
-            const { name, existingTagIds, newTagNames } = parseTaskAndTags(newTask.name);
-            
-            // 创建新标签
-            const newTags = await Promise.all(
-                newTagNames.map(name => createTaskTag({ name }))
-            );
-            
-            // 合并已有标签ID和新标签ID
-            const allTagIds = [...existingTagIds, ...newTags.map(tag => tag.id)];
-
-            const taskToCreate = {
-                ...newTask,
-                name,
-                tagIds: allTagIds,
-            };
-            
-            const task = await createTask(taskToCreate);
-            mutate((tasks = []) => [{ ...task, type: 'task', tags: task.tags || [] }, ...tasks]);
-            setNewTask(draft => {
-                draft.name = '';
-            });
-            
-            // 更新标签列表
-            await loadTags();
-        }
-    }, { wait: 1000 });
-
-    const { run: handleAddTag } = useThrottleFn(async () => {
-        if (newTagName.trim()) {
-            try {
-                await createTaskTag({ name: newTagName });
-                setNewTagName('');
-                await loadTags();
-            } catch (error) {
-                console.error('Failed to create tag:', error);
-            }
-        }
-    }, { wait: 1000 });
-
-    const handleDeleteTag = async (tagId: string) => {
-        try {
-            await deleteTaskTag(tagId);
-            await loadTags();
-        } catch (error) {
-            console.error('Failed to delete tag:', error);
-        }
-    };
-
-    // 未完成任务
-    const uncompletedTasks = tasks
-        .filter(task => task.status === '0' && task.type === 'task')
-        .sort((a, b) => {
-            // 定义优先级权重
-            const priorityWeight: Record<Priority, number> = {
-                [Priority.IMPORTANT_URGENT]: 4,
-                [Priority.IMPORTANT_NOT_URGENT]: 3,
-                [Priority.URGENT_NOT_IMPORTANT]: 2,
-                [Priority.NOT_IMPORTANT_NOT_URGENT]: 1
-            };
-            
-            // 为可能为 null 的优先级提供默认值
-            const priorityA = a.priority || Priority.NOT_IMPORTANT_NOT_URGENT;
-            const priorityB = b.priority || Priority.NOT_IMPORTANT_NOT_URGENT;
-            
-            return priorityWeight[priorityB] - priorityWeight[priorityA];
-        });
-    const uncompletedTracks = tasks.filter(task => task.status === '0' && task.type === 'track');
-    // 已完成任务
-    const completedTasks = tasks
-        .filter(task => task.status === '1')
-        .sort((a, b) => new Date((b as any).updatedAt).getTime() - new Date((a as any).updatedAt).getTime())
-        .slice(0, 50); // 只显示最近的50条记录
-
+    // JSX 部分保持基本不变，但使用 filteredTasks 替换原来的过滤逻辑
     return (
         <div className="flex-1 p-4 space-y-4" suppressHydrationWarning >
             <div className="space-y-2">
                 <AutosizeTextarea
-                    placeholder="添加任务 (使用 #标签名 添加标签)"
+                    placeholder="添加任务 (AI自动生成标签)"
                     value={newTask.name}
-                    onChange={(e) => setNewTask(draft => {
-                        draft.name = e.target.value;
-                    })}
+                    onChange={(e) => setNewTask(draft => { draft.name = e.target.value })}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
@@ -248,46 +199,49 @@ export default function Page() {
                 </div>
             </div>
             <div className="space-y-2">
-                <Collapsible defaultOpen>
-                    <CollapsibleTrigger className='flex w-full items-center text-sm p-2'>
-                        <ChevronsUpDown className="h-4 w-4 mr-1" />
-                        <div className="sr-only">Toggle</div>
-                        未完成
-                    </CollapsibleTrigger>
-                    <CollapsibleContent >
-                        <div >
-                            {uncompletedTasks.map((task) => (
-                                <TaskCard key={task.id} task={task} setTasks={mutate} tags={tags} />
-                            ))}
-                        </div>
-                    </CollapsibleContent>
-                </Collapsible>
-                <Collapsible defaultOpen>
-                    <CollapsibleTrigger className='flex w-full items-center text-sm p-2'>
-                        <ChevronsUpDown className="h-4 w-4 mr-1" />
-                        <div className="sr-only">Toggle</div>
-                        打卡
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        {uncompletedTracks.map((task) => (
-                            <TaskCard key={task.id} task={task} setTasks={mutate} tags={tags} />
-                        ))}
-                    </CollapsibleContent>
-                </Collapsible>
-                <Collapsible defaultOpen>
-                    <CollapsibleTrigger className='flex w-full items-center text-sm p-2'>
-                        <ChevronsUpDown className="h-4 w-4 mr-1" />
-                        <div className="sr-only">Toggle</div>
-                        已完成
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        {completedTasks.map((task) => (
-                            <TaskCard key={task.id} task={task} setTasks={mutate} tags={tags} />
-                        ))}
-                    </CollapsibleContent>
-                </Collapsible>
+                <TaskList 
+                    title="未完成" 
+                    tasks={filteredTasks.uncompleted}
+                    mutate={mutate}
+                    tags={tags}
+                />
+                <TaskList 
+                    title="打卡" 
+                    tasks={filteredTasks.tracks}
+                    mutate={mutate}
+                    tags={tags}
+                />
+                <TaskList 
+                    title="已完成" 
+                    tasks={filteredTasks.completed}
+                    mutate={mutate}
+                    tags={tags}
+                />
             </div>
         </div>
     )
+}
+
+// 新增 TaskList 组件
+function TaskList({ title, tasks, mutate, tags }) {
+    return (
+        <Collapsible defaultOpen>
+            <CollapsibleTrigger className='flex w-full items-center text-sm p-2'>
+                <ChevronsUpDown className="h-4 w-4 mr-1" />
+                <div className="sr-only">Toggle</div>
+                {title}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+                {tasks.map((task) => (
+                    <TaskCard 
+                        key={task.id} 
+                        task={task} 
+                        setTasks={mutate} 
+                        tags={tags} 
+                    />
+                ))}
+            </CollapsibleContent>
+        </Collapsible>
+    );
 }
 

@@ -1,6 +1,7 @@
 'use server';
 import { PrismaClient, Task as PrismaTask, TrackItem, TaskTag, Priority } from '@prisma/client';
 import { createTrackItem, fetchTrackMetas } from '../habitActions';
+import { generateTaskTags } from './tagActions';
 
 const prisma = new PrismaClient();
 export type TaskType = 'task' | 'track';
@@ -12,18 +13,17 @@ export type Task = PrismaTask & {
 export type NewTask = Omit<
   PrismaTask,
   'id' | 'createTime' | 'updateTime' | 'deletedAt'
-> & {
-  tagIds?: string[];
-};
+> 
 
-export const createTask = async (data: NewTask): Promise<Task> => {
-  const { tagIds, ...taskData } = data;
+export const createTask = async (taskData: NewTask): Promise<Task> => {
+  const tags = await generateTaskTags(taskData.name || '')
+
   return await prisma.task.create({
     data: {
       ...taskData,
-      tags: tagIds?.length ? {
-        connect: tagIds.map(id => ({ id }))
-      } : undefined
+      tags: {
+        connect: tags
+      }
     },
     include: {
       tags: true
@@ -69,15 +69,22 @@ interface UpdateTaskParams
 }
 
 export const updateTask = async (id: string, params: UpdateTaskParams) => {
-  const { type, tags, ...data } = params;
+  const { type,  ...data } = params;
   if (type === 'track') {
     await createTrackItem(id);
     return;
   }
 
+  const tags = await generateTaskTags(data.name || '')
+
   return await prisma.task.update({
     where: { id },
-    data,
+    data: {
+      ...data,
+      tags: {
+        set: tags
+      }
+    },
     include: {
       tags: true
     }

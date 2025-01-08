@@ -1,6 +1,6 @@
 'use server'
 import { PrismaClient, Bookmark, BookmarkTag } from '@prisma/client';
-import getSummarizeBookmark from './aiActions';
+import getSummarizeBookmark from '../ai/aiActions';
 
 const prisma = new PrismaClient();
 

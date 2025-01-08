@@ -1,5 +1,6 @@
 'use server';
 import { PrismaClient, TaskTag as PrismaTaskTag } from '@prisma/client';
+import { getTaskTags } from '../ai/aiActions';
 
 const prisma = new PrismaClient();
 
@@ -45,3 +46,27 @@ export const updateTaskTags = async (taskId: string, tagIds: string[]): Promise<
         },
     });
 };
+
+// 生成任务标签,返回标签id
+export const generateTaskTags = async (content: string): Promise<TaskTag[]> => {
+    const existedTags = await fetchTaskTags()
+    const tags = await getTaskTags(content, existedTags.map(tag => tag.name))
+    
+    // 批量创建标签
+    await prisma.taskTag.createMany({
+        data: tags.map(tag => ({ name: tag })),
+        skipDuplicates: true, // 避免重复创建
+    })
+    
+    // 查询新创建的标签
+    const newTags = await prisma.taskTag.findMany({
+        where: {
+            name: {
+                in: tags
+            },
+            deletedAt: null
+        }
+    })
+    
+    return newTags.map(({ deletedAt, ...tag }) => tag)
+}
