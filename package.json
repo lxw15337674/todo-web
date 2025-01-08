@@ -74,8 +74,6 @@
     "use-count-up": "3.0.1",
     "use-immer": "0.10.0",
     "vaul": "1.1.1",
-    "vite-node": "2.1.8",
-    "www-components": "1.1.0",
     "zustand": "4.4.1",
     "zustand-middleware-computed": "1.2.1"
   },

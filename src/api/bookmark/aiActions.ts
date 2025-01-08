@@ -46,7 +46,7 @@ const extractImage = async (html: string): Promise<string> => {
     const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
     const imageUrls = Array.from(html.matchAll(imgRegex))
         .map(match => {
-            let src = match[1];
+            const src = match[1];
             return src.startsWith('//') ? `https:${src}` : src;
         })
         .filter(src => src.startsWith('https://'));
@@ -65,7 +65,7 @@ const extractImage = async (html: string): Promise<string> => {
 const cleanHtml = async (html: string): Promise<CleanedContent> => {
     const image = await extractImage(html);
     
-    let cleaned = html
+    const cleaned = html
         .replace(/<(script|style)\b[^<]*(?:(?!<\/\1>)<[^<]*)*<\/\1>/gi, '')
         .replace(/<[^>]+>/g, ' ')
         .replace(/\s+/g, ' ')
