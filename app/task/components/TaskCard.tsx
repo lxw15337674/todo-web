@@ -140,9 +140,9 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
                                 {task.tags.map((tag) => (
                                     <Badge
                                         key={tag.id}
-                                        variant="secondary"
+                                        variant="outline"
                                         className={cn(
-                                            "text-xs",
+                                            "text-xs border",
                                             getTagColor(tag.name)
                                         )}
                                     >

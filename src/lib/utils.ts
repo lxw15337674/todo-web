@@ -32,9 +32,16 @@ export function hashString(str: string): number {
 }
 
 // 根据标签名称获取颜色
-export function getTagColor(tagName: string): string {
-  const index = hashString(tagName) % TAG_COLORS.length;
-  return TAG_COLORS[index];
+export function getTagColor(tagName: string) {
+    const colors = {
+        工作: "border-blue-500 text-blue-500",
+        学习: "border-green-500 text-green-500",
+        生活: "border-yellow-500 text-yellow-500",
+        // 可以添加更多标签颜色
+        default: "border-gray-500 text-gray-500"
+    };
+
+    return colors[tagName as keyof typeof colors] || colors.default;
 }
 
 export function startConfettiAnimation() {
