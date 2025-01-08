@@ -18,9 +18,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { AutosizeTextarea } from '../../../src/components/ui/AutosizeTextarea';
 
 interface TaskCardProps {
-  task: Task;
+  task: Task & { tags: TaskTag[] };
   setTasks: (value?: SetState<AggregatedTask[]> | undefined) => void;
   tags: TaskTag[];
 }
@@ -110,49 +111,66 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
 
   return (
     <div className="bg-card rounded-lg border shadow-sm h-full" suppressHydrationWarning={true}>
-        <div>
-            <div className="flex flex-wrap items-start gap-2 px-2 py-1 hover:bg-accent rounded-lg">
-                {isClient && (
-                    <>
+        <div className="flex flex-col gap-2 px-2 py-1 hover:bg-accent h-full rounded-lg">
+            {isClient && (
+                <>
+                    <div className="flex items-start gap-2">
                         <Checkbox
                             checked={checked}
                             onCheckedChange={() => toggleTask(task.id)}
                             className="focus:outline-none focus-visible:outline-none shrink-0 mt-1.5"
                         />
-                        <div className="flex-1 flex flex-col gap-2">
-                            <div className="flex items-center justify-between w-full">
-                                <Select value={task.priority || Priority.NOT_IMPORTANT_NOT_URGENT} onValueChange={handlePriorityChange}>
-                                    <SelectTrigger className={cn("h-7 w-[140px] text-xs", task.priority && priorityConfig[task.priority]?.color)}>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {Object.entries(priorityConfig).map(([value, config]) => (
-                                            <SelectItem key={value} value={value} className={cn("text-xs", config.color)}>
-                                                {config.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                                    {dayjs(task.updateTime).format('MM/DD HH:mm')}
-                                </span>
+                        <AutosizeTextarea
+                            value={taskName}
+                            minHeight={24}
+                            readOnly={!isEditing}
+                            onDoubleClick={() => setIsEditing(true)}
+                            onChange={(e) => setTaskName(e.target.value)}
+                            onBlur={renameTask}
+                            className={cn(
+                                'flex-1 resize-none p-1',
+                                checked && 'line-through text-muted-foreground',
+                                !isEditing && 'bg-transparent border-none focus-visible:ring-0 hover:bg-transparent'
+                            )}
+                        />
+                    </div>
+                    <div className="flex items-center gap-2 pl-7">
+                        {task.tags && task.tags.length > 0 && (
+                            <div className="flex-1 flex flex-wrap gap-1">
+                                {task.tags.map((tag) => (
+                                    <Badge
+                                        key={tag.id}
+                                        variant="secondary"
+                                        className={cn(
+                                            "text-xs",
+                                            getTagColor(tag.name)
+                                        )}
+                                    >
+                                        {tag.name}
+                                    </Badge>
+                                ))}
                             </div>
-                            <Textarea
-                                value={taskName}
-                                readOnly={!isEditing}
-                                onDoubleClick={() => setIsEditing(true)}
-                                onChange={(e) => setTaskName(e.target.value)}
-                                onBlur={renameTask}
-                                className={cn(
-                                    'min-h-[60px] resize-none p-2',
-                                    checked && 'line-through text-muted-foreground',
-                                    !isEditing && 'bg-transparent border-none focus-visible:ring-0 hover:bg-transparent'
-                                )}
-                            />
+                        )}
+                        <div className="flex items-center gap-2 shrink-0">
+                            <Select value={task.priority || Priority.NOT_IMPORTANT_NOT_URGENT} onValueChange={handlePriorityChange}>
+                                <SelectTrigger className={cn("h-7 w-[140px] text-xs", task.priority && priorityConfig[task.priority]?.color)}>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(priorityConfig).map(([value, config]) => (
+                                        <SelectItem key={value} value={value} className={cn("text-xs", config.color)}>
+                                            {config.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                                {dayjs(task.updateTime).format('MM/DD HH:mm')}
+                            </span>
                         </div>
-                    </>
-                )}
-            </div>
+                    </div>
+                </>
+            )}
         </div>
     </div>
   );
