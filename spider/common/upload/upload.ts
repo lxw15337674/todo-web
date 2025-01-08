@@ -26,7 +26,11 @@ export const downloadImage = async (url: string): Promise<Uint8Array|null> => {
     try {
         const response = await axios({
             url,
-            responseType: 'arraybuffer',
+           responseType: 'arraybuffer',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Host': 'weibo.com'
+            }
         });
         return new Uint8Array(response.data);
     } catch (error) {
