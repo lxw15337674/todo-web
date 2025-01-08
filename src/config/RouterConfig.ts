@@ -1,65 +1,80 @@
+import { 
+  CheckSquare, 
+  Calendar, 
+  Bookmark, 
+  Calendar as AnniversaryIcon, 
+  Image, 
+  Fish,
+  Gamepad2,
+  Newspaper,
+  BookOpen,
+  StickyNote,
+  History
+} from 'lucide-react';
+
 interface MenuItem {
   name: string;
   url: string;
+  icon?: any;
 }
-// 效率工具
-export const EfficiencyTools: MenuItem[] = [
+
+export const Apps: MenuItem[] = [
   {
     name: 'ToDo',
     url: '/task',
+    icon: CheckSquare
   },
   {
     name: '打卡',
     url: '/habit',
+    icon: Calendar
   },
   {
     name: '书签',
     url: '/bookmark',
+    icon: Bookmark
   },
   {
     name:'紀念日',
     url:'/anniversary',
+    icon: AnniversaryIcon
   },
   {
     name : '图床',
     url: '/gallery',
-  }
-];
-
-export const APPS: MenuItem []= [
+    icon: Image
+  },
   {
     name: '摸鱼办',
     url: '/fishingTime',
+    icon: Fish
   },
-  // {
-  //   name: '聊天室',
-  //   url: '/chat',
-  // },
   {
     name: '云顶之弈一图流',
     url: '/tft',
+    icon: Gamepad2
   },
   {
     name: '每日热点',
     url: '/dailyhot',
+    icon: Newspaper
   },
 ];
 
-export const Links = [
+export const Links: MenuItem[] = [
   {
-    name: '个人博客',
+    name: '博客',
     url: 'https://bhwa233-blog.vercel.app',
+    icon: BookOpen
   },
   {
-    name: 'feishuMemos - 个人笔记本',
+    name: '随想',
     url: 'https://feishu-next-memos.vercel.app',
+    icon: StickyNote
   },
   {
-    name: '微博热搜榜历史',
+    name: '微博历史',
     url: 'https://weibo-trending-hot-history.vercel.app',
-  },
-  {
-    name: 'hoarder - 网站剪藏',
-    url: 'https://hoarder.hkg1.zeabur.app/dashboard/bookmarks',
+    icon: History
   },
 ];

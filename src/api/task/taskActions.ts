@@ -65,26 +65,12 @@ export const fetchAggregatedTask = async () => {
 
 interface UpdateTaskParams
   extends Partial<Omit<PrismaTask, 'id' | 'createTime' | 'updateTime'>> {
-  type: TaskType;
 }
 
 export const updateTask = async (id: string, params: UpdateTaskParams) => {
-  const { type,  ...data } = params;
-  if (type === 'track') {
-    await createTrackItem(id);
-    return;
-  }
-
-  const tags = await generateTaskTags(data.name || '')
-
   return await prisma.task.update({
     where: { id },
-    data: {
-      ...data,
-      tags: {
-        set: tags
-      }
-    },
+    data: params,
     include: {
       tags: true
     }

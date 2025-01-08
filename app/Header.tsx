@@ -7,15 +7,15 @@ import { Separator } from '../src/components/ui/separator';
 import { LayoutGrid, Github } from 'lucide-react'; // 新增导入
 import { usePathname } from 'next/navigation';
 import { Toaster } from '../src/components/ui/toaster';
-import { APPS, EfficiencyTools, Links } from '../src/config/RouterConfig';
+import { Apps, Links } from '../src/config/RouterConfig';
 import Link from 'next/link';
-import { SidebarTrigger } from '../src/components/ui/sidebar';
 import { usePermission } from '../src/hooks/usePermission';
+import { cn } from "@/lib/utils"
 
 export default function Header() {
   usePermission();
   const router = usePathname();
-  const currentApp = [...EfficiencyTools, ...APPS].find((app) => app.url === router);
+  const currentApp = Apps.find((app) => app.url === router);
 
   
   useEffect(() => {
@@ -40,35 +40,43 @@ export default function Header() {
                 <LayoutGrid />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {EfficiencyTools.map((app) => (
-                <DropdownMenuCheckboxItem
-                  checked={currentApp?.url === app.url}
-                  key={app.name}
-                >
-                  <Link href={app.url} className='w-full'>{app.name}</Link>
-                </DropdownMenuCheckboxItem>
-              ))}
-              <Separator />
-              {APPS.map((app) => (
-                <DropdownMenuCheckboxItem
-                  checked={currentApp?.url === app.url}
-                  key={app.name}
-                >
-                  <Link href={app.url} className='w-full'>{app.name}</Link>
-                </DropdownMenuCheckboxItem>
-              ))}
-              <Separator />
-              {Links.map((app) => (
-                <DropdownMenuItem
-                  onClick={() => {
-                    window.open(app.url);
-                  }}
-                  key={app.name}
-                >
-                  {app.name}
-                </DropdownMenuItem>
-              ))}
+            <DropdownMenuContent className="w-[300px] p-4">
+              <div className="grid grid-cols-3 gap-4">
+                {Apps.map((app) => {
+                  const Icon = app.icon;
+                  return (
+                    <Link 
+                      href={app.url} 
+                      key={app.name}
+                      className={cn(
+                        "flex flex-col items-center justify-center rounded-md border p-2 hover:bg-accent",
+                        currentApp?.url === app.url && "bg-accent"
+                      )}
+                    >
+                      {Icon && <Icon className="mb-2 h-6 w-6" />}
+                      <span className="text-xs">{app.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+              <Separator className="my-4" />
+              <div className="grid grid-cols-3 gap-4">
+                {Links.map((app) => {
+                  const Icon = app.icon;
+                  return (
+                    <a
+                      href={app.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      key={app.name}
+                      className="flex flex-col items-center justify-center rounded-md border p-2 hover:bg-accent"
+                    >
+                      {Icon && <Icon className="mb-2 h-6 w-6" />}
+                      <span className="text-xs">{app.name}</span>
+                    </a>
+                  );
+                })}
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
           <span className="font-bold ">{currentApp?.name}</span>

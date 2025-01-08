@@ -31,14 +31,15 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Priority } from '@prisma/client'
-import { Textarea } from '@/components/ui/textarea'
 import { AutosizeTextarea } from '../../src/components/ui/AutosizeTextarea'
+import { Task } from '@prisma/client'
 
 // 新增常量定义
 const TASK_STATUS = {
     UNCOMPLETED: '0',
     COMPLETED: '1'
 } as const
+
 
 const PRIORITY_WEIGHTS: Record<Priority, number> = {
     [Priority.IMPORTANT_URGENT]: 4,
@@ -55,6 +56,12 @@ const DEFAULT_NEW_TASK: NewTask = {
 }
 
 const COMPLETED_TASKS_LIMIT = 50
+
+// 定义 filteredTasks 的类型声明
+interface FilteredTasks {
+    uncompleted: Task[];
+    completed: Task[];
+}
 
 export default function Page() {
     const { data: tasks = [], mutate, refresh: refreshTasks } = useLocalStorageRequest(fetchAggregatedTask, {
@@ -96,17 +103,25 @@ export default function Page() {
         }
     }, { wait: 1000 }).run;
 
-    // 简化任务过滤和排序逻辑
-    const filteredTasks = {
+    // 添加类型声明
+    const filteredTasks: FilteredTasks = {
         uncompleted: tasks
             .filter(task => task.status === TASK_STATUS.UNCOMPLETED && task.type === 'task')
             .sort((a, b) => PRIORITY_WEIGHTS[b.priority || Priority.NOT_IMPORTANT_NOT_URGENT] - 
                            PRIORITY_WEIGHTS[a.priority || Priority.NOT_IMPORTANT_NOT_URGENT]),
-        tracks: tasks.filter(task => task.status === TASK_STATUS.UNCOMPLETED && task.type === 'track'),
         completed: tasks
             .filter(task => task.status === TASK_STATUS.COMPLETED)
             .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
             .slice(0, COMPLETED_TASKS_LIMIT)
+    };
+
+    const handleDeleteTag = async (tagId: string) => {
+        try {
+            await deleteTaskTag(tagId);
+            await refreshTags();
+        } catch (error) {
+            console.error('Failed to delete tag:', error);
+        }
     };
 
     // JSX 部分保持基本不变，但使用 filteredTasks 替换原来的过滤逻辑
@@ -199,49 +214,43 @@ export default function Page() {
                 </div>
             </div>
             <div className="space-y-2">
-                <TaskList 
-                    title="未完成" 
-                    tasks={filteredTasks.uncompleted}
-                    mutate={mutate}
-                    tags={tags}
-                />
-                <TaskList 
-                    title="打卡" 
-                    tasks={filteredTasks.tracks}
-                    mutate={mutate}
-                    tags={tags}
-                />
-                <TaskList 
-                    title="已完成" 
-                    tasks={filteredTasks.completed}
-                    mutate={mutate}
-                    tags={tags}
-                />
+                <Collapsible defaultOpen>
+                    <CollapsibleTrigger className='flex w-full items-center text-sm p-2'>
+                        <ChevronsUpDown className="h-4 w-4 mr-1" />
+                        <div className="sr-only">Toggle</div>
+                        未完成
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        {filteredTasks.uncompleted.map((task) => (
+                            <TaskCard 
+                                key={task.id} 
+                                task={task} 
+                                setTasks={mutate} 
+                                tags={tags} 
+                            />
+                        ))}
+                    </CollapsibleContent>
+                </Collapsible>
+
+                <Collapsible defaultOpen>
+                    <CollapsibleTrigger className='flex w-full items-center text-sm p-2'>
+                        <ChevronsUpDown className="h-4 w-4 mr-1" />
+                        <div className="sr-only">Toggle</div>
+                        已完成
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        {filteredTasks.completed.map((task) => (
+                            <TaskCard 
+                                key={task.id} 
+                                task={task} 
+                                setTasks={mutate} 
+                                tags={tags} 
+                            />
+                        ))}
+                    </CollapsibleContent>
+                </Collapsible>
             </div>
         </div>
     )
-}
-
-// 新增 TaskList 组件
-function TaskList({ title, tasks, mutate, tags }) {
-    return (
-        <Collapsible defaultOpen>
-            <CollapsibleTrigger className='flex w-full items-center text-sm p-2'>
-                <ChevronsUpDown className="h-4 w-4 mr-1" />
-                <div className="sr-only">Toggle</div>
-                {title}
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-                {tasks.map((task) => (
-                    <TaskCard 
-                        key={task.id} 
-                        task={task} 
-                        setTasks={mutate} 
-                        tags={tags} 
-                    />
-                ))}
-            </CollapsibleContent>
-        </Collapsible>
-    );
 }
 

@@ -10,7 +10,7 @@ import { SetState } from 'ahooks/lib/createUseStorageState';
 import { useToast } from '../../../src/hooks/use-toast';
 import { AutosizeTextarea } from '@/components/ui/AutosizeTextarea';
 import { Badge } from '@/components/ui/badge';
-import { Priority } from '@prisma/client';
+import { Priority, Task } from '@prisma/client';
 import {
     Select,
     SelectContent,
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select"
 
 interface TaskCardProps {
-  task: AggregatedTask;
+  task: Task;
   setTasks: (value?: SetState<AggregatedTask[]> | undefined) => void;
   tags: TaskTag[];
 }
@@ -45,7 +45,7 @@ const priorityConfig = {
     }
 };
 
-export function TaskCard({ task, setTasks, tags }: TaskCardProps) {
+export function TaskCard({ task, setTasks }: TaskCardProps) {
   const [taskName, setTaskName] = useState(task.name);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
@@ -66,8 +66,7 @@ export function TaskCard({ task, setTasks, tags }: TaskCardProps) {
       }),
     );
     await updateTask(id, {
-      status: task.status === '0' ? '1' : '0',
-      type: task.type,
+      status: task.status === '0' ? '1' : '0'
     });
   };
 
@@ -94,14 +93,14 @@ export function TaskCard({ task, setTasks, tags }: TaskCardProps) {
     try {
         const updatedTask = await updateTask(task.id, {
             ...task,
-            priority: value,
-            type: task.type
+            priority: value
         });
         
-        setTasks((prevTasks = []) =>
-            prevTasks.map((t): AggregatedTask => 
-                t.id === task.id ? { ...updatedTask, type: task.type } as AggregatedTask : t
-            )
+        setTasks((prevTasks) =>
+            (Array.isArray(prevTasks) ? prevTasks : []).map((t) => ({
+                ...t,
+                ...(t.id === task.id ? updatedTask : {})
+            }))
         );
     } catch (error) {
         console.error('Failed to update priority:', error);
@@ -134,21 +133,6 @@ export function TaskCard({ task, setTasks, tags }: TaskCardProps) {
                 )}
               />
               <div className="flex flex-wrap items-center gap-2 shrink-0">
-                {task?.countItems && (
-                  <div className="flex items-center gap-0.5" title="总打卡">
-                    <FlagTriangleRight className="w-4 h-4 text-blue-400" />
-                    <span className="text-gray-400 text-sm">{task.countItems.length}天</span>
-                  </div>
-                )}
-                {task.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {task.tags.map(tag => (
-                      <Badge key={tag.id} className={cn("text-xs font-normal", getTagColor(tag.name))} variant="secondary">
-                        {tag.name}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
                 <Select value={task.priority || Priority.NOT_IMPORTANT_NOT_URGENT} onValueChange={handlePriorityChange}>
                   <SelectTrigger className={cn("h-7 w-[140px] text-xs", task.priority && priorityConfig[task.priority]?.color)}>
                     <SelectValue />
