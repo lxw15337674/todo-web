@@ -221,14 +221,16 @@ export default function Page() {
                         未完成
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                        {filteredTasks.uncompleted.map((task) => (
-                            <TaskCard 
-                                key={task.id} 
-                                task={task} 
-                                setTasks={mutate} 
-                                tags={tags} 
-                            />
-                        ))}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filteredTasks.uncompleted.map((task) => (
+                                <TaskCard 
+                                    key={task.id} 
+                                    task={task} 
+                                    setTasks={mutate} 
+                                    tags={tags} 
+                                />
+                            ))}
+                        </div>
                     </CollapsibleContent>
                 </Collapsible>
 
@@ -239,14 +241,16 @@ export default function Page() {
                         已完成
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                        {filteredTasks.completed.map((task) => (
-                            <TaskCard 
-                                key={task.id} 
-                                task={task} 
-                                setTasks={mutate} 
-                                tags={tags} 
-                            />
-                        ))}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filteredTasks.completed.map((task) => (
+                                <TaskCard 
+                                    key={task.id} 
+                                    task={task} 
+                                    setTasks={mutate} 
+                                    tags={tags} 
+                                />
+                            ))}
+                        </div>
                     </CollapsibleContent>
                 </Collapsible>
             </div>

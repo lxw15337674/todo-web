@@ -67,14 +67,25 @@ interface UpdateTaskParams
   extends Partial<Omit<PrismaTask, 'id' | 'createTime' | 'updateTime'>> {
 }
 
-export const updateTask = async (id: string, params: UpdateTaskParams) => {
-  return await prisma.task.update({
-    where: { id },
-    data: params,
-    include: {
-      tags: true
-    }
-  });
+export const updateTask = async (id: string, data: Partial<Task>) => {
+    // 从数据中提取 tags，并从更新数据中移除它
+    const { tags, ...updateData } = data;
+
+    return prisma.task.update({
+        where: { id },
+        data: {
+            ...updateData,
+            // 如果需要更新 tags，应该使用正确的关系更新语法
+            ...(tags && {
+                tags: {
+                    set: tags.map(tag => ({ id: tag.id }))
+                }
+            })
+        },
+        include: {
+            tags: true
+        }
+    });
 };
 
 export const deleteTask = async (id: string): Promise<Task> => {

@@ -8,7 +8,7 @@ import { FlagTriangleRight } from 'lucide-react';
 import dayjs from 'dayjs';
 import { SetState } from 'ahooks/lib/createUseStorageState';
 import { useToast } from '../../../src/hooks/use-toast';
-import { AutosizeTextarea } from '@/components/ui/AutosizeTextarea';
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from '@/components/ui/badge';
 import { Priority, Task } from '@prisma/client';
 import {
@@ -72,7 +72,7 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
 
   const renameTask = async () => {
     if (taskName !== task.name) {
-      await updateTask(task.id, { ...task, name: taskName });
+      await updateTask(task.id, { name: taskName });
       setTasks((tasks) =>
         (Array.isArray(tasks) ? tasks : []).map((t) => {
           if (t.id === task.id) {
@@ -92,7 +92,6 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
   const handlePriorityChange = async (value: Priority) => {
     try {
         const updatedTask = await updateTask(task.id, {
-            ...task,
             priority: value
         });
         
@@ -110,49 +109,51 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
   const checked = task.status === '1';
 
   return (
-    <div className="flex-1 " suppressHydrationWarning={true}>
-      <div>
-        <div className="flex flex-wrap items-center gap-2 px-2 py-1 hover:bg-accent border-b">
-          {isClient && (
-            <>
-              <Checkbox
-                checked={checked}
-                onCheckedChange={() => toggleTask(task.id)}
-                className="focus:outline-none focus-visible:outline-none shrink-0"
-              />
-              <AutosizeTextarea
-                minHeight={24}
-                value={taskName}
-                readOnly={!isEditing}
-                onDoubleClick={() => setIsEditing(true)}
-                onChange={(e) => setTaskName(e.target.value)}
-                onBlur={renameTask}
-                className={cn(
-                  'min-w-[200px] flex-1 break-words p-1 border-0 resize-none outline-none text-base',
-                  checked && 'line-through text-muted-foreground',
+    <div className="bg-card rounded-lg border shadow-sm h-full" suppressHydrationWarning={true}>
+        <div>
+            <div className="flex flex-wrap items-start gap-2 px-2 py-1 hover:bg-accent rounded-lg">
+                {isClient && (
+                    <>
+                        <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => toggleTask(task.id)}
+                            className="focus:outline-none focus-visible:outline-none shrink-0 mt-1.5"
+                        />
+                        <div className="flex-1 flex flex-col gap-2">
+                            <div className="flex items-center justify-between w-full">
+                                <Select value={task.priority || Priority.NOT_IMPORTANT_NOT_URGENT} onValueChange={handlePriorityChange}>
+                                    <SelectTrigger className={cn("h-7 w-[140px] text-xs", task.priority && priorityConfig[task.priority]?.color)}>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.entries(priorityConfig).map(([value, config]) => (
+                                            <SelectItem key={value} value={value} className={cn("text-xs", config.color)}>
+                                                {config.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                                    {dayjs(task.updateTime).format('MM/DD HH:mm')}
+                                </span>
+                            </div>
+                            <Textarea
+                                value={taskName}
+                                readOnly={!isEditing}
+                                onDoubleClick={() => setIsEditing(true)}
+                                onChange={(e) => setTaskName(e.target.value)}
+                                onBlur={renameTask}
+                                className={cn(
+                                    'min-h-[60px] resize-none p-2',
+                                    checked && 'line-through text-muted-foreground',
+                                    !isEditing && 'bg-transparent border-none focus-visible:ring-0 hover:bg-transparent'
+                                )}
+                            />
+                        </div>
+                    </>
                 )}
-              />
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <Select value={task.priority || Priority.NOT_IMPORTANT_NOT_URGENT} onValueChange={handlePriorityChange}>
-                  <SelectTrigger className={cn("h-7 w-[140px] text-xs", task.priority && priorityConfig[task.priority]?.color)}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(priorityConfig).map(([value, config]) => (
-                      <SelectItem key={value} value={value} className={cn("text-xs", config.color)}>
-                        {config.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {dayjs(task.updateTime).format('MM/DD HH:mm')}
-                </span>
-              </div>
-            </>
-          )}
+            </div>
         </div>
-      </div>
     </div>
   );
 }
