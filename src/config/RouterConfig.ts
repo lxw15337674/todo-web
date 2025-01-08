@@ -78,3 +78,12 @@ export const Links: MenuItem[] = [
     icon: History
   },
 ];
+
+export const EfficiencyTools = [
+  {
+    name: "タスク",
+    url: "/task",
+    icon: "TaskIcon"
+  },
+  // 必要に応じて他のツールを追加
+];
