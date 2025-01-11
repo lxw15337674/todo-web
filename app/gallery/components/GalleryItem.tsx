@@ -4,7 +4,7 @@ import { ExternalLink, Video } from "lucide-react"
 import { PhotoView } from 'react-photo-view'
 import Image from "next/image"
 import { formatDate } from "@/utils/date"
-import { useEffect, useRef } from 'react'
+import {  useRef } from 'react'
 
 interface Props {
     image: Media
@@ -13,9 +13,6 @@ interface Props {
     producers: Producer[]
 }
 
-const imageLoader = ({ src }: { src: string }) => {
-    return src
-}
 const VIDEO_EXTENSIONS = ['.mov', '.mp4']
 
 export const GalleryItem = ({ image, producers }: Props) => {
@@ -46,6 +43,8 @@ export const GalleryItem = ({ image, producers }: Props) => {
                         src={image.galleryMediaUrl}
                         loop
                         muted
+                        width={image?.width??undefined}
+                        height={image?.height??undefined}
                         playsInline
                         className="w-full h-auto transform transition-transform duration-300 group-hover:scale-105"
                     />
@@ -59,7 +58,6 @@ export const GalleryItem = ({ image, producers }: Props) => {
                         <Image
                             src={imageUrl}
                             alt={image.id.toString()}
-                            loader={imageLoader}
                             width={image?.width??undefined}
                             height={image?.height??undefined}
                             className="w-full h-auto"

@@ -15,11 +15,8 @@
     "type-check": "bun run tsc --noEmit",
     "lint": "bun run eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "format": "bun run prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
-    "prisma-migrate": "bun run prisma db push && bun run prisma generate",
-    "test": "bun test",
-    "produce": "bun run ./spider/produce.ts",
-    "consume": "bun run ./spider/consume.ts",
-    "weiboTopic": "bun run ./spider/producers/weiboTopic/index.ts"
+    "migrate": "bun run prisma db push && bun run prisma generate",
+    "test": "bun test"
   },
   "dependencies": {
     "@emotion/cache": "11.13.5",
