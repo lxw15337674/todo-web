@@ -28,13 +28,6 @@ model TrackItem {
   countMeta   TrackMeta? @relation(fields: [countMetaId], references: [id])
 }
 
-enum Priority {
-  IMPORTANT_URGENT       // 重要且紧急
-  IMPORTANT_NOT_URGENT   // 重要不紧急
-  URGENT_NOT_IMPORTANT   // 紧急不重要
-  NOT_IMPORTANT_NOT_URGENT // 不重要不紧急
-}
-
 model Task {
   id         String    @id @default(uuid())
   name       String
@@ -43,7 +36,7 @@ model Task {
   updateTime DateTime  @default(now())
   deletedAt  DateTime?
   status     String
-  priority   Priority?  @default(NOT_IMPORTANT_NOT_URGENT)
+  priority   Priority? @default(NOT_IMPORTANT_NOT_URGENT)
   tags       TaskTag[] @relation("TaskToTaskTag")
 }
 
@@ -81,45 +74,39 @@ model Anniversary {
   date       DateTime
 }
 
-
 model Media {
-  id              Int       @id @default(autoincrement())
+  id              Int          @id @default(autoincrement())
   width           Int?
   height          Int?
-  postId          String?
   originSrc       String?
   userId          String?
-  createTime      DateTime? @default(now())
+  createTime      DateTime?    @default(now())
   deletedAt       DateTime?
-  updateTime      DateTime  @default(now())
+  updateTime      DateTime     @default(now())
   galleryMediaUrl String?
   originMediaUrl  String?
-  status         UploadStatus @default(PENDING)
+  postId          String?
+  status          UploadStatus @default(PENDING)
 
   @@index([userId])
   @@index([createTime])
-}
-
-enum UploadStatus {
-  PENDING   // 待上传
-  UPLOADED  // 已上传
-  FAILED    // 上传失败
+  @@index([postId])
 }
 
 model Producer {
-  id            String    @id @default(cuid())
-  weiboIds      String[] @default([])
-  xiaohongshuIds String[] @default([])
-  douyinIds     String[] @default([])
-  weiboChaohua  String?
-  createTime    DateTime  @default(now())
-  updateTime    DateTime  @default(now())
-  deletedAt     DateTime?
-  name          String?
-  weiboTopicIds String[] @default([])
+  id             String    @id @default(cuid())
+  weiboIds       String[]  @default([])
+  xiaohongshuIds String[]  @default([])
+  douyinIds      String[]  @default([])
+  weiboChaohua   String?
+  createTime     DateTime  @default(now())
+  updateTime     DateTime  @default(now())
+  deletedAt      DateTime?
+  name           String?
+  weiboTopicIds  String[]  @default([])
+
   @@map("producer")
 }
-
 
 model TaskTag {
   id         String    @id @default(uuid())
@@ -129,4 +116,39 @@ model TaskTag {
   updateTime DateTime  @default(now())
   deletedAt  DateTime?
   tasks      Task[]    @relation("TaskToTaskTag")
+}
+
+model Post {
+  id         String       @id
+  userId     String
+  platform   Platform
+  platformId String
+  createTime DateTime     @default(now())
+  updateTime DateTime     @default(now())
+  deletedAt  DateTime?
+  status     UploadStatus @default(PENDING)
+  producerId String
+
+  @@unique([platform, platformId])
+  @@index([createTime])
+  @@index([userId])
+}
+
+enum Priority {
+  IMPORTANT_URGENT
+  IMPORTANT_NOT_URGENT
+  URGENT_NOT_IMPORTANT
+  NOT_IMPORTANT_NOT_URGENT
+}
+
+enum UploadStatus {
+  PENDING
+  UPLOADED
+  FAILED
+}
+
+enum Platform {
+  WEIBO
+  XIAOHONGSHU
+  DOUYIN
 }

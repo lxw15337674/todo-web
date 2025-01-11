@@ -30,19 +30,23 @@ interface TaskCardProps {
 const priorityConfig = {
     [Priority.IMPORTANT_URGENT]: {
         label: "重要且紧急",
-        color: "bg-red-500/10 text-red-500"
+        color: "bg-red-500/10 text-red-500",
+        border: "border-red-500"
     },
     [Priority.IMPORTANT_NOT_URGENT]: {
         label: "重要不紧急",
-        color: "bg-orange-500/10 text-orange-500"
+        color: "bg-orange-500/10 text-orange-500",
+        border: "border-orange-500"
     },
     [Priority.URGENT_NOT_IMPORTANT]: {
         label: "紧急不重要",
-        color: "bg-yellow-500/10 text-yellow-500"
+        color: "bg-yellow-500/10 text-yellow-500",
+        border: "border-yellow-500"
     },
     [Priority.NOT_IMPORTANT_NOT_URGENT]: {
         label: "不重要不紧急",
-        color: "bg-gray-500/10 text-gray-500"
+        color: "bg-gray-500/10 text-gray-500",
+        border: "border-gray-500"
     }
 };
 
@@ -110,7 +114,10 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
   const checked = task.status === '1';
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm h-full" suppressHydrationWarning={true}>
+    <div className={cn(
+      "bg-card rounded-lg border shadow-sm h-full",
+      task.priority && priorityConfig[task.priority]?.border
+    )} suppressHydrationWarning={true}>
         <div className="flex flex-col gap-2 px-2 py-1 hover:bg-accent h-full rounded-lg">
             {isClient && (
                 <>
@@ -153,7 +160,7 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
                         )}
                         <div className="flex items-center gap-2 shrink-0">
                             <Select value={task.priority || Priority.NOT_IMPORTANT_NOT_URGENT} onValueChange={handlePriorityChange}>
-                                <SelectTrigger className={cn("h-7 w-[140px] text-xs", task.priority && priorityConfig[task.priority]?.color)}>
+                                <SelectTrigger className={cn("h-7 w-[120px] text-xs", task.priority && priorityConfig[task.priority]?.color)}>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
