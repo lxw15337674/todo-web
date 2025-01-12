@@ -17,9 +17,16 @@ const VIDEO_EXTENSIONS = ['.mov', '.mp4']
  
 export const GalleryItem = ({ image, producers }: Props) => {
     const videoRef = useRef<HTMLVideoElement>(null)
-    const handleMouseEnter = () => {
+    const handleMouseEnter = async () => {
         if (videoRef.current) {
-            videoRef.current.play()
+            try {
+                await videoRef.current.play();
+            } catch (error: unknown) {
+                // Ignore AbortError when play is interrupted
+                if (error instanceof Error && error.name !== 'AbortError') {
+                    console.error('Error playing video:', error);
+                }
+            }
         }
     }
     const producer = producers.find(p => p.weiboIds.includes(image.userId??""))

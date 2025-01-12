@@ -28,7 +28,14 @@ export const getPicsCount = async (weiboIds?: string[] | null, status: UploadSta
   }
 };
 
-export const getPics = async (page: number = 1, pageSize: number = 10, weiboIds?: string[] | null): Promise<GetPicsResponse> => {
+type SortOrder = 'asc' | 'desc';
+
+export const getPics = async (
+  page: number = 1, 
+  pageSize: number = 10, 
+  weiboIds?: string[] | null,
+  sortOrder: SortOrder = 'desc'
+): Promise<GetPicsResponse> => {
   try {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
@@ -38,14 +45,12 @@ export const getPics = async (page: number = 1, pageSize: number = 10, weiboIds?
       status: UploadStatus.UPLOADED,
       ...(weiboIds ? { userId: { in: weiboIds } } : {})
     };
-
     const items = await prisma.media.findMany({
       skip,
       take,
       where: whereClause,
-      orderBy: { createTime: 'desc' }
+      orderBy: { createTime: sortOrder }
     });
-
     return {
       items,
       page,
