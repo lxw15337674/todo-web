@@ -28,6 +28,13 @@ model TrackItem {
   countMeta   TrackMeta? @relation(fields: [countMetaId], references: [id])
 }
 
+enum Priority {
+  IMPORTANT_URGENT       // 重要且紧急
+  IMPORTANT_NOT_URGENT   // 重要不紧急
+  URGENT_NOT_IMPORTANT   // 紧急不重要
+  NOT_IMPORTANT_NOT_URGENT // 不重要不紧急
+}
+
 model Task {
   id         String    @id @default(uuid())
   name       String
@@ -36,7 +43,7 @@ model Task {
   updateTime DateTime  @default(now())
   deletedAt  DateTime?
   status     String
-  priority   Priority? @default(NOT_IMPORTANT_NOT_URGENT)
+  priority   Priority?  @default(NOT_IMPORTANT_NOT_URGENT)
   tags       TaskTag[] @relation("TaskToTaskTag")
 }
 
@@ -74,38 +81,69 @@ model Anniversary {
   date       DateTime
 }
 
+
 model Media {
-  id              Int          @id @default(autoincrement())
-  width           Int?
-  height          Int?
-  originSrc       String?
-  userId          String?
-  createTime      DateTime?    @default(now())
-  deletedAt       DateTime?
-  updateTime      DateTime     @default(now())
-  galleryMediaUrl String?
-  originMediaUrl  String?
+  id              Int       @id @default(autoincrement())
+  width           Int?      @db.Integer
+  height          Int?      @db.Integer
   postId          String?
-  status          UploadStatus @default(PENDING)
+  originSrc       String?   @db.Text
+  userId          String?
+  createTime      DateTime? @default(now())
+  deletedAt       DateTime?
+  updateTime      DateTime  @default(now()) @updatedAt
+  galleryMediaUrl String?   @db.Text
+  originMediaUrl  String?   @db.Text
+  status         UploadStatus @default(PENDING)
+  producerId     String?
+  producer       Producer?  @relation("Media", fields: [producerId], references: [id], onDelete: SetNull)
+  post           Post?      @relation("PostMedia", fields: [postId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([createTime])
   @@index([postId])
+  @@index([producerId])
+  @@index([status, createTime])
+}
+
+enum UploadStatus {
+  PENDING   // 待上传
+  UPLOADED  // 已上传
+  FAILED    // 上传失败
 }
 
 model Producer {
-  id             String    @id @default(cuid())
-  weiboIds       String[]  @default([])
-  xiaohongshuIds String[]  @default([])
-  douyinIds      String[]  @default([])
-  weiboChaohua   String?
-  createTime     DateTime  @default(now())
-  updateTime     DateTime  @default(now())
-  deletedAt      DateTime?
-  name           String?
-  weiboTopicIds  String[]  @default([])
-
+  id         String         @id @default(cuid())
+  producerId String?
+  name       String?
+  createTime DateTime       @default(now())
+  updateTime DateTime       @default(now()) @updatedAt
+  deletedAt  DateTime?
+  type       ProducerType   @default(WEIBO_PERSONAL)
+  tags       ProducerTag[] @relation("ProducerToProducerTag")
+  medias     Media[]      @relation("Media")
+  posts      Post[]       @relation("ProducerPosts")
   @@map("producer")
+  @@index([type, createTime])
+}
+
+enum ProducerType {
+  WEIBO_PERSONAL    // 个人微博
+  WEIBO_SUPER_TOPIC // 微博超话
+  XIAOHONGSHU_PERSONAL // 个人小红书
+  XIAOHONGSHU_SUPER_TOPIC // 小红书超话
+  DOUYIN_PERSONAL // 个人抖音
+  DOUYIN_SUPER_TOPIC // 抖音超话
+}
+
+model ProducerTag {
+  id         String     @id @default(uuid())
+  name       String     @unique
+  remark     String?
+  createTime DateTime   @default(now())
+  updateTime DateTime   @default(now())
+  deletedAt  DateTime?
+  producers  Producer[] @relation("ProducerToProducerTag")
 }
 
 model TaskTag {
@@ -119,32 +157,23 @@ model TaskTag {
 }
 
 model Post {
-  id         String       @id
-  userId     String
-  platform   Platform
-  platformId String
-  createTime DateTime     @default(now())
-  updateTime DateTime     @default(now())
+  id         String    @id @default(uuid())
+  producerId String    // 生产者ID
+  userId     String    
+  platform   Platform  // 平台
+  platformId String    // 平台上的原始ID
+  createTime DateTime  @default(now())
+  updateTime DateTime  @default(now()) @updatedAt
   deletedAt  DateTime?
   status     UploadStatus @default(PENDING)
-  producerId String
+  producer   Producer  @relation("ProducerPosts", fields: [producerId], references: [id])
+  medias     Media[] @relation("PostMedia")
 
   @@unique([platform, platformId])
-  @@index([createTime])
   @@index([userId])
-}
-
-enum Priority {
-  IMPORTANT_URGENT
-  IMPORTANT_NOT_URGENT
-  URGENT_NOT_IMPORTANT
-  NOT_IMPORTANT_NOT_URGENT
-}
-
-enum UploadStatus {
-  PENDING
-  UPLOADED
-  FAILED
+  @@index([createTime])
+  @@index([status, createTime])
+  @@index([producerId, createTime])
 }
 
 enum Platform {
