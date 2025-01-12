@@ -12,7 +12,7 @@ import { Media, UploadStatus, Producer, Post } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
 import { useRequest, useSessionStorageState } from "ahooks"
 import { getPostCount } from "@/api/gallery/post"
-import { safeLocalStorage } from "@/lib/utils"
+import { safeLocalStorage, safeSessionStorage } from "@/lib/utils"
 
 const PAGE_SIZE = 36
 
@@ -47,12 +47,30 @@ export default function ImagePage() {
       const result = await getPics(page, PAGE_SIZE, state?.producer ?? null, state?.sort ?? 'desc')
       return result.items
     },
-    { manual: true }
+    { 
+      manual: true,
+      cacheKey: `gallery-images-${state?.producer}-${state?.sort}`,
+      setCache: (data) => safeSessionStorage.setItem(`gallery-images-${state?.producer}-${state?.sort}`, JSON.stringify(data)),
+      getCache: () => {
+        const cached = safeSessionStorage.getItem(`gallery-images-${state?.producer}-${state?.sort}`);
+        return cached ? JSON.parse(cached) : [];
+      }
+    }
   )
+  
   const { data: total = 0, run: fetchTotal } = useRequest(
     () => getPicsCount(state?.producer ?? null),
-    { manual: true }
+    { 
+      manual: true,
+      cacheKey: `gallery-total-${state?.producer}`,
+      setCache: (data) => safeSessionStorage.setItem(`gallery-total-${state?.producer}`, JSON.stringify(data)),
+      getCache: () => {
+        const cached = safeSessionStorage.getItem(`gallery-total-${state?.producer}`);
+        return cached ? JSON.parse(cached) : 0;
+      }
+    }
   )
+
   const { data: stats } = useRequest(
     async () => {
       const [uploaded, pending] = await Promise.all([
@@ -61,7 +79,15 @@ export default function ImagePage() {
       ])
       return { uploaded, pending }
     },
-    { refreshDeps: [state?.producer] }
+    { 
+      refreshDeps: [state?.producer],
+      cacheKey: `gallery-stats-${state?.producer}`,
+      setCache: (data) => safeSessionStorage.setItem(`gallery-stats-${state?.producer}`, JSON.stringify(data)),
+      getCache: () => {
+        const cached = safeSessionStorage.getItem(`gallery-stats-${state?.producer}`);
+        return cached ? JSON.parse(cached) : { uploaded: 0, pending: 0 };
+      }
+    }
   )
 
   // Infinite scroll

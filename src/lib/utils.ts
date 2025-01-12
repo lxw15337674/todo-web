@@ -64,3 +64,14 @@ export const safeLocalStorage = {
     localStorage.setItem(key, value);
   }
 };
+
+export const safeSessionStorage = {
+  getItem: (key: string) => {
+    if (!isBrowser()) return null;
+    return sessionStorage.getItem(key);
+  },
+  setItem: (key: string, value: string) => {
+    if (!isBrowser()) return;
+    sessionStorage.setItem(key, value);
+  }
+};
