@@ -97,7 +97,7 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
   const { run: handleAdd } = useDebounceFn(
     async () => {
       try {
-        await createProducer({ name: "新爬取方", type: ProducerType.WEIBO_PERSONAL, producerId: "新ID" })
+        await createProducer({ name: "新爬取方", type: ProducerType.WEIBO_PERSONAL, producerId: "" })
         onSuccess?.()
       } catch (error) {
         alert('添加失败,请重试')
@@ -142,7 +142,7 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-[80vw]">
         <DialogHeader>
           <DialogTitle>管理</DialogTitle>
         </DialogHeader>
@@ -157,11 +157,11 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
             <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-1/6">名称</TableHead>
-                  <TableHead className="w-1/6">ID</TableHead>
-                  <TableHead className="w-1/6">类型</TableHead>
-                  <TableHead className="w-1/3">标签</TableHead>
-                  <TableHead>操作</TableHead>
+                  <TableHead className="w-[20%]">名称</TableHead>
+                  <TableHead className="w-[25%]">ID</TableHead>
+                  <TableHead className="w-[150px]">类型</TableHead>
+                  <TableHead>标签</TableHead>
+                  <TableHead className="w-[140px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
