@@ -37,7 +37,7 @@ export const getPics = async (page: number = 1, pageSize: number = 10, producerI
   try {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
-
+    console.log(page,pageSize,producerId)
     const whereClause: Prisma.MediaWhereInput = {
       deletedAt: null,
       status: UploadStatus.UPLOADED,
