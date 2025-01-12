@@ -291,7 +291,7 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
             </Table>
             <Button
               onClick={handleAdd}
-              className="mt-4"
+              className="mt-4 w-full"
             >
               <Plus className="mr-2 h-4 w-4" />
               添加
@@ -301,7 +301,7 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
           <TabsContent value="tags" className="mt-4">
             <div className="space-y-4">
               <div className="flex items-end gap-2">
-                <div className="flex-1 space-y-2">
+                <div className="flex gap-2 flex-1">
                   <Input
                     placeholder="标签名称"
                     value={newTagName}
