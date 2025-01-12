@@ -26,7 +26,7 @@ export const getProducers = async (): Promise<(Producer & { tags: ProducerTag[] 
 };
 
 export const getProducersWithCount = async (): Promise<(Producer & { tags: ProducerTag[], mediaCount: number })[]> => {
-  const producers = await prisma.producer.findMany({
+  return await prisma.producer.findMany({
     where: {
       deletedAt: null,
     },
@@ -35,19 +35,22 @@ export const getProducersWithCount = async (): Promise<(Producer & { tags: Produ
     },
     include: {
       tags: true,
-      medias: {
-        where: {
-          deletedAt: null,
+      _count: {
+        select: {
+          medias: {
+            where: {
+              deletedAt: null
+            }
+          }
         }
       }
     }
-  });
-
-  return producers.map(producer => ({
-    ...producer,
-    mediaCount: producer.medias.length,
-    medias: undefined as any
-  }));
+  }).then(producers => 
+    producers.map(({ _count, ...producer }) => ({
+      ...producer,
+      mediaCount: _count.medias
+    }))
+  );
 };
 
 export const getProducerById = async (id: string) => {
