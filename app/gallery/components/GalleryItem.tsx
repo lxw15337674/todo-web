@@ -108,6 +108,7 @@ export const GalleryItem = ({ image }: Props) => {
             </div>
             {(image.originSrc || image.post?.platformId) && (
                 <Button
+                    size="icon"
                     variant="secondary"
                     className="absolute duration-300 top-2 right-2 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
                     onClick={() => window.open(image.originSrc ?? `https://weibo.com/${image.post?.userId}/${image.post?.platformId}`, '_blank')}

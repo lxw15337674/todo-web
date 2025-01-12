@@ -127,7 +127,9 @@ export default function ImagePage() {
             </SelectGroup>
           </SelectContent>
         </Select>
-
+        <div className="text-sm text-muted-foreground">
+          共 {total} 张图片
+        </div>
         <div className="ml-auto text-sm text-muted-foreground">
           已爬取 {stats?.uploaded ?? 0} 帖子 · 待爬取 {stats?.pending ?? 0} 帖子
         </div>
