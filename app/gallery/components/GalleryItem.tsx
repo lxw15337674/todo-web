@@ -14,7 +14,7 @@ interface Props {
 }
 
 const VIDEO_EXTENSIONS = ['.mov', '.mp4']
-
+ 
 export const GalleryItem = ({ image, producers }: Props) => {
     const videoRef = useRef<HTMLVideoElement>(null)
     const handleMouseEnter = () => {
@@ -35,6 +35,10 @@ export const GalleryItem = ({ image, producers }: Props) => {
             className={`relative group overflow-hidden`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            // style={{
+            //     width: image?.width??undefined,
+            //     height: image?.height??undefined
+            // }}
         >
             {image.galleryMediaUrl && VIDEO_EXTENSIONS.some(ext => image.galleryMediaUrl?.endsWith(ext)) ? (
                 <div className="relative">
@@ -54,15 +58,15 @@ export const GalleryItem = ({ image, producers }: Props) => {
                 </div>
             ) : (
                 <PhotoView src={imageUrl}>
-                    <div className="transform transition-transform duration-300 group-hover:scale-105">
                         <Image
+                                className="transform transition-transform duration-300 group-hover:scale-105"
                             src={imageUrl}
                             alt={image.id.toString()}
+                            quality={10}
                             width={image?.width??undefined}
                             height={image?.height??undefined}
-                            className="w-full h-auto"
+                            loading="lazy"
                         />
-                    </div>
                 </PhotoView>
             )}
             <div className="absolute duration-300 bottom-0 right-0 p-2 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity w-full">
