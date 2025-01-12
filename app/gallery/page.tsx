@@ -119,11 +119,17 @@ export default function ImagePage() {
 
   const updateSelectedProducer = useMemoizedFn((value: string) => {
     const newValue = value === 'all' ? null : value
-    setGalleryState({ ...DEFAULT_GALLERY_STATE, producer: newValue })
+    setGalleryState(prev => ({
+      sort: prev?.sort ?? DEFAULT_GALLERY_STATE.sort,
+      producer: newValue
+    } as GalleryState))
   })
 
   const updateSortOrder = useMemoizedFn((value: string) => {
-    setGalleryState({ ...DEFAULT_GALLERY_STATE, sort: value as SortOrder })
+    setGalleryState(prev => ({
+      producer: prev?.producer ?? DEFAULT_GALLERY_STATE.producer,
+      sort: value as SortOrder
+    } as GalleryState))
   })
 
   const handleProducerDialogChange = useMemoizedFn((open: boolean) => {
