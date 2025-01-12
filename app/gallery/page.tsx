@@ -86,7 +86,7 @@ export default function ImagePage() {
   const updateSelectedProducer = (value: string) => {
     const newValue = value === 'all' ? null : value
     setSelectedProducer(newValue)
-    const params = new URLSearchParams(searchParams.toStri  ng())
+    const params = new URLSearchParams(searchParams.toString())
     if (newValue) {
       params.set('producer', newValue)
     } else {
