@@ -51,17 +51,14 @@ export const getProducersWithCount = async (): Promise<(Producer & { tags: Produ
       }
     }
   }).then(producers => {
-    console.log('[getProducersWithCount] Raw producers data:', producers);
     const mapped = producers.map(({ _count, ...producer }) => {
       const result = {
         ...producer,
         mediaCount: _count.medias,
         postCount: _count.posts
       };
-      console.log('[getProducersWithCount] Mapped producer:', { id: producer.id, mediaCount: _count.medias, postCount: _count.posts });
       return result;
     });
-    console.log(`[getProducersWithCount] Found ${mapped.length} producers with counts`);
     return mapped;
   });
 };
@@ -122,19 +119,16 @@ export const deleteProducerTag = async (id: string) => {
 };
 
 export const updateProducerTags = async (producerId: string, tagIds: string[]) => {
-  console.log('[updateProducerTags] Adding tags for producer:', producerId, 'new tags:', tagIds);
-  const result = await prisma.producer.update({
+  return await prisma.producer.update({
     where: { id: producerId },
     data: {
       tags: {
-        connect: tagIds.map(id => ({ id }))
+        set: tagIds.map(id => ({ id }))
       }
     },
     include: {
       tags: true
     }
   });
-  console.log('[updateProducerTags] Updated producer tags:', result);
-  return result;
 };
 

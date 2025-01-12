@@ -36,7 +36,6 @@ const cacheKey = 'gallery-producers'
 export default function ImagePage() {
   const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
     cacheKey,
-    staleTime: 5*60*1000,// 数据保鲜时间5分钟
     cacheTime: 24 * 60 * 60 * 1000, // 缓存24小时
     setCache: (data) => safeSessionStorage.setItem(cacheKey, JSON.stringify(data)),
     getCache: () => {
