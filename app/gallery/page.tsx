@@ -1,20 +1,20 @@
 'use client'
-import { getProducers, getProducersWithCount } from "@/api/gallery/producer"
+import { getProducersWithCount } from "@/api/gallery/producer"
 import { getPics, getPicsCount } from "@/api/gallery/media"
-import { useCallback, useEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Masonry } from "@mui/lab"
 import { Button } from "@/components/ui/button"
 import { PhotoProvider } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
-import { Media, UploadStatus, Producer, Post } from "@prisma/client"
+import { UploadStatus } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
 import { useRequest, useSessionStorageState } from "ahooks"
 import { getPostCount } from "@/api/gallery/post"
-import { safeLocalStorage, safeSessionStorage } from "@/lib/utils"
+import { safeSessionStorage } from "@/lib/utils"
 
-const PAGE_SIZE = 36
+const PAGE_SIZE = 5*6
 
 interface GalleryState {
   producer: string | null
@@ -54,7 +54,8 @@ export default function ImagePage() {
       getCache: () => {
         const cached = safeSessionStorage.getItem(`gallery-images-${state?.producer}-${state?.sort}`);
         return cached ? JSON.parse(cached) : [];
-      }
+      },
+      throttleWait: 2000,
     }
   )
   

@@ -82,7 +82,7 @@ export const GalleryItem = ({ image }: Props) => {
             ) : (
                 <PhotoView src={imageUrl}>
                         <Image
-                                className="transform transition-transform duration-300 group-hover:scale-105"
+                            className="transform transition-transform duration-300 group-hover:scale-105"
                             src={imageUrl}
                             alt={image.id.toString()}
                             quality={10}
