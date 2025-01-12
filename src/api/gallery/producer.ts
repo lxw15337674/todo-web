@@ -1,5 +1,5 @@
 'use server';
-import { PrismaClient, Producer } from '@prisma/client';
+import { PrismaClient, Producer, ProducerTag } from '@prisma/client';
 import { NewProducer, UpdateProducer } from './type';
 
 
@@ -11,13 +11,16 @@ export const createProducer = async (data: NewProducer): Promise<Producer> => {
   });
 };
 
-export const getProducers = async (): Promise<Producer[]> => {
+export const getProducers = async (): Promise<(Producer & { tags: ProducerTag[] })[]> => {
   return await prisma.producer.findMany({
     where: {
       deletedAt: null,
     },
     orderBy: {
       createTime: 'desc'
+    },
+    include: {
+      tags: true
     }
   });
 };
@@ -35,6 +38,9 @@ export const updateProducer = async (data: UpdateProducer) => {
     data: {
       ...updateData,
       updateTime: new Date()
+    },
+    include: {
+      tags: true
     }
   });
 };
@@ -44,6 +50,46 @@ export const deleteProducer = async (id: string) => {
     where: { id },
     data: {
       deletedAt: new Date()
+    }
+  });
+};
+
+export const getProducerTags = async () => {
+  return await prisma.producerTag.findMany({
+    where: {
+      deletedAt: null,
+    },
+    orderBy: {
+      createTime: 'desc'
+    }
+  });
+};
+
+export const createProducerTag = async (data: { name: string, remark?: string }) => {
+  return await prisma.producerTag.create({
+    data
+  });
+};
+
+export const deleteProducerTag = async (id: string) => {
+  return await prisma.producerTag.update({
+    where: { id },
+    data: {
+      deletedAt: new Date()
+    }
+  });
+};
+
+export const updateProducerTags = async (producerId: string, tagIds: string[]) => {
+  return await prisma.producer.update({
+    where: { id: producerId },
+    data: {
+      tags: {
+        set: tagIds.map(id => ({ id }))
+      }
+    },
+    include: {
+      tags: true
     }
   });
 };

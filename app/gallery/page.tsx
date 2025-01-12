@@ -8,18 +8,23 @@ import { Button } from "@/components/ui/button"
 import { PhotoProvider } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
-import { Media, UploadStatus } from "@prisma/client"
+import { Media, Producer, Post, UploadStatus } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
 import { useRequest } from "ahooks"
 
 const PAGE_SIZE = 6 * 6
+
+type MediaWithRelations = Media & {
+  producer: Producer | null;
+  post: Post | null;
+}
 
 export default function ImagePage() {
   const { data: producers=[], refresh: refreshProducers } = useRequest(getProducers, {
     manual: false
   })
   const [selectedProducer, setSelectedProducer] = useState<string | null>(null)
-  const [images, setImages] = useState<Media[]>([])
+  const [images, setImages] = useState<MediaWithRelations[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -28,11 +33,11 @@ export default function ImagePage() {
   const [producerDialogOpen, setProducerDialogOpen] = useState(false)
   const [total, setTotal] = useState(0)
   const [unUploadedCount, setUnUploadedCount] = useState(0)
+
   useEffect(() => {
     const fetchTotal = async () => {
-      const weiboIds = selectedProducer === 'all' ? null : producers.find(p => p.id === selectedProducer)?.weiboIds;
-      const total = await getPicsCount(weiboIds);
-      const unUploadedCount = await getPicsCount(weiboIds, UploadStatus.PENDING);
+      const total = await getPicsCount(selectedProducer);
+      const unUploadedCount = await getPicsCount(selectedProducer, UploadStatus.PENDING);
       setTotal(total);
       setUnUploadedCount(unUploadedCount);
       setHasMore(PAGE_SIZE * page < total);
@@ -68,11 +73,12 @@ export default function ImagePage() {
     if (loading) return
     setLoading(true)
     try {
-      const weiboIds = selectedProducer === 'all' ? null : producers.find(p => p.id === selectedProducer)?.weiboIds
-      const result = await getPics(currentPage, PAGE_SIZE, weiboIds)
-      setImages(prev => currentPage === 1 ? result.items : [...prev, ...result.items])
-      setHasMore(PAGE_SIZE * currentPage < total)
-      setPage(currentPage + 1)
+      const result = await getPics(currentPage, PAGE_SIZE, selectedProducer)
+      if (result && result.items) {
+        setImages(prev => currentPage === 1 ? result.items : [...prev, ...result.items])
+        setHasMore(PAGE_SIZE * currentPage < total)
+        setPage(currentPage + 1)
+      }
     } catch (error) {
       console.error('Failed to load images:', error)
     } finally {
@@ -127,7 +133,6 @@ export default function ImagePage() {
               image={image}
               index={index}
               selectedProducer={selectedProducer}
-              producers={producers}
             />
           ))}
         </Masonry>

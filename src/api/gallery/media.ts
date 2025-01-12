@@ -1,9 +1,14 @@
 'use server';
 
-import { Media, Prisma, PrismaClient, UploadStatus } from '@prisma/client';
+import { Media, Prisma, PrismaClient, UploadStatus, Producer, Post } from '@prisma/client';
+
+type MediaWithRelations = Media & {
+  producer: Producer | null;
+  post: Post | null;
+}
 
 interface GetPicsResponse {
-  items: Media[];
+  items: MediaWithRelations[];
   page: number;
   pageSize: number;
 }
@@ -11,24 +16,24 @@ interface GetPicsResponse {
 const prisma = new PrismaClient();
 
 // 获取总数的独立函数
-export const getPicsCount = async (weiboIds?: string[] | null, status: UploadStatus = UploadStatus.UPLOADED): Promise<number> => {
+export const getPicsCount = async (producerId?: string | null, status: UploadStatus = UploadStatus.UPLOADED): Promise<number> => {
   try {
     const whereClause: Prisma.MediaWhereInput = {
       deletedAt: null,
       status,
-      ...(weiboIds ? { userId: { in: weiboIds } } : {})
+      ...(producerId ? { producerId } : {})
     };
 
     return await prisma.media.count({
       where: whereClause,
     });
   } catch (error) {
-    console.error('Failed to count weibo media:', error);
-    throw new Error('Failed to count weibo media');
+    console.error('Failed to count media:', error instanceof Error ? error.message : error);
+    throw new Error('Failed to count media');
   }
 };
 
-export const getPics = async (page: number = 1, pageSize: number = 10, weiboIds?: string[] | null): Promise<GetPicsResponse> => {
+export const getPics = async (page: number = 1, pageSize: number = 10, producerId?: string | null): Promise<GetPicsResponse> => {
   try {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
@@ -36,14 +41,18 @@ export const getPics = async (page: number = 1, pageSize: number = 10, weiboIds?
     const whereClause: Prisma.MediaWhereInput = {
       deletedAt: null,
       status: UploadStatus.UPLOADED,
-      ...(weiboIds ? { userId: { in: weiboIds } } : {})
+      ...(producerId ? { producerId } : {})
     };
 
     const items = await prisma.media.findMany({
       skip,
       take,
       where: whereClause,
-      orderBy: { createTime: 'desc' }
+      orderBy: { createTime: 'desc' },
+      include: {
+        producer: true,
+        post: true
+      }
     });
 
     return {
@@ -52,7 +61,7 @@ export const getPics = async (page: number = 1, pageSize: number = 10, weiboIds?
       pageSize
     };
   } catch (error) {
-    console.error('Failed to fetch weibo media:', error);
-    throw new Error('Failed to fetch weibo media');
+    console.error('Failed to fetch media:', error instanceof Error ? error.message : error);
+    throw error instanceof Error ? error : new Error('Failed to fetch media');
   }
 };
