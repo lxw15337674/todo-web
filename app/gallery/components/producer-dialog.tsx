@@ -120,30 +120,21 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
     { wait: 1000 }
   )
 
-  const { run: handleNameChange } = useDebounceFn(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setEditingProducer(prev => prev ? ({ ...prev, name: e.target.value }) : null)
-    },
-    { wait: 300 }
-  )
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditingProducer(prev => prev ? ({ ...prev, name: e.target.value }) : null)
+  }
 
-  const { run: handleProducerIdChange } = useDebounceFn(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setEditingProducer(prev => prev ? ({ ...prev, producerId: e.target.value }) : null)
-    },
-    { wait: 300 }
-  )
+  const handleProducerIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditingProducer(prev => prev ? ({ ...prev, producerId: e.target.value }) : null)
+  }
 
-  const { run: handleTagsChange } = useDebounceFn(
-    (values: string[]) => {
-      const selectedTags = tags.filter(t => values.includes(t.id))
-      setEditingProducer(prev => prev ? ({
-        ...prev,
-        tags: selectedTags
-      }) : null)
-    },
-    { wait: 300 }
-  )
+  const handleTagsChange = (values: string[]) => {
+    const selectedTags = tags.filter(t => values.includes(t.id))
+    setEditingProducer(prev => prev ? ({
+      ...prev,
+      tags: selectedTags
+    }) : null)
+  }
 
   const handleTypeChange = (value: ProducerType) => {
     setEditingProducer(prev => prev ? ({ ...prev, type: value }) : null)
