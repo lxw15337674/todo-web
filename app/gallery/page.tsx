@@ -24,17 +24,15 @@ const DEFAULT_STATE: GalleryState = {
   producer: null,
   sort: 'desc'
 }
+const cacheKey = 'gallery-producers'
 
 export default function ImagePage() {
   const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
-    cacheKey: 'gallery-producers',
+    cacheKey,
     staleTime: 6 * 60 * 60 * 1000, // 数据保鲜时间12小时
     cacheTime: 24 * 60 * 60 * 1000, // 缓存24小时
-    setCache: (data) => localStorage.setItem('gallery-producers', JSON.stringify(data)),
-    getCache: () => {
-      const cached = localStorage.getItem('gallery-producers');
-      return cached ? JSON.parse(cached) : undefined;
-    }
+    setCache: (data) => localStorage.setItem(cacheKey, JSON.stringify(data)),
+    getCache: () => JSON.parse(localStorage.getItem(cacheKey) || '{}'),
   })
   const [state, setState] = useSessionStorageState<GalleryState>('gallery-state', { 
     defaultValue: DEFAULT_STATE 
