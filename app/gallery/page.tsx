@@ -32,9 +32,9 @@ export default function ImagePage() {
     cacheKey,
     staleTime: 5*60*1000,// 数据保鲜时间5分钟
     cacheTime: 24 * 60 * 60 * 1000, // 缓存24小时
-    setCache: (data) => safeLocalStorage.setItem(cacheKey, JSON.stringify(data)),
+    setCache: (data) => safeSessionStorage.setItem(cacheKey, JSON.stringify(data)),
     getCache: () => {
-      const cached = safeLocalStorage.getItem(cacheKey);
+      const cached = safeSessionStorage.getItem(cacheKey);
       return cached ? JSON.parse(cached) : {};
     },
   })
