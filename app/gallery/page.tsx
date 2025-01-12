@@ -11,14 +11,17 @@ import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
 import { Media, UploadStatus } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
 import { useRequest } from "ahooks"
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const PAGE_SIZE = 6 * 6
 
 export default function ImagePage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: producers=[], refresh: refreshProducers } = useRequest(getProducers, {
     manual: false
   })
-  const [selectedProducer, setSelectedProducer] = useState<string | null>(null)
+  const [selectedProducer, setSelectedProducer] = useState<string | null>(searchParams.get('producer'))
   const [images, setImages] = useState<Media[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
@@ -79,10 +82,23 @@ export default function ImagePage() {
       setLoading(false)
     }
   }
+
+  const updateSelectedProducer = (value: string) => {
+    const newValue = value === 'all' ? null : value
+    setSelectedProducer(newValue)
+    const params = new URLSearchParams(searchParams.toStri  ng())
+    if (newValue) {
+      params.set('producer', newValue)
+    } else {
+      params.delete('producer')
+    }
+    router.push(`?${params.toString()}`)
+  }
+
   return (
     <div className="space-y-2 p-2">
       <div className="flex items-center gap-2">
-        <Select value={selectedProducer ?? 'all'} onValueChange={(value) => setSelectedProducer(value === 'all' ? null : value)}>
+        <Select value={selectedProducer ?? 'all'} onValueChange={(value) => updateSelectedProducer(value)}>
           <SelectTrigger className="w-[180px] my-2">
             <SelectValue placeholder="全部生产者" />
           </SelectTrigger>
@@ -99,7 +115,7 @@ export default function ImagePage() {
         </Select>
 
         <div className="text-sm text-muted-foreground">
-          共 {total} 张图片 · 已加载 {images.length} 张 · 剩余 {total - images.length} 张
+          共 {total} 张图片 · 已加载 {images.length} 张
         </div>
 
         <ProducerDialog
