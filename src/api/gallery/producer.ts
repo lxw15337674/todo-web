@@ -25,6 +25,31 @@ export const getProducers = async (): Promise<(Producer & { tags: ProducerTag[] 
   });
 };
 
+export const getProducersWithCount = async (): Promise<(Producer & { tags: ProducerTag[], mediaCount: number })[]> => {
+  const producers = await prisma.producer.findMany({
+    where: {
+      deletedAt: null,
+    },
+    orderBy: {
+      createTime: 'desc'
+    },
+    include: {
+      tags: true,
+      medias: {
+        where: {
+          deletedAt: null,
+        }
+      }
+    }
+  });
+
+  return producers.map(producer => ({
+    ...producer,
+    mediaCount: producer.medias.length,
+    medias: undefined as any
+  }));
+};
+
 export const getProducerById = async (id: string) => {
   return await prisma.producer.findUnique({
     where: { id }

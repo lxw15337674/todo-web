@@ -1,5 +1,5 @@
 'use client'
-import { getProducers } from "@/api/gallery/producer"
+import { getProducers, getProducersWithCount } from "@/api/gallery/producer"
 import { getPics, getPicsCount } from "@/api/gallery/media"
 import { useCallback, useEffect, useRef } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -26,10 +26,20 @@ const DEFAULT_STATE: GalleryState = {
 }
 
 export default function ImagePage() {
-  const { data: producers = [], refresh: refreshProducers } = useRequest(getProducers)
+  const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
+    cacheKey: 'gallery-producers',
+    staleTime: 6 * 60 * 60 * 1000, // 数据保鲜时间12小时
+    cacheTime: 24 * 60 * 60 * 1000, // 缓存24小时
+    setCache: (data) => localStorage.setItem('gallery-producers', JSON.stringify(data)),
+    getCache: () => {
+      const cached = localStorage.getItem('gallery-producers');
+      return cached ? JSON.parse(cached) : undefined;
+    }
+  })
   const [state, setState] = useSessionStorageState<GalleryState>('gallery-state', { 
     defaultValue: DEFAULT_STATE 
   })
+
   const { data: images = [], loading, run: loadImages } = useRequest(
     async (page: number) => {
       const result = await getPics(page, PAGE_SIZE, state?.producer ?? null, state?.sort ?? 'desc')
@@ -104,7 +114,9 @@ export default function ImagePage() {
             <SelectGroup>
               <SelectItem value="all">全部生产者</SelectItem>
               {producers.map(p => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name} ({p.mediaCount})
+                </SelectItem>
               ))}
             </SelectGroup>
           </SelectContent>
