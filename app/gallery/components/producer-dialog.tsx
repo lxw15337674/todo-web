@@ -157,8 +157,8 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
             <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[20%]">名称</TableHead>
-                  <TableHead className="w-[25%]">ID</TableHead>
+                  <TableHead className="w-[200px]">名称</TableHead>
+                  <TableHead className="w-[400px]">ID</TableHead>
                   <TableHead className="w-[150px]">类型</TableHead>
                   <TableHead>标签</TableHead>
                   <TableHead className="w-[140px]">操作</TableHead>
@@ -191,7 +191,7 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
                           required
                         />
                       ) : (
-                        <div className="px-2 py-1 rounded">
+                          <div className="px-2 py-1 rounded truncate" title={producer?.producerId??''}>
                           {producer.producerId}
                         </div>
                       )}

@@ -138,14 +138,18 @@ export default function ImagePage() {
           <SelectTrigger className="w-[180px] my-2">
             <SelectValue placeholder="全部生产者" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[300px]">
             <SelectGroup>
-              <SelectItem value="all">全部生产者</SelectItem>
-              {producers.map(p => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name} ({p.postCount} 帖子 / {p.mediaCount} 图片)
-                </SelectItem>
-              ))}
+              <div className="grid grid-cols-4 gap-1 cursor-pointer">
+                <SelectItem value="all">全部生产者</SelectItem>
+                {producers.map(p => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <div className="truncate">
+                      {p.name} ({p.postCount} 帖子 / {p.mediaCount} 图片)
+                    </div>
+                  </SelectItem>
+                ))}
+              </div>
             </SelectGroup>
           </SelectContent>
         </Select>
