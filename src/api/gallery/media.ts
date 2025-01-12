@@ -7,11 +7,6 @@ type MediaWithRelations = Media & {
   post: Post | null;
 }
 
-interface GetPicsResponse {
-  items: MediaWithRelations[];
-  page: number;
-  pageSize: number;
-}
 
 const prisma = new PrismaClient();
 
@@ -38,7 +33,7 @@ export const getPics = async (
   pageSize: number = 10, 
   producerId?: string | null,
   sort: 'asc' | 'desc' = 'desc'
-): Promise<GetPicsResponse> => {
+): Promise<MediaWithRelations[]> => {
   try {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
@@ -57,11 +52,7 @@ export const getPics = async (
         post: true
       }
     });
-    return {
-      items,
-      page,
-      pageSize
-    };
+    return items
   } catch (error) {
     console.error('Failed to fetch media:', error instanceof Error ? error.message : error);
     throw error instanceof Error ? error : new Error('Failed to fetch media');

@@ -13,8 +13,14 @@ import { GalleryItem } from './components/GalleryItem'
 import { useRequest, useSessionStorageState } from "ahooks"
 import { getPostCount } from "@/api/gallery/post"
 import { safeSessionStorage } from "@/lib/utils"
+import { Media, Producer, Post } from '@prisma/client'
 
 const PAGE_SIZE = 5*6
+
+type MediaWithRelations = Media & {
+  producer: Producer | null
+  post: Post | null
+}
 
 interface GalleryState {
   producer: string | null
@@ -42,19 +48,13 @@ export default function ImagePage() {
     defaultValue: DEFAULT_STATE 
   })
 
-  const { data: images = [], loading, run: loadImages } = useRequest(
-    async (page: number) => {
+  const { data: images = [], loading, run: loadImages } = useRequest<MediaWithRelations[], [number]>(
+    async (page: number): Promise<MediaWithRelations[]> => {
       const result = await getPics(page, PAGE_SIZE, state?.producer ?? null, state?.sort ?? 'desc')
-      return result.items
+      return page === 1 ? result : [...(images ?? []), ...result]
     },
     { 
       manual: true,
-      cacheKey: `gallery-images-${state?.producer}-${state?.sort}`,
-      setCache: (data) => safeSessionStorage.setItem(`gallery-images-${state?.producer}-${state?.sort}`, JSON.stringify(data)),
-      getCache: () => {
-        const cached = safeSessionStorage.getItem(`gallery-images-${state?.producer}-${state?.sort}`);
-        return cached ? JSON.parse(cached) : [];
-      },
       throttleWait: 2000,
     }
   )
@@ -181,7 +181,7 @@ export default function ImagePage() {
 
       <PhotoProvider>
         <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 6 }} spacing={1}>
-          {images.map((image, index) => (
+          {(images ?? []).map((image: MediaWithRelations, index: number) => (
             <GalleryItem
               key={image.id}
               image={image}

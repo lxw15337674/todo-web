@@ -84,8 +84,7 @@ export const GalleryItem = ({ image }: Props) => {
                         <Image
                             className="transform transition-transform duration-300 group-hover:scale-105"
                             src={imageUrl}
-                            alt={image.id.toString()}
-                            quality={10}
+                            alt={image.originSrc ?? image.id.toString()}
                             width={image?.width??undefined}
                             height={image?.height??undefined}
                             loading="lazy"

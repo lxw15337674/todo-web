@@ -122,16 +122,19 @@ export const deleteProducerTag = async (id: string) => {
 };
 
 export const updateProducerTags = async (producerId: string, tagIds: string[]) => {
-  return await prisma.producer.update({
+  console.log('[updateProducerTags] Adding tags for producer:', producerId, 'new tags:', tagIds);
+  const result = await prisma.producer.update({
     where: { id: producerId },
     data: {
       tags: {
-        set: tagIds.map(id => ({ id }))
+        connect: tagIds.map(id => ({ id }))
       }
     },
     include: {
       tags: true
     }
   });
+  console.log('[updateProducerTags] Updated producer tags:', result);
+  return result;
 };
 
