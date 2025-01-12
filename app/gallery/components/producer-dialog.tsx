@@ -9,7 +9,7 @@ import { Producer, ProducerType, ProducerTag } from '@prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { PRODUCER_TYPE_NAMES } from "@/api/gallery/type"
-import { useRequest } from "ahooks"
+import { useRequest, useDebounceFn, useThrottleFn } from "ahooks"
 import { MultiSelect } from "@/components/ui/multi-select"
 import {
   Tabs,
@@ -43,78 +43,110 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
     ready: open
   })
 
-  const handleAddTag = async () => {
-    if (!newTagName.trim()) return
-    try {
-      await createProducerTag({ 
-        name: newTagName.trim(),
-        remark: newTagRemark.trim() || undefined
-      })
-      setNewTagName('')
-      setNewTagRemark('')
-      refreshTags()
-    } catch (error) {
-      alert('添加标签失败,请重试')
-    }
-  }
-
-  const handleDeleteTag = async (id: string, name: string) => {
-    if (!confirm('确定要删除这个标签吗？')) return
-    try {
-      await deleteProducerTag(id)
-      refreshTags()
-    } catch (error) {
-      alert('删除标签失败,请重试')
-    }
-  }
-
-  const handleEdit = async ({ id, name, type, producerId, tags }: UpdateProducer) => {
-    try {
-      if (!producerId?.trim()) {
-        alert('请输入ID')
-        return
-      }
-      await updateProducer({ id, name, type, producerId })
-      if (tags) {
-        await updateProducerTags(id, tags.map(t => t.id))
-      }
-      setEditingProducer(null)
-      onSuccess?.()
-    } catch (error) {
-      alert('更新失败,请重试')
-    }
-  }
-
-  const handleAdd = async () => {
-    try {
-      await createProducer({ name: "新爬取方", type: ProducerType.WEIBO_PERSONAL, producerId: "新ID" })
-      onSuccess?.()
-    } catch (error) {
-      alert('添加失败,请重试')
-    }
-  }
-
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm("确定要删除吗？")) {
+  const { run: handleAddTag } = useDebounceFn(
+    async () => {
+      if (!newTagName.trim()) return
       try {
-        await deleteProducer(id)
+        await createProducerTag({ 
+          name: newTagName.trim(),
+          remark: newTagRemark.trim() || undefined
+        })
+        setNewTagName('')
+        setNewTagRemark('')
+        refreshTags()
+      } catch (error) {
+        alert('添加标签失败,请重试')
+      }
+    },
+    { wait: 500 }
+  )
+
+  const { run: handleDeleteTag } = useThrottleFn(
+    async (id: string, name: string) => {
+      if (!confirm('确定要删除这个标签吗？')) return
+      try {
+        await deleteProducerTag(id)
+        refreshTags()
+      } catch (error) {
+        alert('删除标签失败,请重试')
+      }
+    },
+    { wait: 1000 }
+  )
+
+  const { run: handleEdit } = useDebounceFn(
+    async ({ id, name, type, producerId, tags }: UpdateProducer) => {
+      try {
+        if (!producerId?.trim()) {
+          alert('请输入ID')
+          return
+        }
+        await updateProducer({ id, name, type, producerId })
+        if (tags) {
+          await updateProducerTags(id, tags.map(t => t.id))
+        }
+        setEditingProducer(null)
         onSuccess?.()
       } catch (error) {
-        alert('删除失败,请重试')
+        alert('更新失败,请重试')
       }
-    }
-  }
+    },
+    { wait: 500 }
+  )
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditingProducer(prev => prev ? ({ ...prev, name: e.target.value }) : null)
-  }
+  const { run: handleAdd } = useDebounceFn(
+    async () => {
+      try {
+        await createProducer({ name: "新爬取方", type: ProducerType.WEIBO_PERSONAL, producerId: "新ID" })
+        onSuccess?.()
+      } catch (error) {
+        alert('添加失败,请重试')
+      }
+    },
+    { wait: 500 }
+  )
+
+  const { run: handleDelete } = useThrottleFn(
+    async (id: string, name: string) => {
+      if (confirm("确定要删除吗？")) {
+        try {
+          await deleteProducer(id)
+          onSuccess?.()
+        } catch (error) {
+          alert('删除失败,请重试')
+        }
+      }
+    },
+    { wait: 1000 }
+  )
+
+  const { run: handleNameChange } = useDebounceFn(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setEditingProducer(prev => prev ? ({ ...prev, name: e.target.value }) : null)
+    },
+    { wait: 300 }
+  )
+
+  const { run: handleProducerIdChange } = useDebounceFn(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setEditingProducer(prev => prev ? ({ ...prev, producerId: e.target.value }) : null)
+    },
+    { wait: 300 }
+  )
+
+  const { run: handleTagsChange } = useDebounceFn(
+    (values: string[]) => {
+      const selectedTags = tags.filter(t => values.includes(t.id))
+      setEditingProducer(prev => prev ? ({
+        ...prev,
+        tags: selectedTags
+      }) : null)
+    },
+    { wait: 300 }
+  )
 
   const handleTypeChange = (value: ProducerType) => {
     setEditingProducer(prev => prev ? ({ ...prev, type: value }) : null)
-  }
-
-  const handleProducerIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditingProducer(prev => prev ? ({ ...prev, producerId: e.target.value }) : null)
   }
 
   return (
@@ -199,21 +231,15 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
                     <TableCell>
                       {editingProducer?.id === producer.id ? (
                         <MultiSelect
+                          animation={0}
                           options={tags.map(tag => ({
                             label: tag.name,
                             value: tag.id
                           }))}
                           defaultValue={editingProducer.tags?.map(t => t.id)}
-                          onValueChange={(values) => {
-                            const selectedTags = tags.filter(t => values.includes(t.id))
-                            setEditingProducer(prev => prev ? ({
-                              ...prev,
-                              tags: selectedTags
-                            }) : null)
-                          }}
+                          onValueChange={handleTagsChange}
                           placeholder="选择标签..."
                           maxCount={3}
-                          animation={0.2}
                         />
                       ) : (
                         <div className="flex flex-wrap gap-1">
