@@ -1,7 +1,7 @@
 'use client'
 import { getProducers } from "@/api/gallery/producer"
 import { getPics, getPicsCount } from "@/api/gallery/media"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Masonry } from "@mui/lab"
 import { Button } from "@/components/ui/button"
@@ -10,82 +10,59 @@ import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
 import { Media, UploadStatus, Producer, Post } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
-import { useMemoizedFn, useRequest, useSessionStorageState } from "ahooks"
+import { useRequest, useSessionStorageState } from "ahooks"
+import { getPostCount } from "@/api/gallery/post"
 
-const PAGE_SIZE = 6 * 6
-
-type SortOrder = 'asc' | 'desc'
-
-interface SortOption {
-  value: SortOrder
-  label: string
-}
+const PAGE_SIZE = 36
 
 interface GalleryState {
   producer: string | null
-  sort: SortOrder
+  sort: 'asc' | 'desc'
 }
 
-const SORT_OPTIONS: SortOption[] = [
-  { value: 'desc', label: '最新优先' },
-  { value: 'asc', label: '最早优先' },
-]
-
-const DEFAULT_GALLERY_STATE: GalleryState = {
+const DEFAULT_STATE: GalleryState = {
   producer: null,
   sort: 'desc'
 }
 
-type MediaWithRelations = Media & {
-  producer: Producer | null;
-  post: Post | null;
-}
-
 export default function ImagePage() {
-  const { data: producers = [], refresh: refreshProducers } = useRequest(getProducers, {
-    manual: false
+  const { data: producers = [], refresh: refreshProducers } = useRequest(getProducers)
+  const [state, setState] = useSessionStorageState<GalleryState>('gallery-state', { 
+    defaultValue: DEFAULT_STATE 
   })
-  const [galleryState, setGalleryState] = useSessionStorageState<GalleryState>(
-    'gallery-state',
-    { defaultValue: DEFAULT_GALLERY_STATE }
+  const { data: images = [], loading, run: loadImages } = useRequest(
+    async (page: number) => {
+      const result = await getPics(page, PAGE_SIZE, state?.producer ?? null, state?.sort ?? 'desc')
+      return result.items
+    },
+    { manual: true }
   )
-  const selectedProducer = galleryState?.producer ?? null
-  const sortOrder = galleryState?.sort ?? 'desc'
-  const [images, setImages] = useState<MediaWithRelations[]>([])
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
-  const [loading, setLoading] = useState(false)
+  const { data: total = 0, run: fetchTotal } = useRequest(
+    () => getPicsCount(state?.producer ?? null),
+    { manual: true }
+  )
+  const { data: stats } = useRequest(
+    async () => {
+      const [uploaded, pending] = await Promise.all([
+        getPostCount({ status: UploadStatus.UPLOADED, producerId: state?.producer || undefined }),
+        getPostCount({ status: UploadStatus.PENDING, producerId: state?.producer || undefined })
+      ])
+      return { uploaded, pending }
+    },
+    { refreshDeps: [state?.producer] }
+  )
+
+  // Infinite scroll
   const loadingRef = useRef<HTMLDivElement>(null)
+  const pageRef = useRef(1)
   const observerRef = useRef<IntersectionObserver>()
-  const [producerDialogOpen, setProducerDialogOpen] = useState(false)
-  const [total, setTotal] = useState(0)
-  const [unUploadedCount, setUnUploadedCount] = useState(0)
-
-  const fetchTotal = useMemoizedFn(async () => {
-    const total = await getPicsCount(selectedProducer);
-    const unUploadedCount = await getPicsCount(selectedProducer, UploadStatus.PENDING);
-    setTotal(total);
-    setUnUploadedCount(unUploadedCount);
-    setHasMore(PAGE_SIZE * page < total);
-  })
-
-  useEffect(() => {
-    fetchTotal();
-    setPage(1);
-    setImages([]);
-  }, [selectedProducer, sortOrder]);
-
-  useEffect(() => {
-    if (!loading && page > 0) {
-      loadImages(page);
-    }
-  }, [page, selectedProducer, sortOrder]);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loading && hasMore) {
-          setPage(prev => prev + 1)
+        if (entries[0].isIntersecting && !loading && PAGE_SIZE * pageRef.current < (total ?? 0)) {
+          pageRef.current += 1
+          loadImages(pageRef.current)
         }
       },
       { threshold: 0.1 }
@@ -95,105 +72,78 @@ export default function ImagePage() {
       observerRef.current.observe(loadingRef.current)
     }
 
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect()
-      }
-    }
-  }, [loading, hasMore])
+    return () => observerRef.current?.disconnect()
+  }, [loading, total, loadImages])
 
-  const loadImages = useMemoizedFn(async (currentPage: number) => {
-    if (loading) return
-    setLoading(true)
-    try {
-      const result = await getPics(currentPage, PAGE_SIZE, selectedProducer)
-      setImages(prev => currentPage === 1 ? result.items : [...prev, ...result.items])
-      setHasMore(PAGE_SIZE * currentPage < total)
-    } catch (error) {
-      console.error('Failed to load images:', error)
-    } finally {
-      setLoading(false)
-    }
-  })
-
+  // Reset and reload on filter change
   useEffect(() => {
-    console.log(galleryState?.sort, sortOrder)
-  }, [galleryState?.sort, sortOrder])
+    pageRef.current = 1
+    fetchTotal()
+    loadImages(1)
+  }, [state?.producer, state?.sort, fetchTotal, loadImages])
 
-  const updateSelectedProducer = useMemoizedFn((value: string) => {
-    const newValue = value === 'all' ? null : value
-    setGalleryState(prev => ({
-      sort: prev?.sort ?? DEFAULT_GALLERY_STATE.sort,
-      producer: newValue
-    } as GalleryState))
-  })
-
-  const updateSortOrder = useMemoizedFn((value: string) => {
-    setGalleryState(prev => ({
-      producer: prev?.producer ?? DEFAULT_GALLERY_STATE.producer,
-      sort: value as SortOrder
-    } as GalleryState))
-  })
-
-  const handleProducerDialogChange = useMemoizedFn((open: boolean) => {
-    setProducerDialogOpen(open)
+  // Dialog state
+  const [dialogOpen, setDialogOpen] = useSessionStorageState('producer-dialog-open', {
+    defaultValue: false
   })
 
   return (
     <div className="space-y-2 p-2">
       <div className="flex items-center gap-2">
-        <Select value={selectedProducer ?? 'all'} onValueChange={updateSelectedProducer}>
+        <Select 
+          value={state?.producer ?? 'all'} 
+          onValueChange={value => setState(prev => ({
+            producer: value === 'all' ? null : value,
+            sort: (prev ?? DEFAULT_STATE).sort
+          }))}
+        >
           <SelectTrigger className="w-[180px] my-2">
             <SelectValue placeholder="全部生产者" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               <SelectItem value="all">全部生产者</SelectItem>
-              {producers.map((producer) => (
-                <SelectItem key={producer.id} value={producer.id}>
-                  {producer.name}
-                </SelectItem>
+              {producers.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
               ))}
             </SelectGroup>
           </SelectContent>
         </Select>
 
-        <Select value={sortOrder} onValueChange={updateSortOrder}>
+        <Select 
+          value={state?.sort ?? 'desc'} 
+          onValueChange={sort => setState(prev => ({
+            producer: (prev ?? DEFAULT_STATE).producer,
+            sort: sort as 'asc' | 'desc'
+          }))}
+        >
           <SelectTrigger className="w-[120px] my-2">
             <SelectValue placeholder="排序方式" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {SORT_OPTIONS.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
+              <SelectItem value="desc">最新优先</SelectItem>
+              <SelectItem value="asc">最早优先</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
 
-
-
         <div className="ml-auto text-sm text-muted-foreground">
-          共 {total} 张图片 / {unUploadedCount} 张未上传
+          已爬取 {stats?.uploaded ?? 0} 帖子 · 待爬取 {stats?.pending ?? 0} 帖子
         </div>
-        <Button
-          variant="outline"
-          onClick={() => handleProducerDialogChange(true)}
-        >
+        <Button variant="outline" onClick={() => setDialogOpen(true)}>
           管理生产者
         </Button>
       </div>
 
       <PhotoProvider>
         <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 6 }} spacing={1}>
-          {(images ?? []).map((image, index) => (
+          {images.map((image, index) => (
             <GalleryItem
               key={image.id}
               image={image}
               index={index}
-              selectedProducer={selectedProducer}
+              selectedProducer={state?.producer ?? null}
             />
           ))}
         </Masonry>
@@ -202,12 +152,15 @@ export default function ImagePage() {
       <div ref={loadingRef} className="py-4 text-center">
         {loading && <p className="text-muted-foreground">加载中...</p>}
         {!loading && images.length > 0 && (
-          <p className="text-muted-foreground">---- 已加载 {images.length} / {total} 张图片 ----</p>
+          <p className="text-muted-foreground">
+            ---- 已加载 {images.length} / {total} 张图片 ----
+          </p>
         )}
       </div>
+
       <ProducerDialog
-        open={producerDialogOpen}
-        onOpenChange={handleProducerDialogChange}
+        open={dialogOpen ?? false}
+        onOpenChange={setDialogOpen}
         producers={producers}
         onSuccess={refreshProducers}
       />

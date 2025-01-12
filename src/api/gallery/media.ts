@@ -33,11 +33,15 @@ export const getPicsCount = async (producerId?: string | null, status: UploadSta
   }
 };
 
-export const getPics = async (page: number = 1, pageSize: number = 10, producerId?: string | null): Promise<GetPicsResponse> => {
+export const getPics = async (
+  page: number = 1, 
+  pageSize: number = 10, 
+  producerId?: string | null,
+  sort: 'asc' | 'desc' = 'desc'
+): Promise<GetPicsResponse> => {
   try {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
-    console.log(page,pageSize,producerId)
     const whereClause: Prisma.MediaWhereInput = {
       deletedAt: null,
       status: UploadStatus.UPLOADED,
@@ -47,7 +51,7 @@ export const getPics = async (page: number = 1, pageSize: number = 10, producerI
       skip,
       take,
       where: whereClause,
-      orderBy: { createTime: 'desc' },
+      orderBy: { createTime: sort },
       include: {
         producer: true,
         post: true
