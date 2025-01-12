@@ -10,7 +10,7 @@ import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
 import { Media, Producer, Post } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
-import { useRequest } from "ahooks"
+import { useRequest, useDebounceFn, useThrottleFn } from "ahooks"
 import { getPostStats } from "@/api/gallery/post"
 
 const PAGE_SIZE = 6 * 6
@@ -55,6 +55,24 @@ export default function ImagePage() {
     }
   );
 
+  // 使用节流处理加载更多
+  const { run: handleLoadMore } = useThrottleFn(
+    async (currentPage: number) => {
+      if (loading) return;
+      await loadImages(currentPage);
+      setPage(currentPage + 1);
+    },
+    { wait: 1000 }
+  );
+
+  // 使用防抖处理生产者选择
+  const { run: handleProducerChange } = useDebounceFn(
+    (value: string) => {
+      setSelectedProducer(value === 'all' ? null : value);
+    },
+    { wait: 300 }
+  );
+
   useEffect(() => {
     if (imagesData?.items) {
       setImagesList(prev => page === 1 ? imagesData.items : [...prev, ...imagesData.items]);
@@ -65,7 +83,7 @@ export default function ImagePage() {
     setPage(1);
     setImagesList([]);
     loadImages(1);
-  }, [selectedProducer]);
+  }, [selectedProducer, loadImages]);
 
   useEffect(() => {
     setHasMore(PAGE_SIZE * page < total);
@@ -90,18 +108,12 @@ export default function ImagePage() {
         observerRef.current.disconnect()
       }
     }
-  }, [loading, hasMore, page]);
-
-  const handleLoadMore = async (currentPage: number) => {
-    if (loading) return;
-    await loadImages(currentPage);
-    setPage(currentPage + 1);
-  };
+  }, [loading, hasMore, page, handleLoadMore]);
 
   return (
     <div className="space-y-2 p-2">
       <div className="flex items-center gap-2">
-        <Select value={selectedProducer ?? 'all'} onValueChange={updateSelectedProducer}>
+        <Select value={selectedProducer ?? 'all'} onValueChange={handleProducerChange}>
           <SelectTrigger className="w-[180px] my-2">
             <SelectValue placeholder="全部生产者" />
           </SelectTrigger>
@@ -121,14 +133,12 @@ export default function ImagePage() {
           共 {total} 张图片 · 已加载 {imagesList.length} 张
         </div>
 
-
-        
         <div className="ml-auto text-sm text-muted-foreground">
           已爬取 {postsStats?.uploaded ?? 0} 帖子 · 待爬取 {postsStats?.pending ?? 0} 帖子
         </div>
         <Button
           variant="outline"
-          onClick={() => handleProducerDialogChange(true)}
+          onClick={() => setProducerDialogOpen(true)}
         >
           管理生产者
         </Button>
@@ -155,7 +165,7 @@ export default function ImagePage() {
       </div>
       <ProducerDialog
         open={producerDialogOpen}
-        onOpenChange={handleProducerDialogChange}
+        onOpenChange={setProducerDialogOpen}
         producers={producers}
         onSuccess={refreshProducers}
       />
