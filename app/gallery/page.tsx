@@ -30,7 +30,7 @@ const cacheKey = 'gallery-producers'
 export default function ImagePage() {
   const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
     cacheKey,
-    staleTime: 6 * 60 * 60 * 1000, // 数据保鲜时间12小时
+    staleTime: 5*60*1000,// 数据保鲜时间5分钟
     cacheTime: 24 * 60 * 60 * 1000, // 缓存24小时
     setCache: (data) => safeLocalStorage.setItem(cacheKey, JSON.stringify(data)),
     getCache: () => {
@@ -143,7 +143,7 @@ export default function ImagePage() {
               <SelectItem value="all">全部生产者</SelectItem>
               {producers.map(p => (
                 <SelectItem key={p.id} value={p.id}>
-                  {p.name} ({p.mediaCount})
+                  {p.name} ({p.postCount} 帖子 / {p.mediaCount} 图片)
                 </SelectItem>
               ))}
             </SelectGroup>
