@@ -12,6 +12,7 @@ import { Media, UploadStatus, Producer, Post } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
 import { useRequest, useSessionStorageState } from "ahooks"
 import { getPostCount } from "@/api/gallery/post"
+import { safeLocalStorage } from "@/lib/utils"
 
 const PAGE_SIZE = 36
 
@@ -31,8 +32,11 @@ export default function ImagePage() {
     cacheKey,
     staleTime: 6 * 60 * 60 * 1000, // 数据保鲜时间12小时
     cacheTime: 24 * 60 * 60 * 1000, // 缓存24小时
-    setCache: (data) => localStorage.setItem(cacheKey, JSON.stringify(data)),
-    getCache: () => JSON.parse(localStorage.getItem(cacheKey) || '{}'),
+    setCache: (data) => safeLocalStorage.setItem(cacheKey, JSON.stringify(data)),
+    getCache: () => {
+      const cached = safeLocalStorage.getItem(cacheKey);
+      return cached ? JSON.parse(cached) : {};
+    },
   })
   const [state, setState] = useSessionStorageState<GalleryState>('gallery-state', { 
     defaultValue: DEFAULT_STATE 

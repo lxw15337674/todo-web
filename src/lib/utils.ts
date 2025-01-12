@@ -52,6 +52,15 @@ export function startConfettiAnimation() {
   });
 }
 
-export function isBrowser() {
-  return !!(typeof window !== 'undefined' && window.document && window.document.createElement);
-}
+export const isBrowser = () => typeof window !== 'undefined';
+
+export const safeLocalStorage = {
+  getItem: (key: string) => {
+    if (!isBrowser()) return null;
+    return localStorage.getItem(key);
+  },
+  setItem: (key: string, value: string) => {
+    if (!isBrowser()) return;
+    localStorage.setItem(key, value);
+  }
+};
