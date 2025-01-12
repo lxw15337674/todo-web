@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button"
 import { PhotoProvider } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
 import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
-import { Media, Producer, Post, UploadStatus } from "@prisma/client"
+import { Media, Producer, Post } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
 import { useRequest } from "ahooks"
+import { getPostStats } from "@/api/gallery/post"
 
 const PAGE_SIZE = 6 * 6
 
@@ -24,35 +25,57 @@ export default function ImagePage() {
     manual: false
   })
   const [selectedProducer, setSelectedProducer] = useState<string | null>(null)
-  const [images, setImages] = useState<MediaWithRelations[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
-  const [loading, setLoading] = useState(false)
   const loadingRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver>()
   const [producerDialogOpen, setProducerDialogOpen] = useState(false)
-  const [total, setTotal] = useState(0)
-  const [unUploadedCount, setUnUploadedCount] = useState(0)
+  const [imagesList, setImagesList] = useState<MediaWithRelations[]>([])
+
+  const { data: postsStats } = useRequest(
+    () => getPostStats(selectedProducer || undefined),
+    {
+      manual: false
+    }
+  );
+
+  const { data: total = 0 } = useRequest(
+    () => getPicsCount(selectedProducer),
+    {
+      manual: false,
+      refreshDeps: [selectedProducer]
+    }
+  );
+
+  const { data: imagesData, loading, run: loadImages } = useRequest(
+    (currentPage: number) => getPics(currentPage, PAGE_SIZE, selectedProducer),
+    {
+      manual: true,
+      refreshDeps: [selectedProducer]
+    }
+  );
 
   useEffect(() => {
-    const fetchTotal = async () => {
-      const total = await getPicsCount(selectedProducer);
-      const unUploadedCount = await getPicsCount(selectedProducer, UploadStatus.PENDING);
-      setTotal(total);
-      setUnUploadedCount(unUploadedCount);
-      setHasMore(PAGE_SIZE * page < total);
-    };
-    fetchTotal();
+    if (imagesData?.items) {
+      setImagesList(prev => page === 1 ? imagesData.items : [...prev, ...imagesData.items]);
+    }
+  }, [imagesData, page]);
+
+  useEffect(() => {
     setPage(1);
-    setImages([]);
+    setImagesList([]);
     loadImages(1);
   }, [selectedProducer]);
+
+  useEffect(() => {
+    setHasMore(PAGE_SIZE * page < total);
+  }, [page, total]);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !loading && hasMore) {
-          loadImages(page)
+          handleLoadMore(page);
         }
       },
       { threshold: 0.1 }
@@ -67,24 +90,14 @@ export default function ImagePage() {
         observerRef.current.disconnect()
       }
     }
-  }, [loading, hasMore, page])
+  }, [loading, hasMore, page]);
 
-  const loadImages = async (currentPage: number) => {
-    if (loading) return
-    setLoading(true)
-    try {
-      const result = await getPics(currentPage, PAGE_SIZE, selectedProducer)
-      if (result && result.items) {
-        setImages(prev => currentPage === 1 ? result.items : [...prev, ...result.items])
-        setHasMore(PAGE_SIZE * currentPage < total)
-        setPage(currentPage + 1)
-      }
-    } catch (error) {
-      console.error('Failed to load images:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const handleLoadMore = async (currentPage: number) => {
+    if (loading) return;
+    await loadImages(currentPage);
+    setPage(currentPage + 1);
+  };
+
   return (
     <div className="space-y-2 p-2">
       <div className="flex items-center gap-2">
@@ -105,7 +118,7 @@ export default function ImagePage() {
         </Select>
 
         <div className="text-sm text-muted-foreground">
-          共 {total} 张图片 · 已加载 {images.length} 张 · 剩余 {total - images.length} 张
+          共 {total} 张图片 · 已加载 {imagesList.length} 张
         </div>
 
         <ProducerDialog
@@ -115,7 +128,7 @@ export default function ImagePage() {
           onSuccess={refreshProducers}
         />
         <div className="ml-auto text-sm text-muted-foreground">
-          {unUploadedCount} 张未上传
+          已爬取 {postsStats?.uploaded ?? 0} 帖子 · 待爬取 {postsStats?.pending ?? 0} 帖子
         </div>
         <Button
           variant="outline"
@@ -127,7 +140,7 @@ export default function ImagePage() {
 
       <PhotoProvider>
         <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 6 }} spacing={1}>
-          {(images ?? []).map((image, index) => (
+          {imagesList.map((image: MediaWithRelations, index: number) => (
             <GalleryItem 
               key={selectedProducer + '_' + index}
               image={image}
@@ -140,8 +153,8 @@ export default function ImagePage() {
 
       <div ref={loadingRef} className="py-4 text-center">
         {loading && <p className="text-muted-foreground">加载中...</p>}
-        {!loading && images.length > 0 && (
-          <p className="text-muted-foreground">---- 已加载 {images.length} / {total} 张图片 ----</p>
+        {!loading && imagesList.length > 0 && (
+          <p className="text-muted-foreground">---- 已加载 {imagesList.length} / {total} 张图片 ----</p>
         )}
       </div>
     </div>
