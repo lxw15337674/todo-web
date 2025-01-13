@@ -31,7 +31,7 @@ export const getProducersWithCount = async (): Promise<(Producer & { tags: Produ
       deletedAt: null,
     },
     orderBy: {
-      createTime: 'desc'
+      createTime: 'asc'
     },
     include: {
       tags: true,

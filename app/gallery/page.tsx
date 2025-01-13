@@ -36,7 +36,6 @@ const cacheKey = 'gallery-producers'
 export default function ImagePage() {
   const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
     cacheKey,
-    cacheTime: 24 * 60 * 60 * 1000, // 缓存24小时
     setCache: (data) => safeSessionStorage.setItem(cacheKey, JSON.stringify(data)),
     getCache: () => {
       const cached = safeSessionStorage.getItem(cacheKey);
@@ -127,63 +126,71 @@ export default function ImagePage() {
 
   return (
     <div className="space-y-2 p-2">
-      <div className="flex items-center gap-2">
-        <Select 
-          value={state?.producer ?? 'all'} 
-          onValueChange={value => setState(prev => ({
-            producer: value === 'all' ? null : value,
-            sort: (prev ?? DEFAULT_STATE).sort
-          }))}
-        >
-          <SelectTrigger className="w-[180px] my-2">
-            <SelectValue placeholder="全部生产者" />
-          </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
-            <SelectGroup>
-              <div className="grid grid-cols-4 gap-1 cursor-pointer">
-                <SelectItem value="all">全部生产者</SelectItem>
-                {producers.map(p => (
-                  <SelectItem key={p.id} value={p.id}>
-                    <div className="truncate">
-                      {p.name} ({p.postCount} 帖子 / {p.mediaCount} 图片)
-                    </div>
-                  </SelectItem>
-                ))}
-              </div>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Select 
+            value={state?.producer ?? 'all'} 
+            onValueChange={value => setState(prev => ({
+              producer: value === 'all' ? null : value,
+              sort: (prev ?? DEFAULT_STATE).sort
+            }))}
+          >
+            <SelectTrigger className="w-full sm:w-[180px] my-1 sm:my-2">
+              <SelectValue placeholder="全部生产者" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              <SelectGroup>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 cursor-pointer">
+                  <SelectItem value="all">全部生产者</SelectItem>
+                  {producers.map(p => (
+                    <SelectItem key={p.id} value={p.id}>
+                      <div className="truncate">
+                        {p.name} ({p.postCount} 帖子 / {p.mediaCount} 图片)
+                      </div>
+                    </SelectItem>
+                  ))}
+                </div>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
 
-        <Select 
-          value={state?.sort ?? 'desc'} 
-          onValueChange={sort => setState(prev => ({
-            producer: (prev ?? DEFAULT_STATE).producer,
-            sort: sort as 'asc' | 'desc'
-          }))}
+          <Select 
+            value={state?.sort ?? 'desc'} 
+            onValueChange={sort => setState(prev => ({
+              producer: (prev ?? DEFAULT_STATE).producer,
+              sort: sort as 'asc' | 'desc'
+            }))}
+          >
+            <SelectTrigger className="w-full sm:w-[120px] my-1 sm:my-2">
+              <SelectValue placeholder="排序方式" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="desc">最新优先</SelectItem>
+                <SelectItem value="asc">最早优先</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto text-sm text-muted-foreground">
+          <div>共 {total} 张图片</div>
+          <div className="sm:ml-auto">
+            已爬取 {stats?.uploaded ?? 0} 帖子 · 待爬取 {stats?.pending ?? 0} 帖子
+          </div>
+        </div>
+
+        <Button 
+          variant="outline" 
+          onClick={() => setDialogOpen(true)}
+          className="w-full sm:w-auto sm:ml-auto"
         >
-          <SelectTrigger className="w-[120px] my-2">
-            <SelectValue placeholder="排序方式" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="desc">最新优先</SelectItem>
-              <SelectItem value="asc">最早优先</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <div className="text-sm text-muted-foreground">
-          共 {total} 张图片
-        </div>
-        <div className="ml-auto text-sm text-muted-foreground">
-          已爬取 {stats?.uploaded ?? 0} 帖子 · 待爬取 {stats?.pending ?? 0} 帖子
-        </div>
-        <Button variant="outline" onClick={() => setDialogOpen(true)}>
           管理生产者
         </Button>
       </div>
 
       <PhotoProvider>
-        <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 6 }} spacing={1}>
+        <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 6 }} spacing={1}>
           {(images ?? []).map((image: MediaWithRelations, index: number) => (
             <GalleryItem
               key={image.id}

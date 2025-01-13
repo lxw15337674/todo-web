@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { updateProducer, createProducer, deleteProducer, getProducerTags, createProducerTag, deleteProducerTag, updateProducerTags } from "@/api/gallery/producer"
 import { useState } from "react"
-import { Plus } from "lucide-react"
+import { Plus, Pencil, Trash2, AlertCircle } from "lucide-react"
 import { Producer, ProducerType, ProducerTag } from '@prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
@@ -17,6 +17,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
 
 interface UpdateProducer {
   id: string
@@ -97,7 +99,11 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
   const { run: handleAdd } = useDebounceFn(
     async () => {
       try {
-        await createProducer({ name: "新爬取方", type: ProducerType.WEIBO_PERSONAL, producerId: "" })
+        await createProducer({ 
+          name: "", 
+          type: ProducerType.WEIBO_PERSONAL, 
+          producerId: "" 
+        })
         onSuccess?.()
       } catch (error) {
         alert('添加失败,请重试')
@@ -140,9 +146,19 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
     setEditingProducer(prev => prev ? ({ ...prev, type: value }) : null)
   }
 
+  const handleRowDoubleClick = (producer: Producer & { tags: ProducerTag[] }) => {
+    setEditingProducer({
+      id: producer.id,
+      name: producer.name,
+      type: producer.type,
+      producerId: producer.producerId || '',
+      tags: producer.tags
+    })
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[80vw]">
+      <DialogContent className="w-full max-w-[90vw] max-h-[90vh] md:h-auto">
         <DialogHeader>
           <DialogTitle>管理</DialogTitle>
         </DialogHeader>
@@ -154,188 +170,226 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
           </TabsList>
 
           <TabsContent value="producers" className="mt-4">
-            <Table className="table-fixed w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[200px]">名称</TableHead>
-                  <TableHead className="w-[400px]">ID</TableHead>
-                  <TableHead className="w-[150px]">类型</TableHead>
-                  <TableHead>标签</TableHead>
-                  <TableHead className="w-[140px]">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {producers.map((producer) => (
-                  <TableRow
-                    key={producer.id}
-                    className="cursor-pointer hover:bg-muted"
-                  >
-                    <TableCell>
-                      {editingProducer?.id === producer.id ? (
-                        <Input
-                          value={editingProducer?.name ?? ''}
-                          onChange={handleNameChange}
-                        />
-                      ) : (
-                        <div className="px-2 py-1 rounded">
-                          {producer.name}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {editingProducer?.id === producer.id ? (
-                        <Input
-                          value={editingProducer?.producerId ?? ''}
-                          onChange={handleProducerIdChange}
-                          placeholder="请输入ID（必填）"
-                          required
-                        />
-                      ) : (
-                          <div className="px-2 py-1 rounded truncate" title={producer?.producerId??''}>
-                          {producer.producerId}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {editingProducer?.id === producer.id ? (
-                        <Select
-                          value={editingProducer.type}
-                          onValueChange={handleTypeChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.values(ProducerType).map((type) => (
-                              <SelectItem key={type} value={type}>
-                                {PRODUCER_TYPE_NAMES[type]}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="px-2 py-1 rounded">
-                          {PRODUCER_TYPE_NAMES[producer.type]}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {editingProducer?.id === producer.id ? (
-                        <MultiSelect
-                          animation={0}
-                          options={tags.map(tag => ({
-                            label: tag.name,
-                            value: tag.id
-                          }))}
-                          defaultValue={editingProducer.tags?.map(t => t.id)}
-                          onValueChange={handleTagsChange}
-                          placeholder="选择标签..."
-                          maxCount={3}
-                        />
-                      ) : (
-                        <div className="flex flex-wrap gap-1">
-                          {producer.tags.map((tag) => (
-                            <Badge key={tag.id}>
-                              {tag.name}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="flex space-x-2">
-                      {editingProducer?.id === producer.id ? (
-                        <Button
-                          onClick={() => handleEdit(editingProducer)}
-                          size="sm"
-                          variant="default"
-                        >
-                          提交
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() =>
-                            setEditingProducer({
-                              id: producer.id,
-                              name: producer.name,
-                              type: producer.type,
-                              producerId: producer.producerId || '',
-                              tags: producer.tags
-                            })
-                          }
-                          size="sm"
-                          variant="outline"
-                        >
-                          编辑
-                        </Button>
-                      )}
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(producer.id, producer.name||'')}
+            <div className="relative">
+              <ScrollArea className="h-[60vh] w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-2">
+                  {[...producers]
+                    .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                    .map((producer) => (
+                      <div
+                        key={producer.id}
+                        className="group border rounded-lg p-4 hover:bg-muted/50 cursor-pointer relative"
+                        onDoubleClick={() => handleRowDoubleClick(producer)}
                       >
-                        删除
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <Button
-              onClick={handleAdd}
-              className="mt-4 w-full"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              添加
-            </Button>
+                        {editingProducer?.id === producer.id ? (
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium mb-1 block">名称</label>
+                              <Input
+                                value={editingProducer?.name ?? ''}
+                                onChange={handleNameChange}
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium mb-1 block">ID</label>
+                              <Input
+                                value={editingProducer?.producerId ?? ''}
+                                onChange={handleProducerIdChange}
+                                placeholder="请输入ID（必填）"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium mb-1 block">类型</label>
+                              <Select
+                                value={editingProducer.type}
+                                onValueChange={handleTypeChange}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.values(ProducerType).map((type) => (
+                                    <SelectItem key={type} value={type}>
+                                      {PRODUCER_TYPE_NAMES[type]}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium mb-1 block">标签</label>
+                              <MultiSelect
+                                animation={0}
+                                options={tags.map(tag => ({
+                                  label: tag.name,
+                                  value: tag.id
+                                }))}
+                                defaultValue={editingProducer.tags?.map(t => t.id)}
+                                onValueChange={handleTagsChange}
+                                placeholder="选择标签..."
+                                maxCount={3}
+                              />
+                            </div>
+                            <div className="flex justify-end space-x-2 mt-4">
+                              <Button
+                                onClick={() => setEditingProducer(null)}
+                                size="sm"
+                                variant="outline"
+                              >
+                                取消
+                              </Button>
+                              <Button
+                                onClick={() => handleEdit(editingProducer)}
+                                size="sm"
+                                variant="default"
+                              >
+                                提交
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="space-y-2">
+                              {!producer.producerId && (
+                                <div className="absolute top-2 left-2 text-destructive" title="缺少ID，不可用">
+                                  <AlertCircle className="h-4 w-4" />
+                                </div>
+                              )}
+                              <div>
+                                <div className="text-sm text-muted-foreground">名称</div>
+                                <div className={cn(
+                                  "font-medium",
+                                  !producer.producerId && "text-muted-foreground"
+                                )}>
+                                  {producer.name || '-'}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-muted-foreground">ID</div>
+                                <div className={cn(
+                                  "font-medium truncate",
+                                  !producer.producerId && "text-destructive"
+                                )} title={producer?.producerId ?? ''}>
+                                  {producer.producerId || '未设置'}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-muted-foreground">类型</div>
+                                <div className="font-medium">
+                                  {PRODUCER_TYPE_NAMES[producer.type]}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-muted-foreground">标签</div>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {producer.tags.map((tag) => (
+                                    <Badge key={tag.id} variant="secondary">
+                                      {tag.name}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                onClick={() =>
+                                  setEditingProducer({
+                                    id: producer.id,
+                                    name: producer.name,
+                                    type: producer.type,
+                                    producerId: producer.producerId || '',
+                                    tags: producer.tags
+                                  })
+                                }
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                title="双击卡片也可以编辑"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(producer.id, producer.name || '')
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </ScrollArea>
+              <Button
+                onClick={handleAdd}
+                className="mt-4 w-full"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                添加新制作者
+              </Button>
+            </div>
           </TabsContent>
 
           <TabsContent value="tags" className="mt-4">
             <div className="space-y-4">
-              <div className="flex items-end gap-2">
-                <div className="flex gap-2 flex-1">
+              <div className="flex flex-col md:flex-row items-start md:items-end gap-2">
+                <div className="w-full md:flex-1 space-y-2 md:space-y-0 md:space-x-2">
                   <Input
                     placeholder="标签名称"
                     value={newTagName}
                     onChange={(e) => setNewTagName(e.target.value)}
+                    className="w-full md:w-auto"
                   />
                   <Input
                     placeholder="备注（可选）"
                     value={newTagRemark}
                     onChange={(e) => setNewTagRemark(e.target.value)}
+                    className="w-full md:w-auto"
                   />
                 </div>
-                <Button onClick={handleAddTag}>
+                <Button onClick={handleAddTag} className="w-full md:w-auto">
                   <Plus className="h-4 w-4 mr-1" />
                   添加
                 </Button>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>标签名称</TableHead>
-                    <TableHead>备注</TableHead>
-                    <TableHead className="w-24">操作</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tags.map((tag) => (
-                    <TableRow key={tag.id}>
-                      <TableCell>{tag.name}</TableCell>
-                      <TableCell>{tag.remark}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteTag(tag.id, tag.name)}
-                        >
-                          删除
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <ScrollArea className="h-[60vh] w-full">
+                <div className="min-w-[480px] md:min-w-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[160px] md:w-[30%]">标签名称</TableHead>
+                        <TableHead className="w-[220px] md:w-[50%]">备注</TableHead>
+                        <TableHead className="w-[100px] md:w-[20%] text-right">操作</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {tags.map((tag) => (
+                        <TableRow key={tag.id}>
+                          <TableCell>{tag.name}</TableCell>
+                          <TableCell>{tag.remark}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteTag(tag.id, tag.name)}
+                            >
+                              删除
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </ScrollArea>
             </div>
           </TabsContent>
         </Tabs>
