@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 // 定义支持的媒体类型扩展名
 const VIDEO_EXTENSIONS = ['.mp4', '.mov'];
-const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif'];
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif',];
 
 // 构建媒体类型的 OR 条件
 const getMediaTypeCondition = (type: 'image' | 'video' | null) => {

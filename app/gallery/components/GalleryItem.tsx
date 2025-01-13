@@ -82,7 +82,7 @@ export const GalleryItem = ({ image }: Props) => {
             ) : (
                 <PhotoView src={imageUrl}>
                         <Image
-                            className="transform transition-transform duration-300 group-hover:scale-105"
+                            className="transform transition-transform duration-300 group-hover:scale-105 max-h-[600px]"
                             src={imageUrl}
                             alt={image.originSrc ?? image.id.toString()}
                             width={image?.width??undefined}
