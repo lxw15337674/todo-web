@@ -39,10 +39,17 @@ export const GalleryItem = ({ image }: Props) => {
     const handleProducerClick = () => {
         const platform = image.post?.platform ?? 'WEIBO'
         const userId = image.post?.userId ?? image.userId
+        if (!userId) return
 
         switch (platform) {
             case 'WEIBO':
-                window.open(`https://weibo.com/u/${userId}`, '_blank')
+                // If userId is not a pure number, it's a super topic
+                if (/^\d+$/.test(userId)) {
+                    window.open(`https://weibo.com/u/${userId}`, '_blank')
+
+                } else {
+                    window.open(`https://weibo.com/p/${userId}`, '_blank')
+                }
                 break
             case 'XIAOHONGSHU':
                 window.open(`https://www.xiaohongshu.com/user/profile/${userId}`, '_blank')

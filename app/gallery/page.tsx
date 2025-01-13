@@ -219,7 +219,7 @@ export default function ImagePage() {
       </div>
 
       <PhotoProvider>
-        <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 6 }} spacing={1} >
+        <Masonry columns={{ xs: 2, sm: 2, md: 3, lg: 4, xl: 6 }} spacing={1} >
           {(images ?? []).map((image: MediaWithRelations, index: number) => (
             <GalleryItem
               key={image.id}
