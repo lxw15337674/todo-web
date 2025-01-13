@@ -4,38 +4,39 @@ import { Media, Prisma, PrismaClient, UploadStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// 获取总数的独立函数
+// 定义支持的媒体类型扩展名
+const VIDEO_EXTENSIONS = ['.mp4', '.mov'];
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif'];
+
+// 构建媒体类型的 OR 条件
+const getMediaTypeCondition = (type: 'image' | 'video' | null) => {
+  if (!type) return {};
+  
+  const extensions = type === 'video' ? VIDEO_EXTENSIONS : IMAGE_EXTENSIONS;
+  return {
+    OR: extensions.map(ext => ({
+      galleryMediaUrl: { endsWith: ext }
+    }))
+  };
+};
+
+// 构建基础的 where 子句
+const getBaseWhereClause = (producerId: string | null, type: 'image' | 'video' | null) => ({
+  deletedAt: null,
+  status: UploadStatus.UPLOADED,
+  ...(producerId ? { producerId } : {}),
+  ...getMediaTypeCondition(type)
+});
+
 export async function getPicsCount(
   producerId: string | null,
   type: 'image' | 'video' | null = null
 ) {
   try {
-    const whereClause: Prisma.MediaWhereInput = {
-      deletedAt: null,
-      status: UploadStatus.UPLOADED,
-      ...(producerId ? { producerId } : {}),
-      ...(type ? type === 'video'
-        ? {
-          OR: [
-            { galleryMediaUrl: { endsWith: '.mp4' } },
-            { galleryMediaUrl: { endsWith: '.mov' } }
-          ]
-        }
-        : { OR: [
-            { galleryMediaUrl: { endsWith: '.jpg' } },
-            { galleryMediaUrl: { endsWith: '.jpeg' } },
-            { galleryMediaUrl: { endsWith: '.png' } },
-            { galleryMediaUrl: { endsWith: '.gif' } },
-            { galleryMediaUrl: { endsWith: '.webp' } },
-          { galleryMediaUrl: { endsWith: '.avif' } }
-          ]}
-      : {})
-    };
-    
-    const count =  await prisma.media.count({
-      where: whereClause,
+    const count = await prisma.media.count({
+      where: getBaseWhereClause(producerId, type),
     });
-    console.log('count', count);  
+    console.log('count', count);
     return count;
   } catch (error) {
     console.error('Failed to count media:', error instanceof Error ? error.message : error);
@@ -44,8 +45,8 @@ export async function getPicsCount(
 }
 
 export async function getPics(
-  page: number, 
-  pageSize: number, 
+  page: number,
+  pageSize: number,
   producerId: string | null,
   sort: 'asc' | 'desc' = 'desc',
   type: 'image' | 'video' | null = null
@@ -53,30 +54,11 @@ export async function getPics(
   try {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
-    const whereClause: Prisma.MediaWhereInput = {
-      deletedAt: null,
-      status: UploadStatus.UPLOADED,
-      ...(producerId ? { producerId } : {}),
-      ...(type ? type === 'video'
-        ? { OR: [
-            { galleryMediaUrl: { endsWith: '.mp4' } },
-            { galleryMediaUrl: { endsWith: '.mov' } }
-          ]}
-        : { OR: [
-            { galleryMediaUrl: { endsWith: '.jpg' } },
-            { galleryMediaUrl: { endsWith: '.jpeg' } },
-            { galleryMediaUrl: { endsWith: '.png' } },
-            { galleryMediaUrl: { endsWith: '.gif' } },
-            { galleryMediaUrl: { endsWith: '.webp' } },
-              { galleryMediaUrl: { endsWith: '.avif' } }
-          ]}
-      : {})
-    };
-    
+
     const items = await prisma.media.findMany({
       skip,
       take,
-      where: whereClause,
+      where: getBaseWhereClause(producerId, type),
       orderBy: { createTime: sort },
       include: {
         producer: true,
