@@ -35,12 +35,12 @@ export const GalleryItem = ({ image }: Props) => {
         }
     }
     const imageUrl = image.galleryMediaUrl ?? image.originMediaUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`
-    
+
     const handleProducerClick = () => {
         const platform = image.post?.platform ?? 'WEIBO'
         const userId = image.post?.userId ?? image.userId
-        
-        switch(platform) {
+
+        switch (platform) {
             case 'WEIBO':
                 window.open(`https://weibo.com/u/${userId}`, '_blank')
                 break
@@ -58,10 +58,10 @@ export const GalleryItem = ({ image }: Props) => {
             className={`relative group overflow-hidden`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            // style={{
-            //     width: image?.width??undefined,
-            //     height: image?.height??undefined
-            // }}
+        // style={{
+        //     width: image?.width??undefined,
+        //     height: image?.height??undefined
+        // }}
         >
             {image.galleryMediaUrl && VIDEO_EXTENSIONS.some(ext => image.galleryMediaUrl?.endsWith(ext)) ? (
                 <div className="relative">
@@ -70,25 +70,26 @@ export const GalleryItem = ({ image }: Props) => {
                         src={image.galleryMediaUrl}
                         loop
                         muted
-                        width={image?.width??undefined}
-                        height={image?.height??undefined}
+                        width={image?.width ?? undefined}
+                        height={image?.height ?? undefined}
                         playsInline
                         className="w-full h-auto transform transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute top-2 left-2 bg-black/50 p-2 ">
-                        <Video className="h-4 w-4 text-white" />
+                        <Video className=" text-white" width={image?.width ?? undefined}
+                            height={image?.height ?? undefined} />
                     </div>
                 </div>
             ) : (
                 <PhotoView src={imageUrl}>
-                        <Image
-                            className="transform transition-transform duration-300 group-hover:scale-105 max-h-[600px]"
-                            src={imageUrl}
-                            alt={image.originSrc ?? image.id.toString()}
-                            width={image?.width??undefined}
-                            height={image?.height??undefined}
-                            loading="lazy"
-                        />
+                    <Image
+                        className="transform transition-transform duration-300 group-hover:scale-105 max-h-[600px]"
+                        src={imageUrl}
+                        alt={image.originSrc ?? image.id.toString()}
+                        width={image?.width ?? undefined}
+                        height={image?.height ?? undefined}
+                        loading="lazy"
+                    />
                 </PhotoView>
             )}
             <div className="absolute duration-300 bottom-0 right-0 p-2 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity w-full">
