@@ -25,11 +25,13 @@ type MediaWithRelations = Media & {
 interface GalleryState {
   producer: string | null
   sort: 'asc' | 'desc'
+  type: 'all' | 'image' | 'video'
 }
 
 const DEFAULT_STATE: GalleryState = {
   producer: null,
-  sort: 'desc'
+  sort: 'desc',
+  type: 'image'
 }
 const cacheKey = 'gallery-producers'
 
@@ -48,7 +50,13 @@ export default function ImagePage() {
 
   const { data: images = [], loading, run: loadImages } = useRequest<MediaWithRelations[], [number]>(
     async (page: number): Promise<MediaWithRelations[]> => {
-      const result = await getPics(page, PAGE_SIZE, state?.producer ?? null, state?.sort ?? 'desc')
+      const result = await getPics(
+        page, 
+        PAGE_SIZE, 
+        state?.producer ?? null, 
+        state?.sort ?? 'desc',
+        state?.type === 'all' ? null : state?.type ?? null
+      )
       return page === 1 ? result : [...(images ?? []), ...result]
     },
     { 
@@ -58,7 +66,7 @@ export default function ImagePage() {
   )
   
   const { data: total = 0, run: fetchTotal } = useRequest(
-    () => getPicsCount(state?.producer ?? null),
+    () => getPicsCount(state?.producer ?? null, state?.type === 'all' ? null : state?.type ?? null),
     { 
       manual: true,
       cacheKey: `gallery-total-${state?.producer}`,
@@ -117,7 +125,7 @@ export default function ImagePage() {
     pageRef.current = 1
     fetchTotal()
     loadImages(1)
-  }, [state?.producer, state?.sort, fetchTotal, loadImages])
+  }, [state])
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useSessionStorageState('producer-dialog-open', {
@@ -132,7 +140,8 @@ export default function ImagePage() {
             value={state?.producer ?? 'all'} 
             onValueChange={value => setState(prev => ({
               producer: value === 'all' ? null : value,
-              sort: (prev ?? DEFAULT_STATE).sort
+              sort: (prev ?? DEFAULT_STATE).sort,
+              type: (prev ?? DEFAULT_STATE).type
             }))}
           >
             <SelectTrigger className="w-full sm:w-[180px] my-1 sm:my-2">
@@ -158,7 +167,8 @@ export default function ImagePage() {
             value={state?.sort ?? 'desc'} 
             onValueChange={sort => setState(prev => ({
               producer: (prev ?? DEFAULT_STATE).producer,
-              sort: sort as 'asc' | 'desc'
+              sort: sort as 'asc' | 'desc',
+              type: (prev ?? DEFAULT_STATE).type
             }))}
           >
             <SelectTrigger className="w-full sm:w-[120px] my-1 sm:my-2">
@@ -171,10 +181,29 @@ export default function ImagePage() {
               </SelectGroup>
             </SelectContent>
           </Select>
+
+          <Select 
+            value={state?.type ?? 'all'} 
+            onValueChange={type => setState(prev => ({
+              ...prev ?? DEFAULT_STATE,
+              type: type as 'all' | 'image' | 'video'
+            }))}
+          >
+            <SelectTrigger className="w-full sm:w-[120px] my-1 sm:my-2">
+              <SelectValue placeholder="媒体类型" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="all">全部</SelectItem>
+                <SelectItem value="image">图片</SelectItem>
+                <SelectItem value="video">视频</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto text-sm text-muted-foreground">
-          <div>共 {total} 张图片</div>
+          <div>共 {total} 个媒体文件</div>
           <div className="sm:ml-auto">
             已爬取 {stats?.uploaded ?? 0} 帖子 · 待爬取 {stats?.pending ?? 0} 帖子
           </div>
@@ -206,7 +235,7 @@ export default function ImagePage() {
         {loading && <p className="text-muted-foreground">加载中...</p>}
         {!loading && images.length > 0 && (
           <p className="text-muted-foreground">
-            ---- 已加载 {images.length} / {total} 张图片 ----
+            ---- 已加载 {images.length} / {total} 个媒体文件 ----
           </p>
         )}
       </div>
