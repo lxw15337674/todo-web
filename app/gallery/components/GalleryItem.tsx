@@ -34,7 +34,6 @@ export const GalleryItem = ({ image }: Props) => {
             videoRef.current.currentTime = 0
         }
     }
-    const imageUrl = image.galleryMediaUrl ?? image.originMediaUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`
 
     const handleProducerClick = () => {
         const platform = image.post?.platform ?? 'WEIBO'
@@ -88,10 +87,10 @@ export const GalleryItem = ({ image }: Props) => {
                     </div>
                 </div>
             ) : (
-                <PhotoView src={imageUrl}>
+                    <PhotoView src={image.originMediaUrl ?? image.thumbnailUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}>
                     <Image
-                        className="transform transition-transform duration-300 group-hover:scale-105 max-h-[600px]"
-                        src={imageUrl}
+                        className="transform transition-transform duration-300 group-hover:scale-105 max-h-[800px]"
+                        src={image.thumbnailUrl ?? image.originMediaUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}
                         alt={image.originSrc ?? image.id.toString()}
                         width={image?.width ?? undefined}
                         height={image?.height ?? undefined}

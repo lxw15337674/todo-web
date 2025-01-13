@@ -15,7 +15,7 @@
     "type-check": "bun run tsc --noEmit",
     "lint": "bun run eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "format": "bun run prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
-    "migrate": "bun run prisma db push && bun run prisma generate",
+    "migrate": "bun run prisma db pull && bun run prisma generate",
     "test": "bun test"
   },
   "dependencies": {
