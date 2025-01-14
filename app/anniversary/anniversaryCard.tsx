@@ -2,7 +2,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Anniversary } from '@prisma/client';
 import dayjs from 'dayjs';
-import { ToastAction } from '../ui/toast';
 
 interface AnniversaryCardProps {
     anniversary: Anniversary;
