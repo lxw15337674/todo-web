@@ -42,7 +42,7 @@ export default function ImagePage() {
     defaultValue: DEFAULT_STATE 
   })
 
-  let { data: images = [], loading, run: loadImages } = useRequest<MediaWithRelations[], [number]>(
+  const { data: images = [], loading, run: loadImages } = useRequest<MediaWithRelations[], [number]>(
     async (page: number): Promise<MediaWithRelations[]> => {
       const result = await getPics(
         page, 
