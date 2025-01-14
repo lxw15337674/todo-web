@@ -1,8 +1,8 @@
 'use server';
 
-import { Media, Prisma, PrismaClient, UploadStatus } from '@prisma/client';
+import { UploadStatus } from '@prisma/client';
+import prisma from '../prisma';
 
-const prisma = new PrismaClient();
 
 // 定义支持的媒体类型扩展名
 const VIDEO_EXTENSIONS = ['.mp4', '.mov'];

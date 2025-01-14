@@ -16,15 +16,15 @@ import {
   deleteTrackItem,
   deleteTrackMeta,
   updateTrackMeta,
-} from '../../api/habitActions';
-import { Track } from '../../../app/habit/page';
+} from '../../src/api/habitActions';
+import { Track } from './page';
 import { Updater } from 'use-immer';
 import { useCountUp } from 'use-count-up';
-import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
+import { Button } from '../../src/components/ui/button';
+import { Progress } from '../../src/components/ui/progress';
 import { useMemoizedFn } from 'ahooks';
-import { Calendar } from '../ui/calendar';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../ui/sheet';
+import { Calendar } from '../../src/components/ui/calendar';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../../src/components/ui/sheet';
 import dayjs from 'dayjs';
 import {
   Timeline,
@@ -35,24 +35,24 @@ import {
   timelineItemClasses,
   TimelineSeparator,
 } from '@mui/lab';
-import { ScrollArea } from '../ui/scroll-area';
+import { ScrollArea } from '../../src/components/ui/scroll-area';
 import { zhCN } from 'date-fns/locale';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { useToast } from '../../hooks/use-toast';
+} from '../../src/components/ui/dropdown-menu';
+import { useToast } from '../../src/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
-import { TimePicker } from '../ui/TimePicker';
-import { startConfettiAnimation } from '../../lib/utils';
+} from '../../src/components/ui/dialog';
+import { TimePicker } from '../../src/components/ui/TimePicker';
+import { startConfettiAnimation } from '../../src/lib/utils';
 import { cn } from '@/lib/utils';
 
 interface HabitCardProps {

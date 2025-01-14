@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { CompleteBookmark, deleteBookmark, summarizeBookmark } from "../../api/bookmark"
+import { CompleteBookmark, deleteBookmark, summarizeBookmark } from "../../src/api/bookmark"
 import { Ellipsis } from "lucide-react";
-import { Button } from "../ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { useToast } from "../../hooks/use-toast";
+import { Button } from "../../src/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../src/components/ui/dropdown-menu";
+import { useToast } from "../../src/hooks/use-toast";
 import dayjs from "dayjs";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "../ui/hover-card";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "../../src/components/ui/hover-card";
 import { useState } from "react";
 import Image from "next/image"
 

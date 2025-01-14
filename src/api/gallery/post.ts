@@ -1,6 +1,6 @@
 'use server';
 import { Platform, UploadStatus } from "@prisma/client";
-import prisma from "@/lib/prisma";
+import prisma from "../prisma";
 
 interface GetPostCountParams {
   userId?: string;

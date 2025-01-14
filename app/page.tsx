@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { EfficiencyTools } from '../src/config/RouterConfig';
+import { Apps } from './RouterConfig';
 
 export default function Home() {
-  return redirect(EfficiencyTools[0].url);
+  return redirect(Apps[0].url);
 }

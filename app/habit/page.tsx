@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { TrackItem, TrackMeta } from '@prisma/client';
 import { useMount } from 'ahooks';
 import { useImmer } from 'use-immer';
-import HabitCard from '../../src/components/habit/HabitCard';
+import HabitCard from './HabitCard';
 import { createTrackMeta, fetchTrackMetas } from '@/api/habitActions'
 
 

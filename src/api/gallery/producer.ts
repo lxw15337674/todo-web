@@ -1,9 +1,8 @@
 'use server';
-import { PrismaClient, Producer, ProducerTag } from '@prisma/client';
+import {  Producer, ProducerTag } from '@prisma/client';
 import { NewProducer, UpdateProducer } from './type';
+import prisma from '../prisma';
 
-// 使用单例模式避免多次创建连接
-const prisma = new PrismaClient();
 
 // 通用的Producer查询配置
 const defaultProducerInclude = {

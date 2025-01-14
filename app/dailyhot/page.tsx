@@ -1,6 +1,6 @@
 import React from 'react';
 import DailyHotCard from './DailyHotCard';
-import { news } from '../../src/config/dailyhotConfig';
+import { news } from './dailyhotConfig';
 import { IData } from '@/api/dailyhot';
 import axios from 'axios';
 

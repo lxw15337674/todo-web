@@ -7,7 +7,7 @@ import { Separator } from '../src/components/ui/separator';
 import { LayoutGrid, Github } from 'lucide-react'; // 新增导入
 import { usePathname } from 'next/navigation';
 import { Toaster } from '../src/components/ui/toaster';
-import { Apps, Links } from '../src/config/RouterConfig';
+import { Apps, Links } from './RouterConfig';
 import Link from 'next/link';
 import { usePermission } from '../src/hooks/usePermission';
 import { cn } from "@/lib/utils"

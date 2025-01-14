@@ -6,11 +6,11 @@ import { useImmer } from 'use-immer';
 import { startConfettiAnimation } from '../../src/lib/utils'
 import { createNewAnniversary, deleteAnniversary, getAnniversary, NewAnniversary } from '../../src/api/anniversary'
 import useLocalStorageRequest from '../../src/hooks/useLocalStorageRequest'
-import AnniversaryCard from '../../src/components/anniversary/anniversaryCard'
 import { useToast } from '../../src/hooks/use-toast'
 import { ToastAction } from '../../src/components/ui/toast'
 import { DatePicker } from '../../src/components/ui/datePicker'
 import dayjs from 'dayjs';
+import AnniversaryCard from './anniversaryCard';
 
 
 export default function TaskManagement() {

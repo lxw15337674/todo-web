@@ -2,8 +2,8 @@
 import { useState } from "react"
 import { Search, X } from 'lucide-react'
 import { Input } from "@/components/ui/input"
-import { BookmarkCard } from "../../src/components/bookmark/BookmarkCard"
-import NewBookmarkCard from "../../src/components/bookmark/NewBookMarkCard"
+import { BookmarkCard } from "./BookmarkCard"
+import NewBookmarkCard from "./NewBookMarkCard"
 import { useMemoizedFn } from "ahooks"
 import { BookmarkTagWithCount, getAllBookmarks, getSingleBookmark } from "../../src/api/bookmark"
 import { Bookmark } from "@prisma/client"

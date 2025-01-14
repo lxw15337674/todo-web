@@ -2,12 +2,12 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { useState } from "react"
 import { Bookmark } from "@prisma/client"
-import { Button } from "../ui/button"
-import { useToast } from "../../hooks/use-toast"
+import { Button } from "../../src/components/ui/button"
+import { useToast } from "../../src/hooks/use-toast"
 import { createBookmark } from "@/api/bookmark"
-import { Textarea } from "../ui/textarea"
+import { Textarea } from "../../src/components/ui/textarea"
 import { useEventListener, useInterval, useMount } from "ahooks"
-import { isBrowser, startConfettiAnimation } from "../../lib/utils"
+import { isBrowser, startConfettiAnimation } from "../../src/lib/utils"
 import dayjs from 'dayjs';
 
 interface BookmarkCardProps {
