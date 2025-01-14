@@ -98,7 +98,7 @@ export const GalleryItem = ({ image }: Props) => {
                     />
                 </PhotoView>
             )}
-            <div className="absolute duration-300 bottom-0 right-0 p-1 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity w-full">
+            <div className="absolute duration-300 bottom-0 right-0 p-1 pb-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity w-full">
                 <div className="flex justify-between items-center">
                     <span
                         className="text-white text-sm hover:underline cursor-pointer"
