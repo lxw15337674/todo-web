@@ -12,7 +12,6 @@ import { UploadStatus } from "@prisma/client"
 import { GalleryItem } from './components/GalleryItem'
 import { useRequest, useSessionStorageState } from "ahooks"
 import { getPostCount } from "@/api/gallery/post"
-import { safeSessionStorage } from "@/lib/utils"
 import { Media, Producer, Post } from '@prisma/client'
 
 const PAGE_SIZE = 5*6
@@ -37,18 +36,13 @@ const cacheKey = 'gallery-producers'
 
 export default function ImagePage() {
   const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
-    cacheKey,
-    setCache: (data) => safeSessionStorage.setItem(cacheKey, JSON.stringify(data)),
-    getCache: () => {
-      const cached = safeSessionStorage.getItem(cacheKey);
-      return cached ? JSON.parse(cached) : {};
-    },
+    cacheKey
   })
   const [state, setState] = useSessionStorageState<GalleryState>('gallery-state', { 
     defaultValue: DEFAULT_STATE 
   })
 
-  const { data: images = [], loading, run: loadImages } = useRequest<MediaWithRelations[], [number]>(
+  let { data: images = [], loading, run: loadImages } = useRequest<MediaWithRelations[], [number]>(
     async (page: number): Promise<MediaWithRelations[]> => {
       const result = await getPics(
         page, 
@@ -65,16 +59,10 @@ export default function ImagePage() {
     }
   )
   
-  const { data: total = 0, run: fetchTotal } = useRequest(
+  const { data: total = 0 } = useRequest(
     () => getPicsCount(state?.producer ?? null, state?.type === 'all' ? null : state?.type ?? null),
     { 
-      manual: true,
-      cacheKey: `gallery-total-${state?.producer}`,
-      setCache: (data) => safeSessionStorage.setItem(`gallery-total-${state?.producer}`, JSON.stringify(data)),
-      getCache: () => {
-        const cached = safeSessionStorage.getItem(`gallery-total-${state?.producer}`);
-        return cached ? JSON.parse(cached) : 0;
-      }
+      refreshDeps: [state],
     }
   )
 
@@ -88,12 +76,6 @@ export default function ImagePage() {
     },
     { 
       refreshDeps: [state?.producer],
-      cacheKey: `gallery-stats-${state?.producer}`,
-      setCache: (data) => safeSessionStorage.setItem(`gallery-stats-${state?.producer}`, JSON.stringify(data)),
-      getCache: () => {
-        const cached = safeSessionStorage.getItem(`gallery-stats-${state?.producer}`);
-        return cached ? JSON.parse(cached) : { uploaded: 0, pending: 0 };
-      }
     }
   )
 
@@ -123,7 +105,6 @@ export default function ImagePage() {
   // Reset and reload on filter change
   useEffect(() => {
     pageRef.current = 1
-    fetchTotal()
     loadImages(1)
   }, [state])
 
@@ -131,7 +112,8 @@ export default function ImagePage() {
   const [dialogOpen, setDialogOpen] = useSessionStorageState('producer-dialog-open', {
     defaultValue: false
   })
-
+  
+  
   return (
     <div className="space-y-2 p-2">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
@@ -233,7 +215,7 @@ export default function ImagePage() {
 
       <div ref={loadingRef} className="py-4 text-center">
         {loading && <p className="text-muted-foreground">加载中...</p>}
-        {!loading && images.length > 0 && (
+          {!loading && images.length > 0 && (
           <p className="text-muted-foreground">
             ---- 已加载 {images.length} / {total} 个媒体文件 ----
           </p>

@@ -2,31 +2,47 @@
 import { PrismaClient, Producer, ProducerTag } from '@prisma/client';
 import { NewProducer, UpdateProducer } from './type';
 
-
+// 使用单例模式避免多次创建连接
 const prisma = new PrismaClient();
+
+// 通用的Producer查询配置
+const defaultProducerInclude = {
+  ProducerToProducerTag: {
+    include: {
+      ProducerTag: true
+    }
+  }
+} as const;
+
+// 通用的转换函数
+const mapProducerWithTags = (producer: Producer & { ProducerToProducerTag: { ProducerTag: ProducerTag }[] }) => ({
+  ...producer,
+  tags: producer.ProducerToProducerTag.map(p => p.ProducerTag)
+});
 
 export const createProducer = async (data: NewProducer): Promise<Producer> => {
   return await prisma.producer.create({
-    data
-  });
+    data,
+    include: defaultProducerInclude
+  }).then(mapProducerWithTags);
 };
 
 export const getProducers = async (): Promise<(Producer & { tags: ProducerTag[] })[]> => {
-  return await prisma.producer.findMany({
+  const producers = await prisma.producer.findMany({
     where: {
       deletedAt: null,
     },
     orderBy: {
       createTime: 'desc'
     },
-    include: {
-      tags: true
-    }
+    include: defaultProducerInclude
   });
+
+  return producers.map(mapProducerWithTags);
 };
 
 export const getProducersWithCount = async (): Promise<(Producer & { tags: ProducerTag[], mediaCount: number, postCount: number })[]> => {
-  return await prisma.producer.findMany({
+  const producers = await prisma.producer.findMany({
     where: {
       deletedAt: null,
     },
@@ -34,7 +50,7 @@ export const getProducersWithCount = async (): Promise<(Producer & { tags: Produ
       createTime: 'asc'
     },
     include: {
-      tags: true,
+      ...defaultProducerInclude,
       _count: {
         select: {
           medias: {
@@ -50,23 +66,20 @@ export const getProducersWithCount = async (): Promise<(Producer & { tags: Produ
         }
       }
     }
-  }).then(producers => {
-    const mapped = producers.map(({ _count, ...producer }) => {
-      const result = {
-        ...producer,
-        mediaCount: _count.medias,
-        postCount: _count.posts
-      };
-      return result;
-    });
-    return mapped;
   });
+
+  return producers.map((producer) => ({
+    ...mapProducerWithTags(producer),
+    mediaCount: producer._count.medias,
+    postCount: producer._count.posts
+  }));
 };
 
 export const getProducerById = async (id: string) => {
   return await prisma.producer.findUnique({
-    where: { id }
-  });
+    where: { id },
+    include: defaultProducerInclude
+  }).then(producer => producer ? mapProducerWithTags(producer) : null);
 };
 
 export const updateProducer = async (data: UpdateProducer) => {
@@ -77,10 +90,8 @@ export const updateProducer = async (data: UpdateProducer) => {
       ...updateData,
       updateTime: new Date()
     },
-    include: {
-      tags: true
-    }
-  });
+    include: defaultProducerInclude
+  }).then(mapProducerWithTags);
 };
 
 export const deleteProducer = async (id: string) => {
@@ -119,16 +130,28 @@ export const deleteProducerTag = async (id: string) => {
 };
 
 export const updateProducerTags = async (producerId: string, tagIds: string[]) => {
-  return await prisma.producer.update({
-    where: { id: producerId },
-    data: {
-      tags: {
-        set: tagIds.map(id => ({ id }))
+  return await prisma.$transaction(async (tx) => {
+    // 删除现有关联
+    await tx.producerToProducerTag.deleteMany({
+      where: {
+        A: producerId
       }
-    },
-    include: {
-      tags: true
-    }
+    });
+
+    // 创建新关联并返回更新后的结果
+    const producer = await tx.producer.update({
+      where: { id: producerId },
+      data: {
+        ProducerToProducerTag: {
+          create: tagIds.map(tagId => ({
+            B: tagId
+          }))
+        }
+      },
+      include: defaultProducerInclude
+    });
+
+    return mapProducerWithTags(producer);
   });
 };
 

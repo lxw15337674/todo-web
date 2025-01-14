@@ -101,12 +101,12 @@ model Media {
 
 model Producer {
   id                    String                  @id @default(cuid())
-  name                  String?
   createTime            DateTime                @default(now())
   updateTime            DateTime                @default(now()) @updatedAt
   deletedAt             DateTime?
-  type                  ProducerType            @default(WEIBO_PERSONAL)
+  name                  String?
   producerId            String?
+  type                  ProducerType            @default(WEIBO_PERSONAL)
   lastPostTime          DateTime?
   medias                Media[]                 @relation("Media")
   posts                 Post[]                  @relation("ProducerPosts")
