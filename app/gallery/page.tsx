@@ -17,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
 
-const PAGE_SIZE = 5*6
+const PAGE_SIZE = 10*6
 
 type MediaWithRelations = Media & {
   producer: Producer | null
