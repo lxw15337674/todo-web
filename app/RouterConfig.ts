@@ -10,7 +10,8 @@ import {
   BookOpen,
   StickyNote,
   History,
-  Music
+  Music,
+  MessageCircle
 } from 'lucide-react';
 
 interface MenuItem {
@@ -60,6 +61,7 @@ export const Apps: MenuItem[] = [
     url: '/dailyhot',
     icon: Newspaper
   },
+  {name:'命令聊天',url:'/chat',icon:MessageCircle}
 ];
 
 export const Links: MenuItem[] = [

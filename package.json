@@ -9,14 +9,14 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "cross-env bun run next dev -p 8080 --turbo",
-    "build": "bun run prisma generate && bun run next build",
-    "start": "bun run dev",
-    "type-check": "bun run tsc --noEmit",
-    "lint": "bun run eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
-    "format": "bun run prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
-    "migrate": "bun run prisma db pull && bun run prisma generate",
-    "test": "bun test"
+    "dev": "cross-env next dev -p 8080 ",
+    "build": "npx prisma generate && npx next build",
+    "start": "pnpm dev",
+    "type-check": " tsc --noEmit",
+    "lint": " eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
+    "format": " prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
+    "migrate": "npx prisma db pull && npx prisma generate",
+    "test": "vitest"
   },
   "dependencies": {
     "@emotion/cache": "11.13.5",
@@ -48,7 +48,6 @@
     "@vercel/speed-insights": "1.0.10",
     "ahooks": "3.7.10",
     "axios": "1.7.4",
-    "babel-plugin-react-compiler": "19.0.0-beta-0dec889-20241115",
     "canvas-confetti": "1.9.3",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
@@ -56,6 +55,7 @@
     "cross-env": "7.0.3",
     "date-fns": "4.1.0",
     "dayjs": "1.11.9",
+    "decimal.js": "10.4.3",
     "immer": "10.1.1",
     "lucide-react": "0.461.0",
     "next": "15.1.2",
@@ -74,7 +74,7 @@
     "use-count-up": "3.0.1",
     "use-immer": "0.10.0",
     "vaul": "1.1.1",
-    "xgplayer": "^3.0.20",
+    "vitest": "2.1.8",
     "zustand": "4.4.1",
     "zustand-middleware-computed": "1.2.1"
   },

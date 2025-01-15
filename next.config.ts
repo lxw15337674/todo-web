@@ -15,7 +15,6 @@ const nextConfig = withSerwist({
     ignoreBuildErrors: true,
   },
   experimental: {
-    reactCompiler: true,
     largePageDataBytes: 512 * 100000,
   },
   images: {

@@ -5,7 +5,7 @@
       "name": "Next.js: debug server-side",
       "type": "node-terminal",
       "request": "launch",
-      "command": "bun run dev"
+      "command": "pnpm dev"
     },
     {
       "name": "Next.js: debug client-side",
@@ -18,7 +18,7 @@
       "name": "Next.js: debug full stack",
       "type": "node-terminal",
       "request": "launch",
-      "command": "bun run dev",
+      "command": "pnpm dev",
       "sourceMaps": true,
       "serverReadyAction": {
         "pattern": "- Local:.+(https?://.+)",
@@ -30,7 +30,7 @@
     "name": "Bun:debug tests",
     "type": "node-terminal",
     "request": "launch",
-    "command": "bun debug test",
+    "command": "pnpm debug test",
     "sourceMaps": true,
     "internalConsoleOptions": "openOnSessionStart"
   }
