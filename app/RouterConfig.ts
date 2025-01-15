@@ -9,7 +9,8 @@ import {
   Newspaper,
   BookOpen,
   StickyNote,
-  History
+  History,
+  Music
 } from 'lucide-react';
 
 interface MenuItem {
@@ -77,4 +78,9 @@ export const Links: MenuItem[] = [
     url: 'https://weibo-trending-hot-history.vercel.app',
     icon: History
   },
+  {
+    name:'b站音频下载',
+    url:'https://bilibili-audio-downloader.vercel.app',
+    icon: Music
+  }
 ];
