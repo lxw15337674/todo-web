@@ -45,26 +45,32 @@ export default function TaskManagement() {
     });
 
     return (
-        <>
-            <div className="flex flex-col ">
-                <header className=" border-b p-4">
-                    <div className="flex items-center gap-2 flex-1 max-w-lg ml-auto ">
-                        <Input
-                            value={newTask.name}
-                            onChange={(e) => setNewTask(draft => {
-                                draft.name = e.target.value;
-                            })}
-                            placeholder="输入内容"
-                        />
-                        <Button onClick={handleAddTask} variant="ghost" className=" text-muted-foreground px-2" >
-                            <Plus className="h-4 w-4" />
-                            添加打卡
+        <div className="container mx-auto py-6">
+            <div className="flex flex-col space-y-6">
+                <div className="flex flex-col space-y-4">
+                    <div className="flex items-center gap-4 p-4 bg-card rounded-lg border shadow-sm">
+                        <div className="flex-1">
+                            <Input
+                                value={newTask.name}
+                                onChange={(e) => setNewTask(draft => {
+                                    draft.name = e.target.value;
+                                })}
+                                placeholder="输入新习惯名称"
+                                className="h-11"
+                            />
+                        </div>
+                        <Button 
+                            onClick={handleAddTask} 
+                            size="lg"
+                            className="px-6"
+                        >
+                            <Plus className="h-5 w-5 mr-2" />
+                            添加习惯
                         </Button>
                     </div>
-                </header>
-                <ScrollArea className="flex-1 p-4">
-                    <div className="space-y-4">
-                        <div className='grid grid-cols-1 sm:grid-cols-2  gap-4'>
+                    
+                    <ScrollArea className="flex-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {tasks.map(task => (
                                 <HabitCard
                                     key={task.id}
@@ -72,13 +78,11 @@ export default function TaskManagement() {
                                     setTasks={setTasks}
                                 />
                             ))}
-
                         </div>
-                    </div>
-
-                </ScrollArea>
+                    </ScrollArea>
+                </div>
             </div>
-        </>
+        </div>
     )
 }
 

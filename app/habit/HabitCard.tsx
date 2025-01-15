@@ -84,31 +84,35 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
   }, []);
 
   const isTaskCompletedToday = useMemo(() => {
+    if (!isClient) return false;
     const today = dayjs().format('YYYY-MM-DD');
     return task.countItems.some(
       (item) => dayjs(item.createTime).format('YYYY-MM-DD') === today,
     );
-  }, [task.countItems]);
+  }, [task.countItems, isClient]);
 
   const lastTrackDate = useMemo(() => {
+    if (!isClient) return null;
     if (task.countItems.length === 0) return null;
     const lastItem = task.countItems[task.countItems.length - 1].createTime;
     return dayjs(lastItem).format('YYYY-MM-DD HH:mm');
-  }, [task.countItems]);
+  }, [task.countItems, isClient]);
 
   const markedDates = useMemo(() => {
+    if (!isClient) return [];
     return trackItems.map((item) => ({
       date: dayjs(item.createTime).toDate(),
       className: 'bg-green-500',
       datetime: dayjs(item.createTime).format('YYYY-MM-DD HH:mm:ss'),
     }));
-  }, [trackItems]);
+  }, [trackItems, isClient]);
 
   const monthlyTrackCount = useMemo(() => {
+    if (!isClient) return 0;
     return task.countItems.filter((item) =>
       dayjs(item.createTime).isSame(new Date(), 'month'),
     ).length;
-  }, [task.countItems]);
+  }, [task.countItems, isClient]);
 
   const totalTrackCount = useMemo(() => {
     return task.countItems.length;
@@ -199,194 +203,211 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
   });
 
   return (
-    <div suppressHydrationWarning={true}>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>补卡</DialogTitle>
-          </DialogHeader>
-          <TimePicker date={date} setDate={setDate} />
-          <DialogFooter>
-            <Button
-              type="submit"
-              onClick={() => {
-                setDialogOpen(false);
-                completeTodayTrack(task.id, date);
-              }}
-            >
-              保存
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="w-5/6 px-4 ">
-          <SheetHeader className="mb-2">
-            <SheetTitle className="flex justify-between items-center ">
-              {task.name}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="mr-4">
-                    <Ellipsis className="w-4 h-4 mx-auto " />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <>
-                    <DropdownMenuItem
-                      className="cursor-pointer text-red-500 dark:text-red-400"
-                      onClick={handleDelete}
-                    >
-                      删除
-                    </DropdownMenuItem>
-                  </>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </SheetTitle>
-          </SheetHeader>
-          <ScrollArea className="h-[calc(100vh-90px)] rounded-md ">
-            <div className="space-y-4 mr-4">
-              <div className="grid grid-cols-2 gap-4 ">
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="text-sm text-muted-foreground">总打卡</div>
-                    <div className="text-2xl font-bold mt-1">
-                      {totalTrackCount}
-                      <span className="text-sm font-normal ml-1">天</span>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="text-sm text-muted-foreground">
-                      当月打卡
-                    </div>
-                    <div className="text-2xl font-bold mt-1">
-                      {monthlyTrackCount}
-                      <span className="text-sm font-normal ml-1">天</span>
-                    </div>
-                  </CardContent>
-                </Card>
+    <div suppressHydrationWarning>
+      {isClient && (
+        <>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold">补卡</DialogTitle>
+              </DialogHeader>
+              <div className="py-6">
+                <TimePicker 
+                  date={date} 
+                  setDate={setDate}
+                />
               </div>
-              <Calendar
-                mode="multiple"
-                disabled={(date) => {
-                  return date > new Date();
-                }}
-                locale={zhCN}
-                selected={markedDates.map((item) => item.date)}
-                onDayClick={(day) => {
-                  onDayClick(day);
-                }}
-                className="rounded-md border w-full "
-              />
-
-              <Card className="px-4 py-4">
-                <Timeline
-                  position="right"
-                  sx={{
-                    [`& .${timelineItemClasses.root}:before`]: {
-                      flex: 0,
-                      padding: 0,
-                    },
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  onClick={() => {
+                    setDialogOpen(false);
+                    completeTodayTrack(task.id, date);
                   }}
                 >
-                  {trackItems.map((count, index) => (
-                    <TimelineItem key={count.id} className='relative'>
-                      <TimelineSeparator>
-                        <TimelineDot color="primary" />
-                        {index < trackItems.length - 1 && <TimelineConnector />}
-                      </TimelineSeparator>
-                      <TimelineContent>
-                        <div className="text-sm text-muted-foreground mb-2 ">
-                          第{trackItems.length - index}次
+                  确认补卡
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetContent className="w-[90%] sm:w-[540px] px-6">
+              <SheetHeader className="mb-6">
+                <SheetTitle className="flex justify-between items-center text-xl">
+                  <span className="font-semibold">{task.name}</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="hover:bg-destructive/10">
+                        <Ellipsis className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive cursor-pointer"
+                        onClick={handleDelete}
+                      >
+                        <XCircle className="w-4 h-4 mr-2" />
+                        删除任务
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="h-[calc(100vh-120px)] rounded-md pr-4">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Card className="bg-primary/5 border-none shadow-sm">
+                      <CardContent className="p-6">
+                        <div className="text-sm text-muted-foreground font-medium">总打卡</div>
+                        <div className="text-3xl font-bold mt-2 text-primary">
+                          {totalTrackCount}
+                          <span className="text-sm font-normal text-muted-foreground ml-1">天</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-primary/5 border-none shadow-sm">
+                      <CardContent className="p-6">
+                        <div className="text-sm text-muted-foreground font-medium">当月打卡</div>
+                        <div className="text-3xl font-bold mt-2 text-primary">
+                          {monthlyTrackCount}
+                          <span className="text-sm font-normal text-muted-foreground ml-1">天</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <Card className="border-none shadow-sm">
+                    <CardContent className="p-6">
+                      <Calendar
+                        mode="multiple"
+                        disabled={(date) => date > new Date()}
+                        locale={zhCN}
+                        selected={markedDates.map((item) => item.date)}
+                        onDayClick={onDayClick}
+                        className="rounded-lg"
+                      />
+                    </CardContent>
+                  </Card>
 
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {dayjs(count.createTime).format(
-                            'YYYY-MM-DD HH:mm:ss',
-                          )}
-                        </div>
-                        {/* 撤回 */}
-                        <Button variant="outline" size="icon" className="absolute right-0 top-0 text-muted-foreground h-8 w-8" onClick={() => handleDeleteItem(count.id)}>
-                          <CalendarOff className='h-4' />
-                        </Button>
-                      </TimelineContent>
-                    </TimelineItem>
-                  ))}
-                </Timeline>
-              </Card>
-            </div>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
-      <Card
-        key={task.id}
-        onMouseDown={startPressing}
-        onMouseUp={endPressing}
-        onMouseLeave={endPressing}
-        onTouchStart={startPressing}
-        onTouchEnd={endPressing}
-        className={`relative p-4 transition-transform transform cursor-pointer
-                    hover:bg-accent
-                    ${isTaskCompletedToday ? 'border-green-400 ' : ''} p-0 ${pressing && !isTaskCompletedToday ? 'scale-95' : ''
-          }`}
-      >
-        <CardHeader className="px-4 py-2   radius ">
-          <CardTitle
-            className="truncate text-[#fffff5db] text-lg flex items-center"
-            title={task.name}
+                  <Card className="border-none shadow-sm">
+                    <CardContent className="p-6">
+                      <Timeline
+                        position="right"
+                        sx={{
+                          [`& .${timelineItemClasses.root}:before`]: {
+                            flex: 0,
+                            padding: 0,
+                          },
+                        }}
+                      >
+                        {trackItems.map((count, index) => (
+                          <TimelineItem key={count.id} className="relative group">
+                            <TimelineSeparator>
+                              <TimelineDot className="bg-primary" />
+                              {index < trackItems.length - 1 && <TimelineConnector className="bg-primary/30" />}
+                            </TimelineSeparator>
+                            <TimelineContent>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-medium mb-1">
+                                    第 {trackItems.length - index} 次打卡
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {dayjs(count.createTime).format('YYYY-MM-DD HH:mm:ss')}
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={() => handleDeleteItem(count.id)}
+                                >
+                                  <CalendarOff className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TimelineContent>
+                          </TimelineItem>
+                        ))}
+                      </Timeline>
+                    </CardContent>
+                  </Card>
+                </div>
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+          <Card
+            key={task.id}
+            onMouseDown={startPressing}
+            onMouseUp={endPressing}
+            onMouseLeave={endPressing}
+            onTouchStart={startPressing}
+            onTouchEnd={endPressing}
+            className={`relative transition-all duration-200 cursor-pointer
+                      hover:bg-accent/50 hover:shadow-lg
+                      ${isTaskCompletedToday ? 'border-2 border-green-400/50 bg-green-400/5' : ''} 
+                      ${pressing && !isTaskCompletedToday ? 'scale-[0.98] shadow-sm' : 'shadow-md'}`}
           >
-            <input
-              type="text"
-              value={taskName}
-              onChange={(e) => setTaskName(e.target.value)}
-              onBlur={renameTask}
-              className="bg-transparent border-none outline-none text-[#fffff5db] text-lg"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              className="ml-auto"
-              onClick={(e) => {
-                setOpen(true);
-              }}
-            >
-              <History />
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 py-2  flex items-end rounded-lg">
-          <div
-            className="flex items-center gap-0.5  py-0.5  rounded-full w-fit mr-2"
-            title="总打卡"
-          >
-            <FlagTriangleRight className="w-4 h-4 text-blue-400" />
-            <span className="text-gray-400 text-sm">
-              {task.countItems.length}天
-            </span>
-          </div>
-          <div
-            className="flex items-center gap-0.5  py-0.5  rounded-full w-fit"
-            title="最近打卡时间"
-          >
-            <Check className="w-4 h-4 text-red-400" />
-            <span className="text-gray-400 text-sm">
-              {lastTrackDate || '无'}
-            </span>
-          </div>
-          {isTaskCompletedToday ? (
-            <CircleCheckBig className="text-green-400 ml-auto w-6 h-6 mr-2" />
-          ) : null}
-        </CardContent>
-        {Number(animationWidth) ? (
-          <Progress
-            value={animationWidth as number}
-            className="absolute bottom-1 left-2 h-0.5 w-[95%]"
-          />
-        ) : (
-          ''
-        )}
-      </Card>
+            <CardHeader className="px-6 py-3">
+              <CardTitle
+                className="truncate text-lg flex items-center gap-2 group w-full"
+                title={task.name}
+              >
+                <input
+                  type="text"
+                  value={taskName}
+                  onChange={(e) => setTaskName(e.target.value)}
+                  onBlur={renameTask}
+                  className="bg-transparent border-none outline-none text-foreground flex-1 
+                           hover:bg-accent/30 px-2 py-1 rounded transition-colors
+                           focus:ring-2 focus:ring-primary/20"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="opacity-70 hover:opacity-100 hover:bg-primary/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpen(true);
+                  }}
+                >
+                  <History className="w-4 h-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 py-3 flex items-center justify-between rounded-lg">
+              <div className="flex items-center gap-4">
+                <div
+                  className="flex items-center gap-1.5 py-0.5 rounded-full"
+                  title="总打卡"
+                >
+                  <FlagTriangleRight className="w-4 h-4 text-primary" />
+                  <span className="text-muted-foreground text-sm font-medium">
+                    {task.countItems.length}天
+                  </span>
+                </div>
+                <div
+                  className="flex items-center gap-1.5 py-0.5 rounded-full"
+                  title="最近打卡时间"
+                >
+                  <Check className="w-4 h-4 text-primary" />
+                  <span className="text-muted-foreground text-sm font-medium">
+                    {lastTrackDate || '无'}
+                  </span>
+                </div>
+              </div>
+              {isTaskCompletedToday ? (
+                <CircleCheckBig className="text-green-400 w-6 h-6 animate-in fade-in duration-300" />
+              ) : null}
+            </CardContent>
+            {Number(animationWidth) ? (
+              <Progress
+                value={animationWidth as number}
+                className="absolute bottom-0 left-0 h-1 w-full rounded-none bg-primary/10"
+              />
+            ) : null}
+          </Card>
+        </>
+      )}
     </div>
   );
 };
