@@ -16,3 +16,9 @@ export const PRODUCER_TYPE_NAMES: Record<ProducerType, string> = {
   DOUYIN_PERSONAL: '个人抖音',
   DOUYIN_SUPER_TOPIC: '抖音超话'
 };
+
+export enum MediaType {
+  image = 'image',
+  video = 'video',
+  livephoto = 'livephoto'
+}

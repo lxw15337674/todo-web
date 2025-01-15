@@ -2,17 +2,21 @@
 
 import { UploadStatus } from '@prisma/client';
 import prisma from '../prisma';
+import { MediaType } from './type';
 
 
 // 定义支持的媒体类型扩展名
 const VIDEO_EXTENSIONS = ['.mp4', '.mov'];
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif',];
+const LIVEPHOTO_EXTENSIONS = ['.mov'];
+
+
 
 // 构建媒体类型的 OR 条件
-const getMediaTypeCondition = (type: 'image' | 'video' | null) => {
+const getMediaTypeCondition = (type: MediaType | null) => {
   if (!type) return {};
   
-  const extensions = type === 'video' ? VIDEO_EXTENSIONS : IMAGE_EXTENSIONS;
+  const extensions = type === 'video' ? VIDEO_EXTENSIONS : type === 'livephoto' ? LIVEPHOTO_EXTENSIONS : IMAGE_EXTENSIONS;
   return {
     OR: extensions.map(ext => ({
       galleryMediaUrl: { endsWith: ext }
@@ -21,7 +25,7 @@ const getMediaTypeCondition = (type: 'image' | 'video' | null) => {
 };
 
 // 构建基础的 where 子句
-const getBaseWhereClause = (producerId: string | null, type: 'image' | 'video' | null) => ({
+const getBaseWhereClause = (producerId: string | null, type: MediaType | null) => ({
   deletedAt: null,
   status: UploadStatus.UPLOADED,
   ...(producerId ? { producerId } : {}),
@@ -30,7 +34,7 @@ const getBaseWhereClause = (producerId: string | null, type: 'image' | 'video' |
 
 export async function getPicsCount(
   producerId: string | null,
-  type: 'image' | 'video' | null = null
+  type: MediaType | null = null
 ) {
   try {
     const count = await prisma.media.count({
@@ -49,7 +53,7 @@ export async function getPics(
   pageSize: number,
   producerId: string | null,
   sort: 'asc' | 'desc' = 'desc',
-  type: 'image' | 'video' | null = null
+  type: MediaType | null = null
 ) {
   try {
     const skip = (page - 1) * pageSize;
