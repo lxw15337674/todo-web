@@ -28,7 +28,7 @@ export function generateGroupReport(groupId: string): string {
         return `今天还没有人发言哦~`;
     }
 
-    let totalMessages = todayRange.totalMessages;
+    const totalMessages = todayRange.totalMessages;
 
     // 对用户按消息数排序
     const sortedUsers = todayRange.userStats
@@ -42,7 +42,7 @@ export function generateGroupReport(groupId: string): string {
     let report = `🎉 群聊小报告 - "${group.groupName}" 的热闹现场 🎉,📊 总计发言量：${totalMessages} 条\n`
     report += `🏆 今日话唠排行榜 TOP 5 🏆`;
     sortedUsers.forEach((user, index) => {
-        let emoji = ['🥇', '🥈', '🥉', '🏅', '🎖️'][index];
+        const emoji = ['🥇', '🥈', '🥉', '🏅', '🎖️'][index];
         report += `\n${emoji} ${cleanUsername(user.username)} : ${user.messageCount} 条`;
     });
     return report;

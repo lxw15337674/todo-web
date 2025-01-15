@@ -94,6 +94,22 @@ interface StockData {
     error_description: string; // 错误描述
 }
 
+interface SuggestionResponse {
+    data: Array<{
+        code: string;
+        [key: string]: any;
+    }>;
+    error_code: number;
+    error_description: string;
+}
+
+interface AxiosResponse<T> {
+    data: T;
+    status: number;
+    headers: any;
+    [key: string]: any;
+}
+
 const STOCK_API_URL = 'https://stock.xueqiu.com/v5/stock/quote.json' // Replace with your actual API URL
 const SUGGESTION_API_URL = 'https://xueqiu.com/query/v1/suggest_stock.json' // Replace with your actual API URL
 // 读取环境变量
@@ -111,9 +127,9 @@ export async function getToken(): Promise<string> {
     try {
         // 先请求第一个 URL
         const res1 = await axios.get('https://xueqiu.com/about');
-        Cookie = res1.headers['set-cookie']?.find(c => c.includes(cookieKey))?.split(';')[0];
+        Cookie = res1.headers['set-cookie']?.find((c: string) => c.includes(cookieKey))?.split(';')[0] || '';
         if (!Cookie) {
-            throw new Error(`Failed to get ${cookieKey} cookie.`);
+            throw new Error(`❌ Failed to get ${cookieKey} cookie.`);
         }
         cookieTimestamp = now; // 记录获取 Cookie 的时间
         return Cookie;
@@ -124,19 +140,20 @@ export async function getToken(): Promise<string> {
 }
 
 // https://xueqiu.com/query/v1/suggest_stock.json?q=gzmt
-export async function getSuggestStock(q: string) {
-
-    const response = await axios.get<StockData>(SUGGESTION_API_URL, {
+export async function getSuggestStock(q: string): Promise<string | undefined> {
+    const response = await axios.get(SUGGESTION_API_URL, {
         params: {
             q,
         },
         headers: {
             Cookie: await getToken()
         },
-    })
+    });
 
-    if (response.status === 200)
-        return response.data?.data?.[0]?.code
+    if (response.status === 200 && response.data?.data?.[0]?.code) {
+        return response.data.data[0].code;
+    }
+    return undefined;
 }
 
 async function retryWithNewToken<T>(fetchFunction: () => Promise<T>): Promise<T> {
@@ -148,37 +165,45 @@ async function retryWithNewToken<T>(fetchFunction: () => Promise<T>): Promise<T>
         cookieTimestamp = 0;
         try {
             return await fetchFunction();
-        } catch (retryError) {
-            throw new Error(`Failed after retry: ${retryError.message}`);
+        } catch (retryError: unknown) {
+            if (retryError instanceof Error) {
+                throw new Error(`❌ Failed after retry: ${retryError.message}`);
+            }
+            throw new Error('❌ Failed after retry: Unknown error');
         }
     }
 }
+
 export async function getStockBasicData(symbol: string): Promise<StockData['data']> {
     try {
-        symbol = await getSuggestStock(symbol);
+        const suggestedSymbol = await getSuggestStock(symbol);
 
-        if (!symbol) throw new Error('未找到相关股票');
+        if (!suggestedSymbol) throw new Error('❌ 未找到相关股票');
 
         const fetchStockData = async () => {
-            const response = await axios.get<StockData>(STOCK_API_URL, {
+            const response = await axios.get(STOCK_API_URL, {
                 params: {
-                    symbol,
+                    symbol: suggestedSymbol,
                     extend: 'detail'
                 },
                 headers: {
                     Cookie: await getToken(),
                 },
             });
+
             if (response.status === 200 && response?.data?.data?.quote) {
                 return response.data.data;
             } else {
-                throw new Error(`Failed to fetch stock data for ${symbol}: ${response.status}`);
+                throw new Error(`❌ Failed to fetch stock data for ${suggestedSymbol}: ${response.status}`);
             }
         };
 
         return await retryWithNewToken(fetchStockData);
-    } catch (error) {
-        throw error;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error('❌ Unknown error occurred');
     }
 }
 
@@ -189,16 +214,19 @@ async function getMultipleStocksData(symbols: string[]): Promise<string[]> {
             const { quote, market } = await getStockBasicData(symbol);
             const isGrowing = quote.percent > 0;
             const trend = isGrowing ? '📈' : '📉';
-            let text = `${quote?.name}(${quote?.symbol}): ${quote.current} (${trend}${isGrowing ? '+' : ''}${convertToNumber(quote.percent)}%)`;
+            let text = `🏢 ${quote?.name}(${quote?.symbol}): ${quote.current} ${trend} ${isGrowing ? '+' : ''}${convertToNumber(quote.percent)}%`;
 
             if (quote.current_ext && quote.percent_ext && quote.current !== quote.current_ext && market.status_id !== 5) {
                 const preIsGrowing = quote.percent_ext > 0;
                 const preTrend = preIsGrowing ? '📈' : '📉';
-                text += `\n盘前：${quote.current_ext} (${preTrend}${preIsGrowing ? '+' : ''}${convertToNumber(quote.percent_ext)}%)`;
+                text += `\n⏰ 盘前：${quote.current_ext} ${preTrend} ${preIsGrowing ? '+' : ''}${convertToNumber(quote.percent_ext)}%`;
             }
             return text;
-        } catch (error) {
-            return `获取 ${symbol} 失败：${error.message}`;
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                return `❌ 获取 ${symbol} 失败：${error.message}`;
+            }
+            return `❌ 获取 ${symbol} 失败：未知错误`;
         }
     });
     return await Promise.all(promises);
@@ -208,9 +236,12 @@ export async function getStockData(symbol: string): Promise<string> {
     try {
         const symbols = symbol.split(/\s+/);  // 按空格分割多个股票代码
         const results = await retryWithNewToken(() => getMultipleStocksData(symbols));
-        return results.join('\n');  // 用1个换行符分隔每个股票的数据
-    } catch (error) {
-        return `获取 ${symbol} 失败：${error.message}`;
+        return results.join('\n\n');  // 用两个换行符分隔每个股票的数据，增加可读性
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return `❌ 获取 ${symbol} 失败：${error.message}`;
+        }
+        return `❌ 获取 ${symbol} 失败：未知错误`;
     }
 }
 
@@ -218,18 +249,19 @@ function formatIndexData(quoteData: any) {
     const quote = quoteData.quote;
     const isGrowing = quote.percent > 0;
     const trend = isGrowing ? '📈' : '📉';
+    const yearTrend = quote?.current_year_percent > 0 ? '🟢' : '🔴';
 
-    let text = quote?.name ? `${quote.name}${quote.symbol ? `(${quote.symbol})` : ''}\n` : '';
+    let text = quote?.name ? `🏢 ${quote.name}${quote.symbol ? ` (${quote.symbol})` : ''}\n` : '';
     if (quote?.current && quote?.percent !== undefined) {
-        text += `现价：${quote.current} ${trend}${isGrowing ? '+' : ''}${convertToNumber(quote.percent)}%\n`;
+        text += `💰 现价：${quote.current} ${trend} ${isGrowing ? '+' : ''}${convertToNumber(quote.percent)}%\n`;
     }
 
     if (quote?.amount) {
-        text += `成交额：${formatAmount(quote.amount)}\n`;
+        text += `💎 成交额：${formatAmount(quote.amount)}\n`;
     }
 
     if (quote?.current_year_percent !== undefined) {
-        text += `年初至今：${quote.current_year_percent > 0 ? '+' : ''}${convertToNumber(quote.current_year_percent)}%`;
+        text += `📅 年初至今：${yearTrend} ${quote.current_year_percent > 0 ? '+' : ''}${convertToNumber(quote.current_year_percent)}%`;
     }
     return text;
 }
@@ -241,25 +273,31 @@ export async function getCNMarketIndexData() {
             getStockBasicData('SZ399001'),
             getStockBasicData('SZ399006')
         ]);
-        return data.map(formatIndexData).join('\n\n');
-    } catch (error) {
-        return `获取市场指数失败：${error.message}`;
+        return `🇨🇳 A股市场指数\n\n${data.map(formatIndexData).join('\n\n')}`;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return `❌ 获取市场指数失败：${error.message}`;
+        }
+        return `❌ 获取市场指数失败：未知错误`;
     }
 }
 
 export async function getUSMarketIndexData() {
     try {
-        // 并行获取道琼斯和纳斯达克指数数据
         const data = await Promise.all([
             getStockBasicData('.DJI'),
             getStockBasicData('.IXIC'),
             getStockBasicData('.INX')
         ]);
-        return data.map(formatIndexData).join('\n\n');
-    } catch (error) {
-        return `获取美国市场指数失败：${error.message}`;
+        return `🇺🇸 美股市场指数\n\n${data.map(formatIndexData).join('\n\n')}`;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return `❌ 获取美国市场指数失败：${error.message}`;
+        }
+        return `❌ 获取美国市场指数失败：未知错误`;
     }
 }
+
 export async function getHKMarketIndexData() {
     try {
         const data = await Promise.all([
@@ -267,36 +305,44 @@ export async function getHKMarketIndexData() {
             getStockBasicData('HSCEI'),
             getStockBasicData('HSTECH')
         ]);
-        return data.map(formatIndexData).join('\n\n');
-    } catch (error) {
-        return `获取港股市场指数失败：${error.message}`;
+        return `🇭🇰 港股市场指数\n\n${data.map(formatIndexData).join('\n\n')}`;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return `❌ 获取港股市场指数失败：${error.message}`;
+        }
+        return `❌ 获取港股市场指数失败：未知错误`;
     }
 }
+
 export async function getStockDetailData(symbol: string): Promise<string> {
     try {
         const { quote } = await getStockBasicData(symbol);
         const isGrowing = quote.percent > 0;
         const trend = isGrowing ? '📈' : '📉';
+        const yearTrend = quote.current_year_percent > 0 ? '🟢' : '🔴';
 
-        let text = `${quote?.name}(${quote?.symbol})\n`;
-        text += `现价：${quote.current} ${trend}${isGrowing ? '+' : ''}${convertToNumber(quote.percent)}%\n`;
-        text += `振幅：${convertToNumber(quote.amplitude)}%\n`;
-        text += `成交均价：${convertToNumber(quote.avg_price)}\n`;
-        text += `成交额：${formatAmount(quote.amount)}\n`;
-        text += `成交量：${formatAmount(quote.volume)}手\n`;
-        text += `换手率：${convertToNumber(quote.turnover_rate)}%\n`;
-        text += `总市值：${formatAmount(quote.market_capital)}\n`;
-        text += `年初至今：${quote.current_year_percent > 0 ? '+' : ''}${convertToNumber(quote.current_year_percent)}%\n`;
-        text += `市盈率TTM：${convertToNumber(quote.pe_ttm || 0)}\n`;
-        text += `市净率：${convertToNumber(quote.pb || 0)}`;
+        let text = `🏢 ${quote?.name}(${quote?.symbol})\n`;
+        text += `💰 现价：${quote.current} ${trend} ${isGrowing ? '+' : ''}${convertToNumber(quote.percent)}%\n`;
+        text += `📊 振幅：${convertToNumber(quote.amplitude)}%\n`;
+        text += `⚖️ 成交均价：${convertToNumber(quote.avg_price)}\n`;
+        text += `💎 成交额：${formatAmount(quote.amount)}\n`;
+        text += `📈 成交量：${formatAmount(quote.volume)}手\n`;
+        text += `🔄 换手率：${convertToNumber(quote.turnover_rate)}%\n`;
+        text += `💹 总市值：${formatAmount(quote.market_capital)}\n`;
+        text += `📅 年初至今：${yearTrend} ${quote.current_year_percent > 0 ? '+' : ''}${convertToNumber(quote.current_year_percent)}%\n`;
+        text += `📊 市盈率TTM：${convertToNumber(quote.pe_ttm || 0)}\n`;
+        text += `📈 市净率：${convertToNumber(quote.pb || 0)}`;
 
         if (quote.dividend_yield) {
-            text += `\n股息率：${convertToNumber(quote.dividend_yield)}%`;
+            text += `\n💵 股息率：${convertToNumber(quote.dividend_yield)}%`;
         }
 
         return text;
-    } catch (error) {
-        return `获取 ${symbol} 详情失败：${error.message}`;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return `❌ 获取 ${symbol} 详情失败：${error.message}`;
+        }
+        return `❌ 获取 ${symbol} 详情失败：未知错误`;
     }
 }
 

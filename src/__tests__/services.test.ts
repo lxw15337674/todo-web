@@ -8,7 +8,7 @@ import { parseCommand } from '../../app/api/command/command';
 describe('Service Tests', () => {
     describe('AI Service', () => {
         it('should fetch AI data', async () => {
-            let data = await getAIData('请依次给出下面 3 个问题的答案:\n(1) 昨天的当天是明天的什么？\n(2) 树上9只鸟，打掉1只，还剩几只？\n(3) 鲁迅为什么暴打周树人');
+            const data = await getAIData('请依次给出下面 3 个问题的答案:\n(1) 昨天的当天是明天的什么？\n(2) 树上9只鸟，打掉1只，还剩几只？\n(3) 鲁迅为什么暴打周树人');
             expect(data).not.toBeNull();
         });
     });

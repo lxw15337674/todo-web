@@ -1,4 +1,5 @@
 import axios from "axios";
+import { decode } from "querystring";
 
 const Future_API_URL = 'http://hq.sinajs.cn/' // Replace with your actual API URL
 const SUGGESTION_API_URL = 'http://suggest3.sinajs.cn/suggest/' // Replace with your actual API URL
@@ -43,7 +44,7 @@ export async function getFutureSuggest(searchText = 'XAU'): Promise<string> {
         }
         const arr = text.split(',');
         let code = arr[3];
-        let market = arr[1];
+        const market = arr[1];
         code = code.toUpperCase();
         // 国内交易所
         if (market === '85' || market === '88') {

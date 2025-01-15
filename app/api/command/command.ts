@@ -79,58 +79,24 @@ export const commandMap: { key: string, callback: (params: CommandParams) => Pro
       hasArgs: false,
     },
     {
-      key: 'mdp',
+      key: 'm',
       callback: async (params) => {
-        const imageData = await getYuntuStockMap();
+        if (!params.args||params.args==='dp') {
+          const imageData = await getYuntuStockMap();
+          params.sendMessage(imageData, 'image');
+          return '';
+        }
+
+        const [market, type] = params.args.split(' ');
+        if (!['cn', 'hk', 'us'].includes(market)) {
+          throw new Error('市场类型无效，请使用: cn (A股) 或 hk (港股) 或 us (美股)');
+        }
+        
+        const imageData = await getFutuStockMap(market as 'cn' | 'hk' | 'us', type as MapType);
         params.sendMessage(imageData, 'image');
         return '';
       },
-      msg: 'mdp - 获取云图大盘热力图，直观展示市场热点分布',
-      hasArgs: false,
-      type: 'image'
-    },
-    {
-      key: 'mcn',
-      callback: async (params) => {
-        const imageData = await getFutuStockMap('cn', params.args as MapType);
-        params.sendMessage(imageData, 'image');
-        return '';
-      },
-      msg: 'mcn [hy|gu] - 获取富途A股热力图 (hy:行业图 gu:个股图)',
-      hasArgs: true,
-      type: 'image'
-    },
-    {
-      key: 'mhk',
-      callback: async (params) => {
-        if (!params.args) {
-          throw new Error('请指定热力图类型: hy (行业图) 或 gu (个股图)');
-        }
-        if (!Object.values(MapType).includes(params.args as MapType)) {
-          throw new Error('热力图类型无效，请使用: hy (行业图) 或 gu (个股图)');
-        }
-        const imageData = await getFutuStockMap('hk', params.args as MapType);
-        params.sendMessage(imageData, 'image');
-        return '';
-      },
-      msg: 'mhk [hy|gu] - 获取富途港股热力图 (hy:行业图 gu:个股图)',
-      hasArgs: true,
-      type: 'image'
-    },
-    {
-      key: 'mus',
-      callback: async (params) => {
-        if (!params.args) {
-          throw new Error('请指定热力图类型: hy (行业图) 或 gu (个股图)');
-        }
-        if (!Object.values(MapType).includes(params.args as MapType)) {
-          throw new Error('热力图类型无效，请使用: hy (行业图) 或 gu (个股图)');
-        }
-        const imageData = await getFutuStockMap('us', params.args as MapType);
-        params.sendMessage(imageData, 'image');
-        return '';
-      },
-      msg: 'mus [hy|gu] - 获取富途美股热力图 (hy:行业图 gu:个股图)',
+      msg: 'm [市场] [类型] - 获取热力图\n  m - 获取云图大盘热力图\n  m cn/hk/us hy/gu - 获取富途热力图 (hy:行业图 gu:个股图)',
       hasArgs: true,
       type: 'image'
     },
@@ -197,18 +163,6 @@ export const commandMap: { key: string, callback: (params: CommandParams) => Pro
       },
       msg: 'hp - 获取命令帮助',
       hasArgs: false,
-    },
-    // 复读
-    {
-      key: 're ',
-      callback: async (params) => {
-        if (!params.args) {
-          throw new Error('请输入要复读的内容和次数，例如: re 你好 3');
-        }
-        return repeatMessage(params);
-      },
-      msg: 're [文本] [次数] - 复读机器人, 例如: re 你好 3',
-      hasArgs: true,
     },
     // 随机图片命令
     {
