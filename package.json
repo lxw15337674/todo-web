@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "dev": "cross-env next dev -p 8080 ",
-    "build": "npx prisma generate && npx playwright install chromium && npx next build",
+    "build": "npx prisma generate && npx playwright install-deps && npx playwright install chromium && npx next build",
     "start": "pnpm dev",
     "type-check": " tsc --noEmit",
     "lint": " eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
