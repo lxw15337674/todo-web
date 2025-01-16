@@ -3,5 +3,8 @@
         "pages/**/*": {
             "maxDuration": 60
         }
+    },
+    "build": {
+        "installCommand": "pnpm install &&  npx playwright install"
     }
 }
