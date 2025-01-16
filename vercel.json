@@ -4,5 +4,5 @@
             "maxDuration": 60
         }
     },
-    "installCommand": "pnpm install &&  npx playwright install chromium"
+    "build": "next build && npx playwright install"
 }
