@@ -45,10 +45,10 @@ export default function TaskManagement() {
     });
 
     return (
-        <div className="container mx-auto py-6">
-            <div className="flex flex-col space-y-6">
+        <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
+            <div className="flex flex-col space-y-4 sm:space-y-6">
                 <div className="flex flex-col space-y-4">
-                    <div className="flex items-center gap-4 p-4 bg-card rounded-lg border shadow-sm">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-card rounded-lg border shadow-sm">
                         <div className="flex-1">
                             <Input
                                 value={newTask.name}
@@ -56,13 +56,13 @@ export default function TaskManagement() {
                                     draft.name = e.target.value;
                                 })}
                                 placeholder="输入新习惯名称"
-                                className="h-11"
+                                className="h-10 sm:h-11"
                             />
                         </div>
                         <Button 
                             onClick={handleAddTask} 
-                            size="lg"
-                            className="px-6"
+                            size="default"
+                            className="w-full sm:w-auto px-4 sm:px-6"
                         >
                             <Plus className="h-5 w-5 mr-2" />
                             添加习惯
@@ -70,7 +70,7 @@ export default function TaskManagement() {
                     </div>
                     
                     <ScrollArea className="flex-1">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                             {tasks.map(task => (
                                 <HabitCard
                                     key={task.id}

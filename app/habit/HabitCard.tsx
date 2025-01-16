@@ -232,9 +232,9 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
             </DialogContent>
           </Dialog>
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetContent className="w-[90%] sm:w-[540px] px-6">
-              <SheetHeader className="mb-6">
-                <SheetTitle className="flex justify-between items-center text-xl">
+            <SheetContent className="w-[90%] sm:w-[540px]">
+              <SheetHeader className="mb-4 space-y-2">
+                <SheetTitle className="flex justify-between items-center text-2xl">
                   <span className="font-semibold">{task.name}</span>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -254,22 +254,22 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                   </DropdownMenu>
                 </SheetTitle>
               </SheetHeader>
-              <ScrollArea className="h-[calc(100vh-120px)] rounded-md pr-4">
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Card className="bg-primary/5 border-none shadow-sm">
-                      <CardContent className="p-6">
-                        <div className="text-sm text-muted-foreground font-medium">总打卡</div>
-                        <div className="text-3xl font-bold mt-2 text-primary">
+              <ScrollArea className="h-[calc(100vh-120px)] rounded-md">
+                <div className="space-y-4 pr-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Card className="bg-primary/5 border-none shadow-sm hover:bg-primary/10 transition-colors">
+                      <CardContent className="p-4">
+                        <div className="text-sm text-muted-foreground font-medium mb-1">总打卡</div>
+                        <div className="text-2xl font-bold text-primary">
                           {totalTrackCount}
                           <span className="text-sm font-normal text-muted-foreground ml-1">天</span>
                         </div>
                       </CardContent>
                     </Card>
-                    <Card className="bg-primary/5 border-none shadow-sm">
-                      <CardContent className="p-6">
-                        <div className="text-sm text-muted-foreground font-medium">当月打卡</div>
-                        <div className="text-3xl font-bold mt-2 text-primary">
+                    <Card className="bg-primary/5 border-none shadow-sm hover:bg-primary/10 transition-colors">
+                      <CardContent className="p-4">
+                        <div className="text-sm text-muted-foreground font-medium mb-1">当月打卡</div>
+                        <div className="text-2xl font-bold text-primary">
                           {monthlyTrackCount}
                           <span className="text-sm font-normal text-muted-foreground ml-1">天</span>
                         </div>
@@ -277,7 +277,10 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                     </Card>
                   </div>
                   <Card className="border-none shadow-sm">
-                    <CardContent className="p-6">
+                    <CardHeader className="pb-2 pt-4">
+                      <CardTitle className="text-base font-medium">打卡日历</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pb-4">
                       <Calendar
                         mode="multiple"
                         disabled={(date) => date > new Date()}
@@ -290,7 +293,10 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                   </Card>
 
                   <Card className="border-none shadow-sm">
-                    <CardContent className="p-6">
+                    <CardHeader className="pb-2 pt-4">
+                      <CardTitle className="text-base font-medium">打卡记录</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pb-4">
                       <Timeline
                         position="right"
                         sx={{
@@ -307,12 +313,12 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                               {index < trackItems.length - 1 && <TimelineConnector className="bg-primary/30" />}
                             </TimelineSeparator>
                             <TimelineContent>
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between py-1">
                                 <div>
-                                  <div className="text-sm font-medium mb-1">
+                                  <div className="text-sm font-medium">
                                     第 {trackItems.length - index} 次打卡
                                   </div>
-                                  <div className="text-sm text-muted-foreground">
+                                  <div className="text-xs text-muted-foreground mt-0.5">
                                     {dayjs(count.createTime).format('YYYY-MM-DD HH:mm:ss')}
                                   </div>
                                 </div>
@@ -402,7 +408,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
             {Number(animationWidth) ? (
               <Progress
                 value={animationWidth as number}
-                className="absolute bottom-0 left-0 h-1 w-full rounded-none bg-primary/10"
+                className="absolute bottom-1 left-1  h-1 w-full rounded bg-primary/10 "
               />
             ) : null}
           </Card>
