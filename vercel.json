@@ -3,6 +3,5 @@
         "pages/**/*": {
             "maxDuration": 60
         }
-    },
-    "build": "next build && npx playwright install"
+    }
 }
