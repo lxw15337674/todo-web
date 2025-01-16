@@ -1,4 +1,4 @@
-import { Browser, Page, chromium } from 'puppeteer';
+import { Browser, Page, chromium } from 'playwright';
 
 export enum MapType {
     hy = 'hy',
