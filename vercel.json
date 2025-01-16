@@ -4,5 +4,5 @@
             "maxDuration": 60
         }
     },
-    "installCommand": "pnpm install &&  npx playwright install-deps chromium && npx playwright install chromium"
+    "installCommand": "pnpm install &&  npx playwright install chromium"
 }
