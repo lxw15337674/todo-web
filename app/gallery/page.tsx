@@ -18,7 +18,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
 import { useWindowSize } from '@/hooks/useWindowSize'
 
-const PAGE_SIZE = 20*6
+const PAGE_SIZE = 10*6
 
 type MediaWithRelations = Media & {
   producer: Producer | null
