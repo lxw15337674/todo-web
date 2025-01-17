@@ -9,7 +9,7 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "cross-env next dev -p 8080",
+    "dev": "cross-env next dev -p 8080 --turbo",
     "vercel-build": "npx prisma generate &&  next build",
     "build": "npx prisma generate && npx playwright install-deps && npx playwright install chromium &&  next build",
     "start": "pnpm dev",
