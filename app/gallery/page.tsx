@@ -16,7 +16,7 @@ import { Media, Producer, Post } from '@prisma/client'
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
-import { useWindowSize } from "../../hooks/useWindowSize"
+import { useSize } from 'ahooks';
 
 const PAGE_SIZE = 10*6
 
@@ -114,13 +114,12 @@ export default function ImagePage() {
     defaultValue: false
   })
 
-  const { width } = useWindowSize()
+  const { width } = useSize(document.body) ?? { width: 640 }
   const columnCount = width < 640 ? 2 
     : width < 768 ? 3 
     : width < 1024 ? 4 
     : width < 1280 ? 5 
-    : width < 1536 ? 6 
-    : 8
+    :  6 
 
   const renderItem = useCallback(({ data: image, index }: { data: MediaWithRelations, index: number }) => (
     <GalleryItem
@@ -132,7 +131,7 @@ export default function ImagePage() {
   ), [state?.producer])
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" >
       <div className="p-4 border-b bg-background">
         <div className="max-w-screen-2xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
