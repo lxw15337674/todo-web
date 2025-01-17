@@ -1,52 +1,61 @@
 'use server';
-import {  Producer, ProducerTag } from '@prisma/client';
+import { Producer, ProducerTag } from '@prisma/client';
 import { NewProducer, UpdateProducer } from './type';
 import prisma from '../prisma';
-
 
 // 通用的Producer查询配置
 const defaultProducerInclude = {
   ProducerToProducerTag: {
     include: {
-      ProducerTag: true
-    }
-  }
+      ProducerTag: true,
+    },
+  },
 } as const;
 
 // 通用的转换函数
-const mapProducerWithTags = (producer: Producer & { ProducerToProducerTag: { ProducerTag: ProducerTag }[] }) => ({
+const mapProducerWithTags = (
+  producer: Producer & {
+    ProducerToProducerTag: { ProducerTag: ProducerTag }[];
+  },
+) => ({
   ...producer,
-  tags: producer.ProducerToProducerTag.map(p => p.ProducerTag)
+  tags: producer.ProducerToProducerTag.map((p) => p.ProducerTag),
 });
 
 export const createProducer = async (data: NewProducer): Promise<Producer> => {
-  return await prisma.producer.create({
-    data,
-    include: defaultProducerInclude
-  }).then(mapProducerWithTags);
+  return await prisma.producer
+    .create({
+      data,
+      include: defaultProducerInclude,
+    })
+    .then(mapProducerWithTags);
 };
 
-export const getProducers = async (): Promise<(Producer & { tags: ProducerTag[] })[]> => {
+export const getProducers = async (): Promise<
+  (Producer & { tags: ProducerTag[] })[]
+> => {
   const producers = await prisma.producer.findMany({
     where: {
       deletedAt: null,
     },
     orderBy: {
-      createTime: 'desc'
+      createTime: 'desc',
     },
-    include: defaultProducerInclude
+    include: defaultProducerInclude,
   });
 
   return producers.map(mapProducerWithTags);
 };
 
-export const getProducersWithCount = async (): Promise<(Producer & { tags: ProducerTag[], mediaCount: number, postCount: number })[]> => {
+export const getProducersWithCount = async (): Promise<
+  (Producer & { tags: ProducerTag[]; mediaCount: number; postCount: number })[]
+> => {
   const producers = await prisma.producer.findMany({
     where: {
       deletedAt: null,
     },
     orderBy: {
-      createTime: 'asc'
+      createTime: 'asc',
     },
     include: {
       ...defaultProducerInclude,
@@ -54,51 +63,55 @@ export const getProducersWithCount = async (): Promise<(Producer & { tags: Produ
         select: {
           medias: {
             where: {
-              deletedAt: null
-            }
+              deletedAt: null,
+            },
           },
           posts: {
             where: {
-              deletedAt: null
-            }
-          }
-        }
-      }
-    }
+              deletedAt: null,
+            },
+          },
+        },
+      },
+    },
   });
 
   return producers.map((producer) => ({
     ...mapProducerWithTags(producer),
     mediaCount: producer._count.medias,
-    postCount: producer._count.posts
+    postCount: producer._count.posts,
   }));
 };
 
 export const getProducerById = async (id: string) => {
-  return await prisma.producer.findUnique({
-    where: { id },
-    include: defaultProducerInclude
-  }).then(producer => producer ? mapProducerWithTags(producer) : null);
+  return await prisma.producer
+    .findUnique({
+      where: { id },
+      include: defaultProducerInclude,
+    })
+    .then((producer) => (producer ? mapProducerWithTags(producer) : null));
 };
 
 export const updateProducer = async (data: UpdateProducer) => {
   const { id, ...updateData } = data;
-  return await prisma.producer.update({
-    where: { id },
-    data: {
-      ...updateData,
-      updateTime: new Date()
-    },
-    include: defaultProducerInclude
-  }).then(mapProducerWithTags);
+  return await prisma.producer
+    .update({
+      where: { id },
+      data: {
+        ...updateData,
+        updateTime: new Date(),
+      },
+      include: defaultProducerInclude,
+    })
+    .then(mapProducerWithTags);
 };
 
 export const deleteProducer = async (id: string) => {
   return await prisma.producer.update({
     where: { id },
     data: {
-      deletedAt: new Date()
-    }
+      deletedAt: new Date(),
+    },
   });
 };
 
@@ -108,14 +121,17 @@ export const getProducerTags = async () => {
       deletedAt: null,
     },
     orderBy: {
-      createTime: 'desc'
-    }
+      createTime: 'desc',
+    },
   });
 };
 
-export const createProducerTag = async (data: { name: string, remark?: string }) => {
+export const createProducerTag = async (data: {
+  name: string;
+  remark?: string;
+}) => {
   return await prisma.producerTag.create({
-    data
+    data,
   });
 };
 
@@ -123,18 +139,21 @@ export const deleteProducerTag = async (id: string) => {
   return await prisma.producerTag.update({
     where: { id },
     data: {
-      deletedAt: new Date()
-    }
+      deletedAt: new Date(),
+    },
   });
 };
 
-export const updateProducerTags = async (producerId: string, tagIds: string[]) => {
+export const updateProducerTags = async (
+  producerId: string,
+  tagIds: string[],
+) => {
   return await prisma.$transaction(async (tx) => {
     // 删除现有关联
     await tx.producerToProducerTag.deleteMany({
       where: {
-        A: producerId
-      }
+        A: producerId,
+      },
     });
 
     // 创建新关联并返回更新后的结果
@@ -142,15 +161,14 @@ export const updateProducerTags = async (producerId: string, tagIds: string[]) =
       where: { id: producerId },
       data: {
         ProducerToProducerTag: {
-          create: tagIds.map(tagId => ({
-            B: tagId
-          }))
-        }
+          create: tagIds.map((tagId) => ({
+            B: tagId,
+          })),
+        },
       },
-      include: defaultProducerInclude
+      include: defaultProducerInclude,
     });
 
     return mapProducerWithTags(producer);
   });
 };
-

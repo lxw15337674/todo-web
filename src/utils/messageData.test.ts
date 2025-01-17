@@ -2,84 +2,84 @@ import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import MessageData from './messageData';
 
 describe('MessageData', () => {
-    let messageData: MessageData;
-    const testPath = 'test.json';
-    
-    beforeAll(async () => {
-         messageData = new MessageData(testPath);
-    });
+  let messageData: MessageData;
+  const testPath = 'test.json';
 
-    afterAll(async () => {
-        await messageData.remove();
-    });
+  beforeAll(async () => {
+    messageData = new MessageData(testPath);
+  });
 
-    it('保存消息并更新数据', async () => {
-        await messageData.initialize();
-        messageData.saveMessage('group1', '测试群', 'user1', '张三');
-        messageData.saveMessage('group1', '测试群', 'user2', '李四');
-        messageData.saveMessage('group2', '另一个群', 'user1', '张三');
+  afterAll(async () => {
+    await messageData.remove();
+  });
 
-        const data = messageData.getData();
-        expect(data.length).toBe(2);
-        expect(data[0].groupId).toBe('group1');
-        expect(data[0].timeRanges[0].totalMessages).toBe(2);
-        expect(data[0].timeRanges[0].userStats.length).toBe(2);
-        expect(data[1].groupId).toBe('group2');
-        expect(data[1].timeRanges[0].totalMessages).toBe(1);
-    });
+  it('保存消息并更新数据', async () => {
+    await messageData.initialize();
+    messageData.saveMessage('group1', '测试群', 'user1', '张三');
+    messageData.saveMessage('group1', '测试群', 'user2', '李四');
+    messageData.saveMessage('group2', '另一个群', 'user1', '张三');
 
-    // it('持久化消息到文件', async () => {
-    //     await messageData.initialize();
-    //     messageData.saveMessage('group1', '测试群', 'user1', '张三');
-    //     await messageData.persistMessage();
+    const data = messageData.getData();
+    expect(data.length).toBe(2);
+    expect(data[0].groupId).toBe('group1');
+    expect(data[0].timeRanges[0].totalMessages).toBe(2);
+    expect(data[0].timeRanges[0].userStats.length).toBe(2);
+    expect(data[1].groupId).toBe('group2');
+    expect(data[1].timeRanges[0].totalMessages).toBe(1);
+  });
 
-    //     const expectedData = JSON.stringify([{
-    //         groupId: 'group1',
-    //         groupName: '测试群',
-    //         lastUpdated: expect.any(String),
-    //         timeRanges: [{
-    //             date: expect.any(String),
-    //             totalMessages: 1,
-    //             userStats: [{
-    //                 userId: 'user1',
-    //                 username: '张三',
-    //                 messageCount: 1,
-    //                 lastMessageTime: expect.any(String)
-    //             }]
-    //         }]
-    //     }], null, 2);
+  // it('持久化消息到文件', async () => {
+  //     await messageData.initialize();
+  //     messageData.saveMessage('group1', '测试群', 'user1', '张三');
+  //     await messageData.persistMessage();
 
-    //     expect(fsPromises.writeFile).toHaveBeenCalledWith(testPath, expectedData, 'utf8');
-    // });
+  //     const expectedData = JSON.stringify([{
+  //         groupId: 'group1',
+  //         groupName: '测试群',
+  //         lastUpdated: expect.any(String),
+  //         timeRanges: [{
+  //             date: expect.any(String),
+  //             totalMessages: 1,
+  //             userStats: [{
+  //                 userId: 'user1',
+  //                 username: '张三',
+  //                 messageCount: 1,
+  //                 lastMessageTime: expect.any(String)
+  //             }]
+  //         }]
+  //     }], null, 2);
 
-    // it('读取现有JSON文件', async () => {
-    //     const mockData = [{
-    //         groupId: 'group1',
-    //         groupName: '测试群',
-    //         lastUpdated: '2023-04-15T10:30:00Z',
-    //         timeRanges: [{
-    //             date: '2023-04-15',
-    //             totalMessages: 1,
-    //             userStats: [{
-    //                 userId: 'user1',
-    //                 username: '张三',
-    //                 messageCount: 1,
-    //                 lastMessageTime: '2023-04-15T10:30:00Z'
-    //             }]
-    //         }]
-    //     }];
+  //     expect(fsPromises.writeFile).toHaveBeenCalledWith(testPath, expectedData, 'utf8');
+  // });
 
-    //     (fs.existsSync as jest.Mock).mockReturnValue(true);
-    //     (fsPromises.readFile as jest.Mock).mockResolvedValue(JSON.stringify(mockData) as never);
+  // it('读取现有JSON文件', async () => {
+  //     const mockData = [{
+  //         groupId: 'group1',
+  //         groupName: '测试群',
+  //         lastUpdated: '2023-04-15T10:30:00Z',
+  //         timeRanges: [{
+  //             date: '2023-04-15',
+  //             totalMessages: 1,
+  //             userStats: [{
+  //                 userId: 'user1',
+  //                 username: '张三',
+  //                 messageCount: 1,
+  //                 lastMessageTime: '2023-04-15T10:30:00Z'
+  //             }]
+  //         }]
+  //     }];
 
-    //     await messageData.initialize();
-    //     const data = messageData.getData();
-    //     expect(data).toEqual(mockData);
-    // });
+  //     (fs.existsSync as jest.Mock).mockReturnValue(true);
+  //     (fsPromises.readFile as jest.Mock).mockResolvedValue(JSON.stringify(mockData) as never);
 
-    // it('删除文件', async () => {
-    //     (fs.existsSync as jest.Mock).mockReturnValue(true);
-    //     await messageData.remove();
-    //     expect(fsPromises.rm).toHaveBeenCalledWith(testPath);
-    // });
+  //     await messageData.initialize();
+  //     const data = messageData.getData();
+  //     expect(data).toEqual(mockData);
+  // });
+
+  // it('删除文件', async () => {
+  //     (fs.existsSync as jest.Mock).mockReturnValue(true);
+  //     await messageData.remove();
+  //     expect(fsPromises.rm).toHaveBeenCalledWith(testPath);
+  // });
 });

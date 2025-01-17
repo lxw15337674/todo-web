@@ -28,8 +28,6 @@ export function getFishingTime(): Promise<FishingTime> {
   });
 }
 
-
-
 interface EnglishToday {
   content: string;
   translation: string;
