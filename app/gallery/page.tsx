@@ -17,8 +17,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
 import { useWindowSize } from '@/hooks/useWindowSize'
+import { Masonry } from "masonic";
 
-const PAGE_SIZE = 10*6
+const ROWS_PER_PAGE = 10
 
 type MediaWithRelations = Media & {
   producer: Producer | null
@@ -37,11 +38,7 @@ const DEFAULT_STATE: GalleryState = {
   type: MediaType.image
 }
 
-const MasonryGrid = dynamic(() => import('masonic').then(mod => ({ 
-  default: mod.Masonry as typeof mod.Masonry<MediaWithRelations>
-})), { 
-  ssr: false 
-})
+
 
 export default function ImagePage() {
   const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
@@ -55,7 +52,7 @@ export default function ImagePage() {
     async (page: number): Promise<MediaWithRelations[]> => {
       const result = await getPics(
         page, 
-        PAGE_SIZE, 
+        pageSize, 
         state?.producer ?? null, 
         state?.sort ?? 'desc',
         state?.type ?? null
@@ -64,7 +61,7 @@ export default function ImagePage() {
     },
     { 
       manual: true,
-      throttleWait: 2000,
+      throttleWait: 1000,
     }
   )
   
@@ -96,7 +93,7 @@ export default function ImagePage() {
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loading && PAGE_SIZE * pageRef.current < (total ?? 0)) {
+        if (entries[0].isIntersecting && !loading && pageSize * pageRef.current < (total ?? 0)) {
           pageRef.current += 1
           loadImages(pageRef.current)
         }
@@ -125,18 +122,10 @@ export default function ImagePage() {
     : width < 768 ? 3 
     : width < 1024 ? 4 
     : width < 1280 ? 5 
-    : width < 1536 ? 6 
-    : 8
+    : 6
 
-  const renderItem = useCallback(({ data: image, index }: { data: MediaWithRelations, index: number }) => (
-    <GalleryItem
-      key={image.id}
-      image={image}
-      index={index}
-      selectedProducer={state?.producer ?? null}
-    />
-  ), [state?.producer])
-
+  const pageSize = columnCount * ROWS_PER_PAGE
+  console.log(images)
   return (
     <div className="min-h-screen flex flex-col">
       <div className="p-4 border-b bg-background">
@@ -239,20 +228,20 @@ export default function ImagePage() {
 
       <div className="flex-1 p-2">
         <PhotoProvider>
-          {loading && images.length === 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2">
-              {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                <Skeleton key={i} className="aspect-[3/4] rounded-lg" />
-              ))}
-            </div>
-          ) : (
-            <MasonryGrid
+            <Masonry
               items={images}
               columnCount={columnCount}
               columnGutter={8}
-              render={renderItem}
+              render={({ data: image, index }) => {
+                console.log(index)
+                return <GalleryItem
+                  key={image.id}
+                  image={image}
+                  index={index}
+                  selectedProducer={state?.producer ?? null}
+                />
+              }}
             />
-          )}
         </PhotoProvider>
 
         <div ref={loadingRef} className="py-4 text-center">

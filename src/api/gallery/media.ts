@@ -45,7 +45,6 @@ export async function getPicsCount(
     const count = await prisma.media.count({
       where: getBaseWhereClause(producerId, type),
     });
-    console.log('count', count);
     return count;
   } catch (error) {
     console.error(
