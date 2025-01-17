@@ -74,9 +74,6 @@ export const fetchAggregatedTask = async () => {
   return [...taskItems, ...trackItems] as AggregatedTask[];
 };
 
-interface UpdateTaskParams
-  extends Partial<Omit<PrismaTask, 'id' | 'createTime' | 'updateTime'>> {}
-
 export const updateTask = async (id: string, data: Partial<Task>) => {
   // 从数据中提取 tags，并从更新数据中移除它
   const { tags, ...updateData } = data;
