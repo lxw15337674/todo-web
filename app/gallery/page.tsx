@@ -1,9 +1,9 @@
 'use client'
 import { getProducersWithCount } from "@/api/gallery/producer"
 import { getPics, getPicsCount } from "@/api/gallery/media"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useCallback } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Masonry } from "@mui/lab"
+import { Masonry } from 'masonic'
 import { Button } from "@/components/ui/button"
 import { PhotoProvider } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
@@ -16,8 +16,9 @@ import { Media, Producer, Post } from '@prisma/client'
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
+import { useWindowSize } from "../../hooks/useWindowSize"
 
-const PAGE_SIZE = 20*6
+const PAGE_SIZE = 10*6
 
 type MediaWithRelations = Media & {
   producer: Producer | null
@@ -112,7 +113,24 @@ export default function ImagePage() {
   const [dialogOpen, setDialogOpen] = useSessionStorageState('producer-dialog-open', {
     defaultValue: false
   })
-  
+
+  const { width } = useWindowSize()
+  const columnCount = width < 640 ? 2 
+    : width < 768 ? 3 
+    : width < 1024 ? 4 
+    : width < 1280 ? 5 
+    : width < 1536 ? 6 
+    : 8
+
+  const renderItem = useCallback(({ data: image, index }: { data: MediaWithRelations, index: number }) => (
+    <GalleryItem
+      key={image.id}
+      image={image}
+      index={index}
+      selectedProducer={state?.producer ?? null}
+    />
+  ), [state?.producer])
+
   return (
     <div className="min-h-screen flex flex-col">
       <div className="p-4 border-b bg-background">
@@ -222,21 +240,12 @@ export default function ImagePage() {
               ))}
             </div>
           ) : (
-            <Masonry 
-              columns={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 6, xxl: 8 }} 
-              spacing={2}
-              defaultHeight={450}
-              defaultColumns={4}
-            >
-              {images.map((image, index) => (
-                <GalleryItem
-                  key={image.id}
-                  image={image}
-                  index={index}
-                  selectedProducer={state?.producer ?? null}
-                />
-              ))}
-            </Masonry>
+            <Masonry
+              items={images}
+              columnCount={columnCount}
+              columnGutter={8}
+              render={renderItem}
+            />
           )}
         </PhotoProvider>
 
