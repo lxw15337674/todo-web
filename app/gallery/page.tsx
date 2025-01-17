@@ -3,7 +3,7 @@ import { getProducersWithCount } from "@/api/gallery/producer"
 import { getPics, getPicsCount } from "@/api/gallery/media"
 import { useEffect, useRef, useCallback } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Masonry } from 'masonic'
+import dynamic from 'next/dynamic'
 import { Button } from "@/components/ui/button"
 import { PhotoProvider } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
@@ -16,9 +16,9 @@ import { Media, Producer, Post } from '@prisma/client'
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
-import { useSize } from 'ahooks';
+import { useWindowSize } from '@/hooks/useWindowSize'
 
-const PAGE_SIZE = 10*6
+const PAGE_SIZE = 20*6
 
 type MediaWithRelations = Media & {
   producer: Producer | null
@@ -36,6 +36,12 @@ const DEFAULT_STATE: GalleryState = {
   sort: 'desc',
   type: MediaType.image
 }
+
+const MasonryGrid = dynamic(() => import('masonic').then(mod => ({ 
+  default: mod.Masonry as typeof mod.Masonry<MediaWithRelations>
+})), { 
+  ssr: false 
+})
 
 export default function ImagePage() {
   const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
@@ -114,12 +120,13 @@ export default function ImagePage() {
     defaultValue: false
   })
 
-  const { width } = useSize(document.body) ?? { width: 640 }
+  const { width } = useWindowSize()
   const columnCount = width < 640 ? 2 
     : width < 768 ? 3 
     : width < 1024 ? 4 
     : width < 1280 ? 5 
-    :  6 
+    : width < 1536 ? 6 
+    : 8
 
   const renderItem = useCallback(({ data: image, index }: { data: MediaWithRelations, index: number }) => (
     <GalleryItem
@@ -131,7 +138,7 @@ export default function ImagePage() {
   ), [state?.producer])
 
   return (
-    <div className="min-h-screen flex flex-col" >
+    <div className="min-h-screen flex flex-col">
       <div className="p-4 border-b bg-background">
         <div className="max-w-screen-2xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -239,7 +246,7 @@ export default function ImagePage() {
               ))}
             </div>
           ) : (
-            <Masonry
+            <MasonryGrid
               items={images}
               columnCount={columnCount}
               columnGutter={8}
