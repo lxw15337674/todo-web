@@ -29,6 +29,7 @@ async function getPage(): Promise<Page> {
     }
     if (!page) {
         page = await browser.newPage();
+        await page.setViewportSize({ width: 1920, height: 1080 });
     }
     return page;
 }
@@ -73,6 +74,7 @@ export async function getFutuStockMap(area: string, mapType: string): Promise<st
         
         const screenshot = await element.screenshot({
             type: 'jpeg',
+            quality: 90
         });
 
         const base64Image = `data:image/jpeg;base64,${screenshot.toString('base64')}`;
@@ -107,6 +109,7 @@ export async function getYuntuStockMap(): Promise<string> {
 
         const screenshot = await element.screenshot({
             type: 'jpeg',
+            quality: 90
         });
 
         const base64Image = `data:image/jpeg;base64,${screenshot.toString('base64')}`;
