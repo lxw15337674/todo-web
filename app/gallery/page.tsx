@@ -1,9 +1,8 @@
 'use client'
 import { getProducersWithCount } from "@/api/gallery/producer"
 import { getPics, getPicsCount } from "@/api/gallery/media"
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import dynamic from 'next/dynamic'
 import { Button } from "@/components/ui/button"
 import { PhotoProvider } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
@@ -13,13 +12,11 @@ import { GalleryItem } from './components/gallery-Item'
 import { useRequest, useSessionStorageState } from "ahooks"
 import { getPostCount } from "@/api/gallery/post"
 import { Media, Producer, Post } from '@prisma/client'
-import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
-import { useWindowSize } from '@/hooks/useWindowSize'
-import { Masonry } from "masonic";
+import Masonry from '@mui/lab/Masonry';
 
-const ROWS_PER_PAGE = 10
+const PageSize = 10 * 6
 
 type MediaWithRelations = Media & {
   producer: Producer | null
@@ -29,7 +26,7 @@ type MediaWithRelations = Media & {
 interface GalleryState {
   producer: string | null
   sort: 'asc' | 'desc'
-  type: MediaType|null
+  type: MediaType | null
 }
 
 const DEFAULT_STATE: GalleryState = {
@@ -44,30 +41,30 @@ export default function ImagePage() {
   const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
     cacheKey: 'gallery-producers'
   })
-  const [state, setState] = useSessionStorageState<GalleryState>('gallery-state', { 
-    defaultValue: DEFAULT_STATE 
+  const [state, setState] = useSessionStorageState<GalleryState>('gallery-state', {
+    defaultValue: DEFAULT_STATE
   })
 
   const { data: images = [], loading, run: loadImages } = useRequest<MediaWithRelations[], [number]>(
     async (page: number): Promise<MediaWithRelations[]> => {
       const result = await getPics(
-        page, 
-        pageSize, 
-        state?.producer ?? null, 
+        page,
+        PageSize,
+        state?.producer ?? null,
         state?.sort ?? 'desc',
         state?.type ?? null
       )
       return page === 1 ? result : [...(images ?? []), ...result]
     },
-    { 
+    {
       manual: true,
       throttleWait: 1000,
     }
   )
-  
+
   const { data: total = 0 } = useRequest(
     () => getPicsCount(state?.producer ?? null, state?.type ?? null),
-    { 
+    {
       refreshDeps: [state],
     }
   )
@@ -80,7 +77,7 @@ export default function ImagePage() {
       ])
       return { uploaded, pending }
     },
-    { 
+    {
       refreshDeps: [state?.producer],
     }
   )
@@ -93,7 +90,7 @@ export default function ImagePage() {
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loading && pageSize * pageRef.current < (total ?? 0)) {
+        if (entries[0].isIntersecting && !loading && PageSize * pageRef.current < (total ?? 0)) {
           pageRef.current += 1
           loadImages(pageRef.current)
         }
@@ -117,15 +114,6 @@ export default function ImagePage() {
     defaultValue: false
   })
 
-  const { width } = useWindowSize()
-  const columnCount = width < 640 ? 2 
-    : width < 768 ? 3 
-    : width < 1024 ? 4 
-    : width < 1280 ? 5 
-    : 6
-
-  const pageSize = columnCount * ROWS_PER_PAGE
-  console.log(images)
   return (
     <div className="min-h-screen flex flex-col">
       <div className="p-4 border-b bg-background">
@@ -133,8 +121,8 @@ export default function ImagePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">生产者</label>
-              <Select 
-                value={state?.producer ?? 'all'} 
+              <Select
+                value={state?.producer ?? 'all'}
                 onValueChange={value => setState(prev => ({
                   producer: value === 'all' ? null : value,
                   sort: (prev ?? DEFAULT_STATE).sort,
@@ -163,8 +151,8 @@ export default function ImagePage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">排序方式</label>
-              <Select 
-                value={state?.sort ?? 'desc'} 
+              <Select
+                value={state?.sort ?? 'desc'}
                 onValueChange={sort => setState(prev => ({
                   producer: (prev ?? DEFAULT_STATE).producer,
                   sort: sort as 'asc' | 'desc',
@@ -185,8 +173,8 @@ export default function ImagePage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">媒体类型</label>
-              <Select 
-                value={state?.type ?? 'all'} 
+              <Select
+                value={state?.type ?? 'all'}
                 onValueChange={type => setState(prev => ({
                   ...prev ?? DEFAULT_STATE,
                   type: type as MediaType
@@ -207,8 +195,8 @@ export default function ImagePage() {
             </div>
 
             <div className="flex flex-col justify-end">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setDialogOpen(true)}
                 className="w-full"
               >
@@ -228,20 +216,20 @@ export default function ImagePage() {
 
       <div className="flex-1 p-2">
         <PhotoProvider>
-            <Masonry
-              items={images}
-              columnCount={columnCount}
-              columnGutter={8}
-              render={({ data: image, index }) => {
-                console.log(index)
-                return <GalleryItem
-                  key={image.id}
-                  image={image}
-                  index={index}
-                  selectedProducer={state?.producer ?? null}
-                />
-              }}
-            />
+          <Masonry columns={{ xs: 2, md: 3, lg: 4, xl: 6 }}
+            spacing={2}
+            defaultHeight={450}
+            defaultColumns={4}
+            defaultSpacing={1}>
+            {images.map((image, index) => (
+              <GalleryItem
+                key={image.id}
+                image={image}
+                index={index}
+                selectedProducer={state?.producer ?? null}
+              />
+            ))}
+          </Masonry>
         </PhotoProvider>
 
         <div ref={loadingRef} className="py-4 text-center">
