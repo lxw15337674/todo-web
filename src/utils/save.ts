@@ -2,22 +2,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 // import { createCanvas } from 'canvas';
 
+export const saveBufferToImage = async (buffer: Buffer, filename: string) => {
+  const dir = path.join(process.cwd(), 'images');
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 
+  // const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  // const filename = `${prefix}_${timestamp}.png`;
+  const filepath = path.join(dir, filename);
 
-export const saveBufferToImage = async (buffer: Buffer, filename:string) => {
-    const dir = path.join(process.cwd(), 'images');
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
-
-    // const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    // const filename = `${prefix}_${timestamp}.png`;
-    const filepath = path.join(dir, filename);
-
-    fs.writeFileSync(filepath, buffer);
-    return filepath;
+  fs.writeFileSync(filepath, buffer);
+  return filepath;
 };
-
 
 // mdimg 不支持vite-node执行
 // export async function saveTextToImage(text: string, filename: string) {
@@ -44,7 +41,7 @@ export const saveBufferToImage = async (buffer: Buffer, filename:string) => {
 //         for (let word of words) {
 //             const testLine = line + word + ' ';
 //             const metrics = ctx.measureText(testLine);
-            
+
 //             if (metrics.width > maxWidth) {
 //                 ctx.fillText(line, 10, y);
 //                 line = word + ' ';
@@ -62,4 +59,4 @@ export const saveBufferToImage = async (buffer: Buffer, filename:string) => {
 //         console.error('生成图片失败:', error);
 //         throw error;
 //     }
-// } 
+// }

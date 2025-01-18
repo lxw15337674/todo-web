@@ -16,7 +16,7 @@ CONTENT END HERE
 标题键为 "title"，值是字符串。
 `;
 
-export const taskPrompt = (text: string,existedTags:string[]) => `
+export const taskPrompt = (text: string, existedTags: string[]) => `
 您是一个任务管理应用中的机器人，您的职责是自动为任务生成合适的标签。
 请分析以下任务信息并生成标签：
 
@@ -33,4 +33,4 @@ export const taskPrompt = (text: string,existedTags:string[]) => `
 - 尽量复用已有的标签
 
 请以 JSON 格式回复，仅包含一个键 "tagNames"，值为标签字符串数组。
-`; 
+`;

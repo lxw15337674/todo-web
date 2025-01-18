@@ -1,9 +1,9 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
-import confetti from "canvas-confetti";
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import confetti from 'canvas-confetti';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 // 预定义一组好看的颜色，支持暗黑模式
@@ -25,7 +25,7 @@ export function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   return Math.abs(hash);
@@ -33,22 +33,22 @@ export function hashString(str: string): number {
 
 // 根据标签名称获取颜色
 export function getTagColor(tagName: string) {
-    const colors = {
-        工作: "border-blue-500 text-blue-500",
-        学习: "border-green-500 text-green-500",
-        生活: "border-yellow-500 text-yellow-500",
-        // 可以添加更多标签颜色
-        default: "border-gray-500 text-gray-500"
-    };
+  const colors = {
+    工作: 'border-blue-500 text-blue-500',
+    学习: 'border-green-500 text-green-500',
+    生活: 'border-yellow-500 text-yellow-500',
+    // 可以添加更多标签颜色
+    default: 'border-gray-500 text-gray-500',
+  };
 
-    return colors[tagName as keyof typeof colors] || colors.default;
+  return colors[tagName as keyof typeof colors] || colors.default;
 }
 
 export function startConfettiAnimation() {
   confetti({
     particleCount: 100,
     spread: 70,
-    origin: { y: 0.6 }
+    origin: { y: 0.6 },
   });
 }
 
@@ -62,7 +62,7 @@ export const safeLocalStorage = {
   setItem: (key: string, value: string) => {
     if (!isBrowser()) return;
     localStorage.setItem(key, value);
-  }
+  },
 };
 
 export const safeSessionStorage = {
@@ -73,5 +73,5 @@ export const safeSessionStorage = {
   setItem: (key: string, value: string) => {
     if (!isBrowser()) return;
     sessionStorage.setItem(key, value);
-  }
+  },
 };

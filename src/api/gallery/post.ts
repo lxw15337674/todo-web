@@ -1,6 +1,6 @@
 'use server';
-import { Platform, UploadStatus } from "@prisma/client";
-import prisma from "../prisma";
+import { Platform, UploadStatus } from '@prisma/client';
+import prisma from '../prisma';
 
 interface GetPostCountParams {
   userId?: string;
@@ -37,14 +37,7 @@ export async function getPostStats(producerId?: string): Promise<PostStats> {
 }
 
 export async function getPostCount(params: GetPostCountParams = {}) {
-  const {
-    userId,
-    producerId,
-    platform,
-    status,
-    startTime,
-    endTime,
-  } = params;
+  const { userId, producerId, platform, status, startTime, endTime } = params;
 
   const where = {
     deletedAt: null,
