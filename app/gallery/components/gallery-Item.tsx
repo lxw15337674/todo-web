@@ -83,9 +83,11 @@ export const GalleryItem = ({ image }: Props) => {
                         <video
                             ref={videoRef}
                             src={mediaUrl}
+                            poster={image.thumbnailUrl ?? undefined}
                             loop
                             muted
                             playsInline
+                            preload="none"
                             className={cn(
                                 "w-full h-full object-cover transition-all duration-300",
                                 isHovered && "scale-105 brightness-90"
