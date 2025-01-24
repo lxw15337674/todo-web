@@ -95,7 +95,7 @@ export default async function getSummarizeBookmark(
     const page = await context.newPage();
     
     try {
-      await page.goto(url, { waitUntil: 'load' });
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
       const content = await page.content();
       const pageTitle = await page.title();
       const cleanedContent = await cleanHtml(content);
