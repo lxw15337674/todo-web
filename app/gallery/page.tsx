@@ -1,5 +1,5 @@
 'use client'
-import { getProducersWithCount } from "@/api/gallery/producer"
+import { getProducersWithCount, getProducerTags } from "@/api/gallery/producer"
 import { getPics, getPicsCount } from "@/api/gallery/media"
 import { useEffect, useRef } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -27,12 +27,14 @@ interface GalleryState {
   producer: string | null
   sort: 'asc' | 'desc'
   type: MediaType | null
+  tags: string[] | null
 }
 
 const DEFAULT_STATE: GalleryState = {
   producer: null,
   sort: 'desc',
-  type: MediaType.image
+  type: MediaType.image,
+  tags: null
 }
 
 
@@ -41,6 +43,11 @@ export default function ImagePage() {
   const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
     cacheKey: 'gallery-producers'
   })
+
+  const { data: tags = [] } = useRequest(getProducerTags, {
+    cacheKey: 'gallery-tags'
+  })
+
   const [state, setState] = useSessionStorageState<GalleryState>('gallery-state', {
     defaultValue: DEFAULT_STATE
   })
@@ -52,7 +59,8 @@ export default function ImagePage() {
         PageSize,
         state?.producer ?? null,
         state?.sort ?? 'desc',
-        state?.type ?? null
+        state?.type ?? null,
+        state?.tags ?? null
       )
       return page === 1 ? result : [...(images ?? []), ...result]
     },
@@ -63,7 +71,7 @@ export default function ImagePage() {
   )
 
   const { data: total = 0 } = useRequest(
-    () => getPicsCount(state?.producer ?? null, state?.type ?? null),
+    () => getPicsCount(state?.producer ?? null, state?.type ?? null, state?.tags ?? null),
     {
       refreshDeps: [state],
     }
@@ -124,9 +132,8 @@ export default function ImagePage() {
               <Select
                 value={state?.producer ?? 'all'}
                 onValueChange={value => setState(prev => ({
-                  producer: value === 'all' ? null : value,
-                  sort: (prev ?? DEFAULT_STATE).sort,
-                  type: (prev ?? DEFAULT_STATE).type
+                  ...prev ?? DEFAULT_STATE,
+                  producer: value === 'all' ? null : value
                 }))}
               >
                 <SelectTrigger>
@@ -150,13 +157,41 @@ export default function ImagePage() {
             </div>
 
             <div className="space-y-2">
+              <label className="text-sm font-medium">标签</label>
+              <Select
+                value={state?.tags?.[0] ?? 'all'}
+                onValueChange={value => setState(prev => ({
+                  ...prev ?? DEFAULT_STATE,
+                  tags: value === 'all' ? null : [value]
+                }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="全部标签" />
+                </SelectTrigger>
+                <SelectContent>
+                  <ScrollArea className="h-[300px]">
+                    <SelectGroup>
+                      <SelectItem value="all">全部标签</SelectItem>
+                      {tags.map(tag => (
+                        <SelectItem key={tag.id} value={tag.id}>
+                          <div className="truncate">
+                            {tag.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </ScrollArea>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <label className="text-sm font-medium">排序方式</label>
               <Select
                 value={state?.sort ?? 'desc'}
                 onValueChange={sort => setState(prev => ({
-                  producer: (prev ?? DEFAULT_STATE).producer,
-                  sort: sort as 'asc' | 'desc',
-                  type: (prev ?? DEFAULT_STATE).type
+                  ...prev ?? DEFAULT_STATE,
+                  sort: sort as 'asc' | 'desc'
                 }))}
               >
                 <SelectTrigger>
@@ -177,7 +212,7 @@ export default function ImagePage() {
                 value={state?.type ?? 'all'}
                 onValueChange={type => setState(prev => ({
                   ...prev ?? DEFAULT_STATE,
-                  type: type as MediaType
+                  type: type === 'all' ? null : type as MediaType
                 }))}
               >
                 <SelectTrigger>

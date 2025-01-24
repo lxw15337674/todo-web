@@ -30,20 +30,33 @@ const getMediaTypeCondition = (type: MediaType | null) => {
 const getBaseWhereClause = (
   producerId: string | null,
   type: MediaType | null,
+  tagIds: string[] | null = null,
 ) => ({
   deletedAt: null,
   status: UploadStatus.UPLOADED,
   ...(producerId ? { producerId } : {}),
+  ...(tagIds && tagIds.length > 0 ? {
+    producer: {
+      ProducerToProducerTag: {
+        some: {
+          B: {
+            in: tagIds
+          }
+        }
+      }
+    }
+  } : {}),
   ...getMediaTypeCondition(type),
 });
 
 export async function getPicsCount(
   producerId: string | null,
   type: MediaType | null = null,
+  tagIds: string[] | null = null,
 ) {
   try {
     const count = await prisma.media.count({
-      where: getBaseWhereClause(producerId, type),
+      where: getBaseWhereClause(producerId, type, tagIds),
     });
     return count;
   } catch (error) {
@@ -61,6 +74,7 @@ export async function getPics(
   producerId: string | null,
   sort: 'asc' | 'desc' = 'desc',
   type: MediaType | null = null,
+  tagIds: string[] | null = null,
 ) {
   try {
     const skip = (page - 1) * pageSize;
@@ -69,14 +83,30 @@ export async function getPics(
     const items = await prisma.media.findMany({
       skip,
       take,
-      where: getBaseWhereClause(producerId, type),
+      where: getBaseWhereClause(producerId, type, tagIds),
       orderBy: { createTime: sort },
       include: {
-        producer: true,
+        producer: {
+          include: {
+            ProducerToProducerTag: {
+              include: {
+                ProducerTag: true
+              }
+            }
+          }
+        },
         post: true,
       },
     });
-    return items;
+
+    // Transform the result to match the expected type
+    return items.map(item => ({
+      ...item,
+      producer: item.producer ? {
+        ...item.producer,
+        tags: item.producer.ProducerToProducerTag.map(p => p.ProducerTag)
+      } : null
+    }));
   } catch (error) {
     console.error(
       'Failed to fetch media:',
