@@ -1,7 +1,7 @@
 'use server';
 import axios from 'axios';
 import { robotService } from './services/robotService';
-import { bookmarkPrompt, taskPrompt } from './prompts/prompts';
+import { bookmarkPrompt, taskPrompt } from './prompts';
 
 // 保留原有的接口定义
 export interface OpenAICompletion {
@@ -76,6 +76,7 @@ const cleanHtml = async (html: string): Promise<CleanedContent> => {
 
 export default async function getSummarizeBookmark(
   url: string,
+  existedTags: string[],
 ): Promise<OpenAICompletion> {
   try {
     const response = await axios.get(url, {
@@ -91,7 +92,7 @@ export default async function getSummarizeBookmark(
     const html = cleanedContent.text.substring(0, 60000);
 
     const aiResponse = await robotService.generateResponse<OpenAICompletion>(
-      bookmarkPrompt(html),
+      bookmarkPrompt(html, existedTags),
     );
 
     if (!aiResponse.success) {
