@@ -59,18 +59,20 @@ export default function BookmarkManager() {
 
     return (
         <div className="relative  w-full ">
-            <BookmarkSidebar selectedTag={selectedTag} onSelectTag={setSelectedTag} />
             <div className={`h-full p-4 ${state === 'expanded' ? 'md:ml-64' : ''} duration-200 space-y-4`} >
                 <div className="flex items-center gap-4 ">
                     <div className="flex-1">
-                        <div className="relative">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="搜索"
-                                className="pl-8"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
+                        <div className="relative flex items-center gap-2">
+                            <BookmarkSidebar selectedTag={selectedTag} onSelectTag={setSelectedTag} />
+                            <div className="relative flex-1">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="搜索"
+                                    className="pl-8"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
