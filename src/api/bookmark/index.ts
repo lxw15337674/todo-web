@@ -47,13 +47,20 @@ export async function summarizeBookmark(id: string, url: string) {
     const existingTagNames = existingTags.map(t => t.name);
     const missingTagNames = data.tags.filter(t => !existingTagNames.includes(t));
     const newTags = await Promise.all(
-      missingTagNames.map(name => 
+      missingTagNames.map(name =>
         prisma.bookmarkTag.create({ data: { name } })
       )
     );
 
     const allTags = [...existingTags, ...newTags];
-
+    await prisma.bookmark.update({
+      where: { id },
+      data: {
+        tags: {
+          set: [], // This will remove all existing tag connections
+        },
+      },
+    });
     const updatedBookmark = await prisma.bookmark.upsert({
       where: { id },
       create: {
@@ -79,25 +86,12 @@ export async function summarizeBookmark(id: string, url: string) {
       include: { tags: true },
     });
     console.info(
-      `Created bookmark ${updatedBookmark.title}-${
-        updatedBookmark.id
+      `Created bookmark ${updatedBookmark.title}-${updatedBookmark.id
       } with tags ${updatedBookmark.tags.map((tag) => tag.name).join(', ')}`,
     );
     return updatedBookmark;
   } catch (e) {
     console.error(e);
-    // 如果创建书签失败，更新书签的 loading 状态
-    await prisma.bookmark.upsert({
-      where: { id },
-      create: {
-        id,
-        url: '',
-        loading: false
-      },
-      update: {
-        loading: false
-      }
-    });
     return null;
   }
 }
@@ -120,15 +114,15 @@ export const getAllBookmarks = async (
       AND: [
         keyword
           ? {
-              OR: [{ title: { contains: keyword } }],
-            }
+            OR: [{ title: { contains: keyword } }],
+          }
           : {},
         tagId
           ? {
-              tags: {
-                some: { id: tagId },
-              },
-            }
+            tags: {
+              some: { id: tagId },
+            },
+          }
           : {},
       ],
     },
