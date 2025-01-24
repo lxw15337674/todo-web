@@ -1,5 +1,6 @@
 'use server';
 import axios from 'axios';
+import { chromium } from 'playwright';
 import { robotService } from './services/robotService';
 import { bookmarkPrompt, taskPrompt } from './prompts';
 
@@ -26,7 +27,7 @@ const isImageAccessible = async (url: string): Promise<ImageInfo> => {
   try {
     const response = await axios.head(url, {
       timeout: 5000,
-      validateStatus: (status) => status === 200,
+      validateStatus: (status: number) => status === 200,
     });
     return {
       isImage: response.headers['content-type']?.startsWith('image/') || false,
@@ -79,35 +80,41 @@ export default async function getSummarizeBookmark(
   existedTags: string[],
 ): Promise<OpenAICompletion> {
   try {
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15A372 Safari/604.1',
-      },
-      timeout: 10000,
-      maxRedirects: 5,
+    const browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15A372 Safari/604.1'
     });
+    const page = await context.newPage();
+    
+    try {
+      await page.goto(url, { waitUntil: 'load' });
+      const content = await page.content();
+      const pageTitle = await page.title();
+      const cleanedContent = await cleanHtml(content);
+      const html = `<title>${pageTitle}</title>\n${cleanedContent.text}`.substring(0, 60000);
 
-    const cleanedContent = await cleanHtml(response.data);
-    const html = cleanedContent.text.substring(0, 60000);
+      const aiResponse = await robotService.generateResponse<OpenAICompletion>(
+        bookmarkPrompt(html, existedTags),
+      );
 
-    const aiResponse = await robotService.generateResponse<OpenAICompletion>(
-      bookmarkPrompt(html, existedTags),
-    );
+      if (!aiResponse.success) {
+        return { tags: [], summary: '', title: pageTitle || '', image: '' };
+      }
 
-    if (!aiResponse.success) {
-      return { tags: [], summary: '', title: '', image: '' };
+      const result = aiResponse.data;
+      if (
+        !result.image ||
+        !result.image.startsWith('https://') ||
+        !(await isImageAccessible(result.image)).isImage
+      ) {
+        result.image = cleanedContent.image;
+      }
+      result.title = pageTitle || result.title;
+      return result;
+    } finally {
+      await context.close();
+      await browser.close();
     }
-
-    const result = aiResponse.data;
-    if (
-      !result.image ||
-      !result.image.startsWith('https://') ||
-      !(await isImageAccessible(result.image)).isImage
-    ) {
-      result.image = cleanedContent.image;
-    }
-    return result;
   } catch (error) {
     console.error('Error in getSummarizeBookmark:', error);
     return { tags: [], summary: '', title: '', image: '' };
