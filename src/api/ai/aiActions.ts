@@ -61,7 +61,15 @@ const cleanHtml = async (html: string): Promise<CleanedContent> => {
   const image = await extractImage(html);
 
   const cleaned = html
-    .replace(/<(script|style)\b[^<]*(?:(?!<\/\1>)<[^<]*)*<\/\1>/gi, '')
+    // Remove style tags and their contents
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    // Remove script tags and their contents
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    // Remove inline style attributes
+    .replace(/\s*style=["'][^"']*["']/gi, '')
+    // Remove class attributes
+    .replace(/\s*class=["'][^"']*["']/gi, '')
+    // Remove remaining HTML tags
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .replace(/&nbsp;/g, ' ')
