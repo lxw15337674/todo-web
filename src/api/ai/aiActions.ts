@@ -1,6 +1,5 @@
 'use server';
 import axios from 'axios';
-import { chromium } from 'playwright';
 import { robotService } from './services/robotService';
 import { bookmarkPrompt, taskPrompt } from './prompts';
 
@@ -39,17 +38,32 @@ const isImageAccessible = async (url: string): Promise<ImageInfo> => {
 };
 
 const extractImage = async (html: string): Promise<string> => {
-  const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
-  const imageUrls = Array.from(html.matchAll(imgRegex))
-    .map((match) => {
-      const src = match[1];
-      return src.startsWith('//') ? `https:${src}` : src;
-    })
-    .filter((src) => src.startsWith('https://'));
+  // 匹配所有可能的图片标签格式
+  const imgPatterns = [
+    /<img[^>]+src=["']([^"']+)["'][^>]*>/gi,  // 标准img标签
+  ];
 
+  const imageUrls = new Set<string>();
+
+  // 从所有模式中提取URL
+  for (const pattern of imgPatterns) {
+    const matches = Array.from(html.matchAll(pattern));
+    for (const match of matches) {
+      let src = match[1];
+      // 处理相对URL
+      if (src.startsWith('//')) {
+        src = `https:${src}`;
+      } else if (!src.startsWith('http')) {
+        continue;
+      }
+      imageUrls.add(src);
+    }
+  }
+
+  // 检查每个URL是否为可访问的图片
   for (const url of imageUrls) {
     const imageInfo = await isImageAccessible(url);
-    if (imageInfo.isImage) {
+    if (imageInfo.isImage && imageInfo.size > 1024) { // 确保图片大小至少1KB
       return url;
     }
   }
@@ -88,41 +102,37 @@ export default async function getSummarizeBookmark(
   existedTags: string[],
 ): Promise<OpenAICompletion> {
   try {
-    const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15A372 Safari/604.1'
-    });
-    const page = await context.newPage();
-    
-    try {
-      await page.goto(url, { waitUntil: 'domcontentloaded' });
-      const content = await page.content();
-      const pageTitle = await page.title();
-      const cleanedContent = await cleanHtml(content);
-      const html = `<title>${pageTitle}</title>\n${cleanedContent.text}`.substring(0, 60000);
+    const apiUrl = `https://bhwa-api.zeabur.app/api/ai/page-content?url=${encodeURIComponent(url)}`;
+    const { data, status } = await axios.get(apiUrl);
 
-      const aiResponse = await robotService.generateResponse<OpenAICompletion>(
-        bookmarkPrompt(html, existedTags),
-      );
-
-      if (!aiResponse.success) {
-        return { tags: [], summary: '', title: pageTitle || '', image: '' };
-      }
-
-      const result = aiResponse.data;
-      if (
-        !result.image ||
-        !result.image.startsWith('https://') ||
-        !(await isImageAccessible(result.image)).isImage
-      ) {
-        result.image = cleanedContent.image;
-      }
-      result.title = pageTitle || result.title;
-      return result;
-    } finally {
-      await context.close();
-      await browser.close();
+    if (status !== 200 || !data) {
+      console.error('Failed to fetch page content:', data);
+      return { tags: [], summary: '', title: '', image: '' };
     }
+
+    const { content, title } = data;
+    const cleanedContent = await cleanHtml(content);
+    const html = cleanedContent.text.substring(0, 60000);
+    return {
+      tags: [],
+      summary: '',
+      title: title || '',
+      image: cleanedContent.image,
+    };
+    const aiResponse = await robotService.generateResponse<Pick<OpenAICompletion, 'summary' | 'tags'>>(
+      bookmarkPrompt(html, existedTags),
+    );
+
+    if (!aiResponse.success) {
+      return { tags: [], summary: '', title: title || '', image: '' };
+    }
+
+    return {
+      tags: aiResponse.data.tags,
+      summary: aiResponse.data.summary,
+      title: title || '',
+      image: cleanedContent.image,
+    };
   } catch (error) {
     console.error('Error in getSummarizeBookmark:', error);
     return { tags: [], summary: '', title: '', image: '' };
