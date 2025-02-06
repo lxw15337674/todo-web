@@ -15,7 +15,7 @@ export const bookmarkPrompt = (content: string, existedTags: string[]) => `
 3. 标签生成：
    - 提供1-4个中文标签
    - 标签应反映核心主题和关键概念
-   - 优先复用现有标签
+   - 尽可能复用现有标签
    - 保持简洁、准确、具有代表性
    - 如无合适标签可返回空数组
 
