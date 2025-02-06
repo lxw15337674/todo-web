@@ -1,6 +1,5 @@
 'use server';
 import axios from 'axios';
-import { chromium } from 'playwright';
 import { robotService } from './services/robotService';
 import { bookmarkPrompt, taskPrompt } from './prompts';
 
@@ -39,17 +38,32 @@ const isImageAccessible = async (url: string): Promise<ImageInfo> => {
 };
 
 const extractImage = async (html: string): Promise<string> => {
-  const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
-  const imageUrls = Array.from(html.matchAll(imgRegex))
-    .map((match) => {
-      const src = match[1];
-      return src.startsWith('//') ? `https:${src}` : src;
-    })
-    .filter((src) => src.startsWith('https://'));
+  // 匹配所有可能的图片标签格式
+  const imgPatterns = [
+    /<img[^>]+src=["']([^"']+)["'][^>]*>/gi,  // 标准img标签
+  ];
 
+  const imageUrls = new Set<string>();
+
+  // 从所有模式中提取URL
+  for (const pattern of imgPatterns) {
+    const matches = Array.from(html.matchAll(pattern));
+    for (const match of matches) {
+      let src = match[1];
+      // 处理相对URL
+      if (src.startsWith('//')) {
+        src = `https:${src}`;
+      } else if (!src.startsWith('http')) {
+        continue;
+      }
+      imageUrls.add(src);
+    }
+  }
+
+  // 检查每个URL是否为可访问的图片
   for (const url of imageUrls) {
     const imageInfo = await isImageAccessible(url);
-    if (imageInfo.isImage) {
+    if (imageInfo.isImage && imageInfo.size > 1024) { // 确保图片大小至少1KB
       return url;
     }
   }
@@ -87,44 +101,52 @@ export default async function getSummarizeBookmark(
   url: string,
   existedTags: string[],
 ): Promise<OpenAICompletion> {
+  const startTime = Date.now();
+  console.log(`[书签摘要] 开始处理URL: ${url}`);
+
   try {
-    const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15A372 Safari/604.1'
-    });
-    const page = await context.newPage();
-    
-    try {
-      await page.goto(url, { waitUntil: 'domcontentloaded' });
-      const content = await page.content();
-      const pageTitle = await page.title();
-      const cleanedContent = await cleanHtml(content);
-      const html = `<title>${pageTitle}</title>\n${cleanedContent.text}`.substring(0, 60000);
+    // 获取页面内容
+    const fetchStartTime = Date.now();
+    const apiUrl = `https://bhwa-api.zeabur.app/api/ai/page-content?url=${encodeURIComponent(url)}`;
+    const { data, status } = await axios.get(apiUrl);
+    console.log(`[书签摘要] 获取页面内容耗时: ${Date.now() - fetchStartTime}毫秒`);
 
-      const aiResponse = await robotService.generateResponse<OpenAICompletion>(
-        bookmarkPrompt(html, existedTags),
-      );
-
-      if (!aiResponse.success) {
-        return { tags: [], summary: '', title: pageTitle || '', image: '' };
-      }
-
-      const result = aiResponse.data;
-      if (
-        !result.image ||
-        !result.image.startsWith('https://') ||
-        !(await isImageAccessible(result.image)).isImage
-      ) {
-        result.image = cleanedContent.image;
-      }
-      result.title = pageTitle || result.title;
-      return result;
-    } finally {
-      await context.close();
-      await browser.close();
+    if (status !== 200 || !data) {
+      console.error('[书签摘要] 获取页面内容失败:', data);
+      return { tags: [], summary: '', title: '', image: '' };
     }
+
+    // 清理HTML内容
+    const cleanStartTime = Date.now();
+    const { content, title } = data;
+    const cleanedContent = await cleanHtml(content);
+    const html = cleanedContent.text.substring(0, 60000);
+    console.log(`[书签摘要] 清理HTML内容耗时: ${Date.now() - cleanStartTime}毫秒`);
+
+    // 生成AI响应
+    const aiStartTime = Date.now();
+    const aiResponse = await robotService.generateResponse<Pick<OpenAICompletion, 'summary' | 'tags'>>(
+      bookmarkPrompt(html, existedTags),
+    );
+    console.log(`[书签摘要] AI处理耗时: ${Date.now() - aiStartTime}毫秒`);
+
+    if (!aiResponse.success) {
+      console.warn('[书签摘要] AI响应未成功');
+      return { tags: [], summary: '', title: title || '', image: '' };
+    }
+
+    const result = {
+      tags: aiResponse.data.tags,
+      summary: aiResponse.data.summary,
+      title: title || '',
+      image: cleanedContent.image,
+    };
+
+    console.log(`[书签摘要] 总处理耗时: ${Date.now() - startTime}毫秒`);
+    return result;
   } catch (error) {
-    console.error('Error in getSummarizeBookmark:', error);
+    const errorTime = Date.now() - startTime;
+    console.error(`[书签摘要] 处理出错，已耗时${errorTime}毫秒:`, error);
     return { tags: [], summary: '', title: '', image: '' };
   }
 }

@@ -7,10 +7,6 @@ export const bookmarkPrompt = (content: string, existedTags: string[]) => `
 
 请按照以下规则分析内容：
 
-1. 标题提取：
-   - 优先从HTML中提取合适的标题
-   - 若无合适标题，根据内容生成简洁明确的标题
-
 2. 内容总结：
    - 提取文章核心主题和关键信息
    - 生成不超过四句话的精炼总结
@@ -19,20 +15,14 @@ export const bookmarkPrompt = (content: string, existedTags: string[]) => `
 3. 标签生成：
    - 提供1-4个中文标签
    - 标签应反映核心主题和关键概念
-   - 优先复用现有标签
+   - 尽可能复用现有标签
    - 保持简洁、准确、具有代表性
    - 如无合适标签可返回空数组
 
-4. 配图选择：
-   - 从HTML中选取最能代表内容主题的图片
-   - 提取图片URL
-
 请以JSON格式返回，包含以下字段：
 {
-  "title": "文章标题",
   "summary": "内容总结",
   "tags": ["标签1", "标签2", ...],
-  "image": "图片URL"
 }
 `;
 
