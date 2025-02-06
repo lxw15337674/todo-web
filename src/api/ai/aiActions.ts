@@ -113,12 +113,6 @@ export default async function getSummarizeBookmark(
     const { content, title } = data;
     const cleanedContent = await cleanHtml(content);
     const html = cleanedContent.text.substring(0, 60000);
-    return {
-      tags: [],
-      summary: '',
-      title: title || '',
-      image: cleanedContent.image,
-    };
     const aiResponse = await robotService.generateResponse<Pick<OpenAICompletion, 'summary' | 'tags'>>(
       bookmarkPrompt(html, existedTags),
     );
