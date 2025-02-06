@@ -101,34 +101,52 @@ export default async function getSummarizeBookmark(
   url: string,
   existedTags: string[],
 ): Promise<OpenAICompletion> {
+  const startTime = Date.now();
+  console.log(`[书签摘要] 开始处理URL: ${url}`);
+
   try {
+    // 获取页面内容
+    const fetchStartTime = Date.now();
     const apiUrl = `https://bhwa-api.zeabur.app/api/ai/page-content?url=${encodeURIComponent(url)}`;
     const { data, status } = await axios.get(apiUrl);
+    console.log(`[书签摘要] 获取页面内容耗时: ${Date.now() - fetchStartTime}毫秒`);
 
     if (status !== 200 || !data) {
-      console.error('Failed to fetch page content:', data);
+      console.error('[书签摘要] 获取页面内容失败:', data);
       return { tags: [], summary: '', title: '', image: '' };
     }
 
+    // 清理HTML内容
+    const cleanStartTime = Date.now();
     const { content, title } = data;
     const cleanedContent = await cleanHtml(content);
     const html = cleanedContent.text.substring(0, 60000);
+    console.log(`[书签摘要] 清理HTML内容耗时: ${Date.now() - cleanStartTime}毫秒`);
+
+    // 生成AI响应
+    const aiStartTime = Date.now();
     const aiResponse = await robotService.generateResponse<Pick<OpenAICompletion, 'summary' | 'tags'>>(
       bookmarkPrompt(html, existedTags),
     );
+    console.log(`[书签摘要] AI处理耗时: ${Date.now() - aiStartTime}毫秒`);
 
     if (!aiResponse.success) {
+      console.warn('[书签摘要] AI响应未成功');
       return { tags: [], summary: '', title: title || '', image: '' };
     }
 
-    return {
+    const result = {
       tags: aiResponse.data.tags,
       summary: aiResponse.data.summary,
       title: title || '',
       image: cleanedContent.image,
     };
+
+    console.log(`[书签摘要] 总处理耗时: ${Date.now() - startTime}毫秒`);
+    return result;
   } catch (error) {
-    console.error('Error in getSummarizeBookmark:', error);
+    const errorTime = Date.now() - startTime;
+    console.error(`[书签摘要] 处理出错，已耗时${errorTime}毫秒:`, error);
     return { tags: [], summary: '', title: '', image: '' };
   }
 }
