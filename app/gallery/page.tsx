@@ -16,7 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
 import Masonry from '@mui/lab/Masonry';
 
-const PageSize = 10 * 6
+const PageSize = 20 * 6
 
 type MediaWithRelations = Media & {
   producer: Producer | null
