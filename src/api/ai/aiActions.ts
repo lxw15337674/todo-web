@@ -1,7 +1,51 @@
 'use server';
-import axios from 'axios';
-import { robotService } from './robotService';
 import { bookmarkPrompt, taskPrompt } from './prompts';
+import axios from 'axios';
+
+export interface RobotResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
+
+export async function generateResponse<T>(
+  prompt: string,
+  model?: string,
+): Promise<RobotResponse<T>> {
+  try {
+    const completion = await axios.post('https://bhwa-api.zeabur.app/api/ai/chat', {
+      prompt,
+      model: 'step-2-16k' // 使用step-2-16k模型
+    }, {
+      timeout: 50000,
+    });
+    const content = completion.data.choices[0].message?.content ?? '';
+    try {
+      const match = content.match(/```json\s*([\s\S]*?)\s*```/) || [
+        null,
+        content,
+      ];
+      const parsed = JSON.parse(match[1]);
+      console.log('AI服务响应:', parsed);
+      return {
+        success: true,
+        data: parsed,
+      };
+    } catch (parseError) {
+      return {
+        success: false,
+        data: {} as T,
+        error: '解析响应失败',
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      data: {} as T,
+      error: 'AI服务调用失败',
+    };
+  }
+}
 
 // 保留原有的接口定义
 export interface OpenAICompletion {
@@ -125,8 +169,8 @@ export default async function getSummarizeBookmark(
 
     // 生成AI响应
     const aiStartTime = Date.now();
-    const aiResponse = await robotService.generateResponse<Pick<OpenAICompletion, 'summary' | 'tags'>>(
-      bookmarkPrompt(html, existedTags),
+    const aiResponse = await generateResponse<Pick<OpenAICompletion, 'summary' | 'tags'>>(
+      bookmarkPrompt(html, existedTags)
     );
     console.log(`[书签摘要] AI处理耗时: ${Date.now() - aiStartTime}毫秒`);
 
@@ -155,7 +199,7 @@ export async function getTaskTags(
   content: string,
   existedTags: string[],
 ): Promise<string[]> {
-  const response = await robotService.generateResponse<{ tagNames: string[] }>(
+  const response = await generateResponse<{ tagNames: string[] }>(
     taskPrompt(content, existedTags),
   );
   return response.success ? response.data.tagNames : [];
