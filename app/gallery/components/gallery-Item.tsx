@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 interface Props {
     image: Media & { producer: Producer | null, post: Post | null }
     index: number
-    selectedProducer: string | null
 }
 
 const VIDEO_EXTENSIONS = ['.mov', '.mp4']
@@ -116,7 +115,7 @@ export const GalleryItem = ({ image }: Props) => {
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                             quality={90}
                             priority={false}
-                            onLoadingComplete={() => setIsLoading(false)}
+                                onLoad={() => setIsLoading(false)}
                         />
                         {isLoading && (
                             <Skeleton className="absolute inset-0" />
