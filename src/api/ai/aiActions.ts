@@ -10,20 +10,18 @@ export interface RobotResponse<T> {
 
 export async function generateResponse<T>(
   prompt: string,
-  model?: string,
 ): Promise<RobotResponse<T>> {
   try {
-    const completion = await axios.post('https://bhwa-api.zeabur.app/api/ai/chat', {
+    const { data } = await axios.post('https://bhwa-us.zeabur.app/api/ai/google-chat', {
       prompt,
-      model: 'step-2-16k' // 使用step-2-16k模型
     }, {
       timeout: 50000,
     });
-    const content = completion.data.choices[0].message?.content ?? '';
+
     try {
-      const match = content.match(/```json\s*([\s\S]*?)\s*```/) || [
+      const match = data.match(/```json\s*([\s\S]*?)\s*```/) || [
         null,
-        content,
+        data,
       ];
       const parsed = JSON.parse(match[1]);
       console.log('AI服务响应:', parsed);
@@ -151,11 +149,11 @@ export default async function getSummarizeBookmark(
   try {
     // 获取页面内容
     const fetchStartTime = Date.now();
-    const apiUrl = `https://bhwa-api.zeabur.app/api/ai/page-content?url=${encodeURIComponent(url)}`;
+    const apiUrl = `https://bhwa-us.zeabur.app/api/ai/page-content?url=${encodeURIComponent(url)}`;
     const { data, status } = await axios.get(apiUrl);
     console.log(`[书签摘要] 获取页面内容耗时: ${Date.now() - fetchStartTime}毫秒`);
 
-    if (status !== 200 || !data) {
+    if (status !== 200 || !data.content) {
       console.error('[书签摘要] 获取页面内容失败:', data);
       return { tags: [], summary: '', title: '', image: '' };
     }
