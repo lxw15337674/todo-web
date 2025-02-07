@@ -33,6 +33,7 @@ import {
 import { Priority } from '@prisma/client'
 import { AutosizeTextarea } from '../../src/components/ui/AutosizeTextarea'
 import { Task } from '@prisma/client'
+import { useToast } from '../../src/hooks/use-toast'
 
 // 新增常量定义
 const TASK_STATUS = {
@@ -71,6 +72,7 @@ export default function Page() {
         cacheKey: 'TaskTags',
     });
     
+    const { toast } = useToast()
     const [newTask, setNewTask] = useImmer<NewTask>(DEFAULT_NEW_TASK);
     const [newTagName, setNewTagName] = useState('');
     const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
@@ -85,8 +87,21 @@ export default function Page() {
         if (!trimmedName) return;
 
         setNewTask(draft => { draft.name = ''; });
-        await createTask({ ...newTask, name: trimmedName });
-        await Promise.all([refreshTasks(), refreshTags()]);
+        try {
+            await createTask({ ...newTask, name: trimmedName });
+            await refreshTasks()
+            toast({
+                title: "成功",
+                description: "任务添加成功。",
+            })
+        } catch (error) {
+            toast({
+                title: "错误",
+                description: "任务添加失败。",
+                variant: "destructive",
+            })
+        }
+
     }, { wait: 1000 }).run;
 
     // 优化标签处理逻辑

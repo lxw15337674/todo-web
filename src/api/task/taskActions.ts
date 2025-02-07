@@ -22,19 +22,37 @@ export type NewTask = Omit<
 >;
 
 export const createTask = async (taskData: NewTask): Promise<Task> => {
-  const tags = await generateTaskTags(taskData.name || '');
-
-  return await prisma.task.create({
+  // 先创建任务
+  const task = await prisma.task.create({
     data: {
       ...taskData,
-      tags: {
-        connect: tags,
-      },
     },
     include: {
       tags: true,
     },
   });
+
+  // 异步生成和连接标签
+  generateTaskTags(taskData.name || '')
+    .then(tags => {
+      return prisma.task.update({
+        where: { id: task.id },
+        data: {
+          tags: {
+            connect: tags,
+          },
+        },
+        include: {
+          tags: true,
+        },
+      });
+    })
+    .catch(error => {
+      console.error('Failed to generate or connect tags:', error);
+      // 可以在这里添加错误处理逻辑，例如记录日志或通知管理员
+    });
+
+  return task;
 };
 
 export const fetchTasks = async (): Promise<Task[]> => {
