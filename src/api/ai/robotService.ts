@@ -5,7 +5,7 @@ const openai = new OpenAI({
   baseURL: process.env.AI_BASE_URL,
   apiKey: process.env.AI_API_KEY,
 });
-
+const Model = process.env.AI_MODEL || 'step-2-mini';
 export interface RobotResponse<T> {
   success: boolean;
   data: T;
@@ -15,7 +15,7 @@ export interface RobotResponse<T> {
 export class RobotService {
   private static instance: RobotService;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): RobotService {
     if (!RobotService.instance) {
@@ -26,7 +26,7 @@ export class RobotService {
 
   async generateResponse<T>(
     prompt: string,
-    model: string = 'deepseek-chat',
+    model: string = Model
   ): Promise<RobotResponse<T>> {
     try {
       const completion = await openai.chat.completions.create({
@@ -40,7 +40,8 @@ export class RobotService {
           null,
           content,
         ];
-        const parsed = JSON.parse(match[1] || content);
+        const parsed = JSON.parse(match[1] );
+        console.log('AI服务响应:', parsed);
         return {
           success: true,
           data: parsed,

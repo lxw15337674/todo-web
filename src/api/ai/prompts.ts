@@ -20,10 +20,7 @@ export const bookmarkPrompt = (content: string, existedTags: string[]) => `
    - 如无合适标签可返回空数组
 
 请以JSON格式返回，包含以下字段：
-{
-  "summary": "内容总结",
-  "tags": ["标签1", "标签2", ...],
-}
+{"summary": "内容总结","tags": ["标签1", "标签2", ...]}
 `;
 
 export const taskPrompt = (text: string, existedTags: string[]) => `
@@ -39,7 +36,7 @@ export const taskPrompt = (text: string, existedTags: string[]) => `
        - 如果任务内容涉及生活，则返回标签“生活”
        - 如果任务内容涉及工作，则返回标签“工作”
    - 除此之外，再额外生成一个不限于“生活”和“工作”的标签，用以补充任务内容描述
-   - 最终返回的标签数量应为2或3个
+   - 最终返回的标签数量应为2个
 
 2. 标签特征：
    - “生活”和“工作”标签仅在任务内容明确涉及该领域时使用
@@ -48,7 +45,5 @@ export const taskPrompt = (text: string, existedTags: string[]) => `
 3. 格式要求：
    - 使用简洁的名词或短语，避免使用完整句子
    - 请以JSON格式返回，格式示例如下：
-{
-  "tagNames": ["生活", "自定义标签"]
-}
+{"tagNames": ["生活", "自定义标签"]}
 `;

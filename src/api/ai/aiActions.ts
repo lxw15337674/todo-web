@@ -1,13 +1,13 @@
 'use server';
 import axios from 'axios';
-import { robotService } from './services/robotService';
+import { robotService } from './robotService';
 import { bookmarkPrompt, taskPrompt } from './prompts';
 
 // 保留原有的接口定义
 export interface OpenAICompletion {
   tags: string[];
   summary: string;
-  title: string;
+  title: string; 
   image: string;
 }
 
