@@ -6,7 +6,7 @@ import { Button } from "../../src/components/ui/button"
 import { useToast } from "../../src/hooks/use-toast"
 import { createBookmark } from "@/api/bookmark"
 import { Textarea } from "../../src/components/ui/textarea"
-import { useEventListener, useInterval, useMount } from "ahooks"
+import { useEventListener, useMount } from "ahooks"
 import { isBrowser, startConfettiAnimation } from "../../src/lib/utils"
 import dayjs from 'dayjs';
 
@@ -43,6 +43,7 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
     useMount(() => {
         insertClipboardUrl();
     });
+
     // Handle form submission
     const handleSubmit = async () => {
         if (!isValidUrl(newBookmarkUrl)) {
@@ -55,7 +56,7 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
         }
 
         try {
-            const data = await createBookmark(newBookmarkUrl,remark);
+            const data = await createBookmark(newBookmarkUrl, remark);
             if (!data) {
                 toast({
                     title: '书签创建失败',
@@ -97,8 +98,8 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
     });
 
     return (
-        <Card className="min-h-[200px]  flex flex-col">
-            <CardContent className="pt-4 flex flex-col space-y-2 h-full">
+        <Card className="min-h-[200px] flex flex-col space-y-4 p-4">
+            <CardContent className="flex flex-col space-y-2 flex-1">
                 <Textarea
                     autoFocus
                     value={newBookmarkUrl}
@@ -107,18 +108,17 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
                     onChange={(e) => setNewBookmarkUrl(e.target.value)}
                 />
                 <Textarea
-                    autoFocus
                     value={remark}
-                    className="resize-none flex-1"
+                    className="resize-none h-20"
                     placeholder="备注"
                     onChange={(e) => setRemark(e.target.value)}
                 />
             </CardContent>
-            <CardFooter className="space-x-2 ">
-                <Button variant="outline" onClick={insertClipboardUrl} className="block">
+            <CardFooter className="flex space-x-2">
+                <Button variant="outline" onClick={insertClipboardUrl} className="flex-1">
                     粘贴剪切板
                 </Button>
-                <Button type="submit" className="w-full" onClick={handleSubmit}>
+                <Button type="submit" className="flex-1" onClick={handleSubmit}>
                     创建书签(Enter)
                 </Button>
             </CardFooter>
