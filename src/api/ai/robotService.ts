@@ -1,11 +1,5 @@
-import OpenAI from 'openai';
+import axios from 'axios';
 
-// 初始化 OpenAI 客户端
-const openai = new OpenAI({
-  baseURL: process.env.AI_BASE_URL,
-  apiKey: process.env.AI_API_KEY,
-});
-const Model = process.env.AI_MODEL || 'step-2-mini';
 export interface RobotResponse<T> {
   success: boolean;
   data: T;
@@ -26,15 +20,15 @@ export class RobotService {
 
   async generateResponse<T>(
     prompt: string,
-    model: string = Model
   ): Promise<RobotResponse<T>> {
     try {
-      const completion = await openai.chat.completions.create({
-        messages: [{ role: 'system', content: prompt }],
-        model: model,
+      const completion = await axios.post('https://bhwa-api.zeabur.app/api/ai/chat', {
+        prompt,
+        model: 'step-2-16k'
+      }, {
+        timeout: 50000,
       });
-
-      const content = completion.choices[0].message?.content ?? '';
+      const content = completion.data.choices[0].message?.content ?? '';
       try {
         const match = content.match(/```json\s*([\s\S]*?)\s*```/) || [
           null,
