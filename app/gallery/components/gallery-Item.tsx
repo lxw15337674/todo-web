@@ -20,46 +20,34 @@ export const GalleryItem = ({ image }: Props) => {
     const [isLoading, setIsLoading] = useState(true)
     const [isHovered, setIsHovered] = useState(false)
 
-    const handleMouseEnter = async () => {
-        setIsHovered(true)
-        if (videoRef.current) {
+    function handleHoverChange(isEnter: boolean, videoEl: HTMLVideoElement | null) {
+        if (isEnter) {
             try {
-                await videoRef.current.play();
+                videoEl?.play();
             } catch (error: unknown) {
                 if (error instanceof Error && error.name !== 'AbortError') {
                     console.error('Error playing video:', error);
                 }
             }
+        } else {
+            videoEl?.pause();
+            if (videoEl) videoEl.currentTime = 0;
         }
+        setIsHovered(isEnter);
     }
 
-    const handleMouseLeave = () => {
-        setIsHovered(false)
-        if (videoRef.current) {
-            videoRef.current.pause()
-            videoRef.current.currentTime = 0
-        }
-    }
-
-    const handleProducerClick = () => {
-        const platform = image.post?.platform ?? 'WEIBO'
-        const userId = image.post?.userId ?? image.userId
-        if (!userId) return
-
+    function getProducerUrl(platform: string, userId: string) {
         switch (platform) {
             case 'WEIBO':
-                if (/^\d+$/.test(userId)) {
-                    window.open(`https://weibo.com/u/${userId}`, '_blank')
-                } else {
-                    window.open(`https://weibo.com/p/${userId}`, '_blank')
-                }
-                break
+                return /^\d+$/.test(userId)
+                    ? `https://weibo.com/u/${userId}`
+                    : `https://weibo.com/p/${userId}`;
             case 'XIAOHONGSHU':
-                window.open(`https://www.xiaohongshu.com/user/profile/${userId}`, '_blank')
-                break
+                return `https://www.xiaohongshu.com/user/profile/${userId}`;
             case 'DOUYIN':
-                window.open(`https://www.douyin.com/user/${userId}`, '_blank')
-                break
+                return `https://www.douyin.com/user/${userId}`;
+            default:
+                return '';
         }
     }
 
@@ -73,8 +61,8 @@ export const GalleryItem = ({ image }: Props) => {
                 "relative group overflow-hidden rounded-lg transition-all duration-300 ease-in-out",
                 isHovered && "shadow-lg ring-1 ring-primary/10"
             )}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            onMouseEnter={() => handleHoverChange(true, videoRef.current)}
+            onMouseLeave={() => handleHoverChange(false, videoRef.current)}
         >
             {isVideo ? (
                 <div className="relative" style={{ aspectRatio }}>
@@ -111,8 +99,7 @@ export const GalleryItem = ({ image }: Props) => {
                             )}
                             src={image.thumbnailUrl ?? image.galleryMediaUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}
                             alt={image.originSrc ?? image.id.toString()}
-                            fill
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                fill
                             quality={90}
                             priority={false}
                                 onLoad={() => setIsLoading(false)}
@@ -133,7 +120,11 @@ export const GalleryItem = ({ image }: Props) => {
                     <button
                         className="text-white text-sm hover:underline truncate"
                         title={`查看${image.producer?.name}的主页`}
-                        onClick={handleProducerClick}
+                        onClick={() => {
+                            const platform = image.post?.platform ?? 'WEIBO';
+                            const userId = image.post?.userId ?? image.userId;
+                            if (userId) window.open(getProducerUrl(platform, userId), '_blank');
+                        }}
                     >
                         {image.producer?.name}
                     </button>
