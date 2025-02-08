@@ -31,13 +31,10 @@ ${styles.map((s) => `【${s}】`).join('')}
 不要解释，直接严格按照以下格式返回：
 [原文]
 原文内容
-
 [style1]
 润色后的文本1
-
 [style2]
 润色后的文本2
-
 `;
 
 export const polishContent = async (content: string): Promise<string[]> => {
