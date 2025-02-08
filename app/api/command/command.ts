@@ -9,6 +9,7 @@ import { getFutuStockMap, getYuntuStockMap, MapType } from './acions/stockTherma
 import { getWeiboData } from './acions/weibo'
 import { getRandomImage } from './acions/randomImage'
 import { getHelp } from './acions/getHelp'
+import { polishContent } from './acions/ai'
 
 export interface CommandParams {
   args?: string,
@@ -186,6 +187,7 @@ export async function parseCommand(msg: string, sendMessage: (content: string, t
       });
     }
   }
-  return '未知命令，输入 hp 获取帮助';
+  const polishedText = await polishContent(msg);
+  return polishedText
 }
 
