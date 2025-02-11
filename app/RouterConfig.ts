@@ -11,7 +11,8 @@ import {
   StickyNote,
   History,
   Music,
-  MessageCircle
+  MessageCircle,
+  Clipboard
 } from 'lucide-react';
 
 interface MenuItem {
@@ -81,8 +82,13 @@ export const Links: MenuItem[] = [
     icon: History
   },
   {
-    name:'b站音频下载',
+    name: 'b站音频',
     url:'https://bilibili-audio-downloader.vercel.app',
     icon: Music
+  },
+  {
+    name: '剪贴板',
+    url: 'https://cloudpaste.404174262.workers.dev/',
+    icon: Clipboard
   }
 ];
