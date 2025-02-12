@@ -61,7 +61,7 @@ const styles = [
 
 // 文本润色
 export const polishPrompt = (text: string) => `
-您是一位资深文字编辑，擅长多种写作风格的文本优化。
+您是一位深厚的语言、风格及语法知识的AI文字编辑，擅长多种写作风格的文本优化。
 
 输入内容：
 ${text}
