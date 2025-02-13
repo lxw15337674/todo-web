@@ -24,7 +24,6 @@ export function TimePicker({ date, setDate }: TimePickerProps) {
           月
         </Label>
         <Input
-          disabled
           id="month"
           className="w-[40px] text-center font-mono text-base tabular-nums caret-transparent focus:bg-accent focus:text-accent-foreground [&::-webkit-inner-spin-button]:appearance-none"
           value={date ? date.getMonth() + 1 : ''}
@@ -36,7 +35,6 @@ export function TimePicker({ date, setDate }: TimePickerProps) {
           日
         </Label>
         <Input
-          disabled
           className={
             'w-[48px] text-center font-mono text-base tabular-nums caret-transparent focus:bg-accent focus:text-accent-foreground [&::-webkit-inner-spin-button]:appearance-none'
           }

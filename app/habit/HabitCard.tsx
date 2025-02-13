@@ -94,7 +94,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
   const lastTrackDate = useMemo(() => {
     if (!isClient) return null;
     if (task.countItems.length === 0) return null;
-    const lastItem = task.countItems[task.countItems.length - 1].createTime;
+    const lastItem = task.countItems[0].createTime;
     return dayjs(lastItem).format('YYYY-MM-DD HH:mm');
   }, [task.countItems, isClient]);
 
@@ -179,10 +179,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
       description: '已成功删除打卡记录',
     });
   })
-  const onDayClick = useMemoizedFn((day: Date) => {
-    if (dayjs(day).isAfter(dayjs(), 'day')) return;
-    if (task.countItems.some((item) => dayjs(item.createTime).isSame(day, 'day'))) return;
-    setDate(day);
+  const onMakeupClick = useMemoizedFn(() => {
     setDialogOpen(true);
   });
 
@@ -278,18 +275,18 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                   </div>
                   <Card className="border-none shadow-sm">
                     <CardHeader className="pb-2 pt-4">
-                      <CardTitle className="text-base font-medium">打卡日历</CardTitle>
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-base font-medium">打卡记录</CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-primary"
+                          onClick={onMakeupClick}
+                        >
+                          补卡
+                        </Button>
+                      </div>
                     </CardHeader>
-                    <CardContent className="pb-4">
-                      <Calendar
-                        mode="multiple"
-                        disabled={(date) => date > new Date()}
-                        locale={zhCN}
-                        selected={markedDates.map((item) => item.date)}
-                        onDayClick={onDayClick}
-                        className="rounded-lg"
-                      />
-                    </CardContent>
                   </Card>
 
                   <Card className="border-none shadow-sm">
@@ -348,12 +345,12 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
             onMouseLeave={endPressing}
             onTouchStart={startPressing}
             onTouchEnd={endPressing}
-            className={`relative transition-all duration-200 cursor-pointer
+            className={`relative transition-all duration-200 cursor-pointer p-2
                       hover:bg-accent/50 hover:shadow-lg
                       ${isTaskCompletedToday ? 'border-2 border-green-400/50 bg-green-400/5' : ''} 
                       ${pressing && !isTaskCompletedToday ? 'scale-[0.98] shadow-sm' : 'shadow-md'}`}
           >
-            <CardHeader className="px-6 py-3">
+            <CardHeader className="px-0 py-0">
               <CardTitle
                 className="truncate text-lg flex items-center gap-2 group w-full"
                 title={task.name}
@@ -380,7 +377,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                 </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-6 py-3 flex items-center justify-between rounded-lg">
+            <CardContent className="px-1 py-0 flex items-center justify-between rounded-lg">
               <div className="flex items-center gap-4">
                 <div
                   className="flex items-center gap-1.5 py-0.5 rounded-full"
