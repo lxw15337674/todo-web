@@ -261,7 +261,6 @@ export default function ImagePage() {
                 key={image.id}
                 image={image}
                 index={index}
-                selectedProducer={state?.producer ?? null}
               />
             ))}
           </Masonry>
