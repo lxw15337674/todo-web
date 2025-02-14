@@ -167,6 +167,16 @@ model ProducerToProducerTag {
   @@map("_ProducerToProducerTag")
 }
 
+model Asset {
+  id          String   @id @default(uuid())
+  name        String
+  amount      Float
+  date        DateTime
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 enum Priority {
   IMPORTANT_URGENT
   IMPORTANT_NOT_URGENT

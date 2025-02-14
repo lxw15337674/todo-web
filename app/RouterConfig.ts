@@ -12,7 +12,8 @@ import {
   History,
   Music,
   MessageCircle,
-  Clipboard
+  Clipboard,
+  CircleDollarSign
 } from 'lucide-react';
 
 interface MenuItem {
@@ -62,7 +63,10 @@ export const Apps: MenuItem[] = [
     url: '/dailyhot',
     icon: Newspaper
   },
-  {name:'命令聊天',url:'/chat',icon:MessageCircle}
+  { name: '命令聊天', url: '/chat', icon: MessageCircle },
+  {
+    name: '资产管理', url: '/fund', icon: CircleDollarSign
+  }
 ];
 
 export const Links: MenuItem[] = [

@@ -1,7 +1,7 @@
 'use server';
-import { PrismaClient, TrackMeta, TrackItem } from '@prisma/client';
+import { TrackMeta, TrackItem } from '@prisma/client';
+import prisma from './prisma';
 
-const prisma = new PrismaClient();
 
 // TrackMeta CRUD
 interface CreateTrackMetaParams {
