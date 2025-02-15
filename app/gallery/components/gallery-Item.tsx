@@ -97,7 +97,7 @@ export const GalleryItem = ({ image }: Props) => {
                                 "object-cover transition-all duration-300",
                                 isHovered && "scale-105 brightness-90"
                             )}
-                            src={image.thumbnailUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}
+                                src={image.thumbnailUrl ?? image.galleryMediaUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}
                             alt={image.originSrc ?? image.id.toString()}
                                 fill
                                 onLoad={() => setIsLoading(false)}
