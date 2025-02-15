@@ -249,13 +249,12 @@ export default function ImagePage() {
         </div>
       </div>
 
-      <div className="flex-1 p-2 ">
+      <div className="flex-1 p-2 md:px-20">
         <PhotoProvider>
-          <Masonry columns={{ xs: 2, md: 3, lg: 4, xl: 5 }}
+          <Masonry columns={{ xs: 2, md: 3, lg: 4, xl: 6 }}
             spacing={2}
             defaultHeight={450}
-            defaultColumns={4}
-            defaultSpacing={1}>
+          >
             {images.map((image, index) => (
               <GalleryItem
                 key={image.id}
