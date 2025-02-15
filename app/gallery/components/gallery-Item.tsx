@@ -90,6 +90,7 @@ export const GalleryItem = ({ image }: Props) => {
                     )}
                 </div>
             ) : (
+                    <PhotoView src={image.galleryMediaUrl ?? image.thumbnailUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}>
                         <div className="relative cursor-zoom-in bg-muted/50 max-h-[50vh]" style={{ aspectRatio }}>
                         <Image
                             className={cn(
@@ -99,14 +100,13 @@ export const GalleryItem = ({ image }: Props) => {
                             src={image.thumbnailUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}
                             alt={image.originSrc ?? image.id.toString()}
                                 fill
-                            quality={90}
-                            priority={false}
                                 onLoad={() => setIsLoading(false)}
                         />
                         {isLoading && (
                             <Skeleton className="absolute inset-0" />
                         )}
                     </div>
+                    </PhotoView>
             )}
 
             <div className={cn(
