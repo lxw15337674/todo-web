@@ -16,7 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
 import Masonry from '@mui/lab/Masonry';
 
-const PageSize = 50 * 6
+const PageSize = 40 * 5
 
 type MediaWithRelations = Media & {
   producer: Producer | null
@@ -249,9 +249,9 @@ export default function ImagePage() {
         </div>
       </div>
 
-      <div className="flex-1 p-2">
+      <div className="flex-1 p-2 ">
         <PhotoProvider>
-          <Masonry columns={{ xs: 2, md: 3, lg: 4, xl: 6 }}
+          <Masonry columns={{ xs: 2, md: 3, lg: 4, xl: 5 }}
             spacing={2}
             defaultHeight={450}
             defaultColumns={4}

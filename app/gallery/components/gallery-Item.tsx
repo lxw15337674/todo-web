@@ -90,14 +90,13 @@ export const GalleryItem = ({ image }: Props) => {
                     )}
                 </div>
             ) : (
-                <PhotoView src={image.galleryMediaUrl ?? image.thumbnailUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}>
                         <div className="relative cursor-zoom-in bg-muted/50 max-h-[50vh]" style={{ aspectRatio }}>
                         <Image
                             className={cn(
                                 "object-cover transition-all duration-300",
                                 isHovered && "scale-105 brightness-90"
                             )}
-                            src={image.thumbnailUrl ?? image.galleryMediaUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}
+                            src={image.thumbnailUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}
                             alt={image.originSrc ?? image.id.toString()}
                                 fill
                             quality={90}
@@ -108,7 +107,6 @@ export const GalleryItem = ({ image }: Props) => {
                             <Skeleton className="absolute inset-0" />
                         )}
                     </div>
-                </PhotoView>
             )}
 
             <div className={cn(
