@@ -254,6 +254,9 @@ export default function ImagePage() {
           <Masonry columns={{ xs: 2, md: 3, lg: 4, xl: 6 }}
             spacing={2}
             defaultHeight={450}
+            defaultColumns={4}
+            defaultSpacing={1}
+            sequential
           >
             {images.map((image, index) => (
               <GalleryItem
