@@ -13,7 +13,7 @@ export enum Area {
 }
 
 
-const url = 'http://localhost:8080/api/ai'
+const url = 'https://bhwa-us.zeabur.app/api/ai'
 export async function getFutuStockMap(area: string = 'cn', mapType: string): Promise<string> {
     try {
         console.log('Fetching Futu stock map...');
