@@ -70,6 +70,9 @@ const isImageAccessible = async (url: string): Promise<ImageInfo> => {
     const response = await axios.head(url, {
       timeout: 5000,
       validateStatus: (status: number) => status === 200,
+      headers: {
+        host: new URL(url).hostname,
+      }
     });
     return {
       isImage: response.headers['content-type']?.startsWith('image/') || false,
