@@ -1,4 +1,5 @@
 'use server';
+import { uploadToGallery } from '@/utils/upload';
 import { bookmarkPrompt, taskPrompt } from './prompts';
 import axios from 'axios';
 
@@ -49,7 +50,7 @@ export async function generateResponse<T>(
 export interface OpenAICompletion {
   tags: string[];
   summary: string;
-  title: string; 
+  title: string;
   image: string;
 }
 
@@ -101,16 +102,18 @@ const extractImage = async (html: string): Promise<string> => {
       imageUrls.add(src);
     }
   }
-
   // 检查每个URL是否为可访问的图片
   for (const url of imageUrls) {
     const imageInfo = await isImageAccessible(url);
-    if (imageInfo.isImage && imageInfo.size > 1024) { // 确保图片大小至少1KB
-      return url;
+    if (imageInfo.isImage && imageInfo.size > 1024 * 200) { // 确保图片大小至少200KB
+      const extraUrl = await uploadToGallery(url);
+      if (extraUrl) {
+        return extraUrl;
+      }
     }
   }
 
-  return '';
+  return await uploadToGallery(Array.from(imageUrls)[0]) ?? '';
 };
 
 const cleanHtml = async (html: string): Promise<CleanedContent> => {
