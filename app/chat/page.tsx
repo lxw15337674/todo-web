@@ -223,14 +223,6 @@ export default function Chat() {
                                 onChange={(e) => setInput(e.target.value)}
                                 className="pr-20"
                             />
-                            <Button 
-                                type="submit" 
-                                size="sm"
-                                disabled={!input?.trim()}
-                                className="absolute right-1 top-1/2 -translate-y-1/2"
-                            >
-                                {isLoading ? '处理中...' : <Send className="w-4 h-4" />}
-                            </Button>
                         </form>
                     </div>
                 </div>
