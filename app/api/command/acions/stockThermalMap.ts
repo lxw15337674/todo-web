@@ -28,7 +28,7 @@ export async function getFutuStockMap(area: string = 'cn', mapType: string): Pro
 export async function getYuntuStockMap(): Promise<string> {
     try {
         console.log('Fetching Yuntu stock map...');
-        const { data } = await axios.get(`${url}/stockThermalMap`);
+        const { data } = await axios.get(`${url}/getYuntuStockMap`);
         return data;
     } catch (error) {
         console.error('获取云图热力图失败:', error);
