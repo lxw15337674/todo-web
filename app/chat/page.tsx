@@ -34,9 +34,6 @@ export default function Chat() {
     const [input, setInput] = useSessionStorageState<string>('chat_input', {
         defaultValue: ''
     });
-    const [isLoading, setIsLoading] = useSessionStorageState<boolean>('chat_loading', {
-        defaultValue: false
-    });
     const [commands, setCommands] = useSessionStorageState<Command[]>('commands', {
         defaultValue: []
     });
@@ -213,17 +210,6 @@ export default function Chat() {
                                 </Card>
                             </div>
                         ))}
-                        {isLoading && (
-                            <div className="flex justify-start">
-                                <Card className="px-4 py-2 bg-muted">
-                                    <div className="flex space-x-2">
-                                        <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                        <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                        <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                    </div>
-                                </Card>
-                            </div>
-                        )}
                     </div>
                     <div ref={messagesEndRef} className="h-4" />
                 </ScrollArea>
