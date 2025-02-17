@@ -2,6 +2,9 @@
 import { uploadToGallery } from '@/utils/upload';
 import { bookmarkPrompt, taskPrompt } from './prompts';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config';
+
+
 
 export interface RobotResponse<T> {
   success: boolean;
@@ -9,11 +12,12 @@ export interface RobotResponse<T> {
   error?: string;
 }
 
+
 export async function generateResponse<T>(
   prompt: string,
 ): Promise<RobotResponse<T>> {
   try {
-    const { data } = await axios.post('https://bhwa-us.zeabur.app/api/ai/google-chat', {
+    const { data } = await axios.post(API_ENDPOINTS.GOOGLE_CHAT, {
       prompt,
     }, {
       timeout: 50000,
@@ -155,7 +159,7 @@ export default async function getSummarizeBookmark(
   try {
     // 获取页面内容
     const fetchStartTime = Date.now();
-    const apiUrl = `https://bhwa-us.zeabur.app/api/ai/page-content?url=${encodeURIComponent(url)}`;
+    const apiUrl = `${API_ENDPOINTS.PAGE_CONTENT}?url=${encodeURIComponent(url)}`;
     const { data, status } = await axios.get(apiUrl);
     console.log(`[书签摘要] 获取页面内容耗时: ${Date.now() - fetchStartTime}毫秒`);
 
