@@ -216,13 +216,16 @@ export default function Chat() {
 
                 <div className="border-t bg-background">
                     <div className="max-w-3xl mx-auto p-4">
-                        <form onSubmit={handleSubmit} className="relative">
+                        <form onSubmit={handleSubmit} className="relative flex gap-2">
                             <Input
                                 value={input || ''}
                                 placeholder="发送消息..."
                                 onChange={(e) => setInput(e.target.value)}
-                                className="pr-20"
                             />
+                            <Button type="submit" className="shrink-0">
+                                <Send className="w-4 h-4 mr-2" />
+                                发送
+                            </Button>
                         </form>
                     </div>
                 </div>
