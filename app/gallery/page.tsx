@@ -249,7 +249,7 @@ export default function ImagePage() {
         </div>
       </div>
 
-      <div className="flex-1 p-2 md:px-20">
+      <div className="flex-1 p-2">
         <PhotoProvider>
           <Masonry columns={{ xs: 2, md: 3, lg: 4, xl: 6 }}
             spacing={2}
