@@ -59,7 +59,7 @@ export const GalleryItem = ({ image }: Props) => {
         <div
             className={cn(
                 "relative group overflow-hidden rounded-lg transition-all duration-300 ease-in-out",
-                isHovered && "shadow-lg ring-1 ring-primary/10"
+                isHovered && "shadow-lg "
             )}
             onMouseEnter={() => handleHoverChange(true, videoRef.current)}
             onMouseLeave={() => handleHoverChange(false, videoRef.current)}

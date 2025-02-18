@@ -9,7 +9,7 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "cross-env next dev -p 8090 --turbo",
+    "dev": "cross-env next dev -p 8090 ",
     "vercel-build": "npx prisma generate &&  next build",
     "build": "npx prisma generate &&  next build",
     "start": "pnpm dev",
