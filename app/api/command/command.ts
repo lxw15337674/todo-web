@@ -187,6 +187,7 @@ export async function parseCommand(msg: string, sendMessage: (content: string, t
       });
     }
   }
+  return '未找到匹配的命令';
   const polishedText = await polishContent(msg);
   return polishedText
 }
