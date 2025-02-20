@@ -20,7 +20,7 @@ export function PolishCard({ content }: PolishCardProps) {
     };
 
     return (
-        <div className="space-y-1">
+        <div className="space-y-2">
             {styles.map((style, index) => (
                 <Card key={index} className="p-2">
                     <div className="flex justify-between items-start">
