@@ -225,7 +225,7 @@ export default function Chat() {
                 </div>
 
                 <ScrollArea className="flex-1">
-                    <div className="space-y-4 p-4 max-w-3xl mx-auto">
+                    <div className="space-y-4 p-4  mx-auto">
                         {messages?.map((m: Message) => (
                             <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <Card className={`px-2 py-2 max-w-[90%] sm:max-w-[80%] ${
