@@ -121,7 +121,7 @@ export default function Chat() {
                 command: commandText,
             });
 
-            let processedData = response.data;
+            const processedData = response.data;
             if (!processedData.content) {
                 processedData.content = await polishContent(commandText);
                 processedData.type = 'polish';
