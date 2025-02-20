@@ -8,6 +8,7 @@ import { ThemeProvider as NextThemeProvider } from "@/components/theme-provider"
 import Header from './Header';
 import { SidebarProvider, SidebarTrigger } from '../src/components/ui/sidebar';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Toaster } from '../src/components/ui/toaster';
 
 
 export default function RootLayout({
@@ -29,6 +30,7 @@ export default function RootLayout({
                 <main className='w-screen h-screen'>
                   <Header />
                   {children}
+                  <Toaster />
                   <SpeedInsights />
                 </main>
               </NextThemeProvider>

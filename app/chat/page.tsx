@@ -8,14 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Send, Trash2, X } from "lucide-react";
+import { MessageCircle, Trash2, X } from "lucide-react";
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
+import { polishContent } from '../../src/api/ai/aiActions';
+import { produce } from 'immer';
+import { PolishCard } from './components/PolishCard';
 
 interface Message {
     id: string;
     role: 'user' | 'assistant';
-    type: 'text' | 'image';
+    type: 'text' | 'image' | 'polish';
     content: string;
 }
 
@@ -50,6 +53,8 @@ export default function Chat() {
                 if (response.data.success) {
                     setCommands(response.data.commands);
                 }
+
+
             } catch (error) {
                 console.error('Failed to fetch commands:', error);
             }
@@ -66,7 +71,7 @@ export default function Chat() {
     }, [messages]);
 
     const clearMessages = () => {
-        setMessages([]);
+        setMessages(produce(() => []));
     };
 
     const handleCommandClick = (command: Command) => {
@@ -92,41 +97,60 @@ export default function Chat() {
             content: commandText
         };
         
-        setMessages((prev: Message[] = []) => [...prev, userMessage]);
+        setMessages(produce(draft => {
+            if (!draft) draft = [];
+            draft.push(userMessage);
+        }));
+
         if (!commandOverride) setInput('');
 
         try {
             // Call command API
             const messageId = Date.now() + 1;
-            setMessages((prev: Message[] = []) => [...prev, {
-                id: messageId.toString(),
-                role: 'assistant',
-                type: 'text',
-                content: '处理中...'
-            }]);
+            setMessages(produce(draft => {
+                if (!draft) draft = [];
+                draft.push({
+                    id: messageId.toString(),
+                    role: 'assistant',
+                    type: 'text',
+                    content: '处理中...'
+                });
+            }));
 
             const response = await axios.post('/api/command', {
                 command: commandText,
             });
-            
+
+            let processedData = response.data;
+            if (!processedData.content) {
+                processedData.content = await polishContent(commandText);
+                processedData.type = 'polish';
+            }
+
             // Update AI response
-            setMessages((prev: Message[] = []) => prev.map(msg => 
-                msg.id === messageId.toString() ? {
-                    id: messageId.toString(),
-                    role: 'assistant',
-                    type: response.data.type === 'image' ? 'image' : 'text',
-                    content: response.data.success ? response.data.message : response.data.error || '处理命令时出错'
-                } : msg
-            ));
+            setMessages(produce(draft => {
+                if (!draft) return;
+                const messageIndex = draft.findIndex(msg => msg.id === messageId.toString());
+                if (messageIndex !== -1) {
+                    draft[messageIndex] = {
+                        id: messageId.toString(),
+                        role: 'assistant',
+                        type: processedData?.type ?? 'text',
+                        content: processedData.content || '未知错误'
+                    };
+                }
+            }));
         } catch (error) {
-            console.log(error)
-            const errorMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                type: 'text',
-                content: '发送命令时出错，请稍后重试'
-            };
-            setMessages((prev: Message[] = []) => [...prev, errorMessage]);
+            console.log(error);
+            setMessages(produce(draft => {
+                if (!draft) draft = [];
+                draft.push({
+                    id: (Date.now() + 1).toString(),
+                    role: 'assistant',
+                    type: 'text',
+                    content: '发送命令时出错，请稍后重试'
+                });
+            }));
         }
     };
 
@@ -145,6 +169,9 @@ export default function Chat() {
                     </PhotoView>
                 </PhotoProvider>
             );
+        }
+        if (message.type === 'polish') {
+            return <PolishCard content={message.content} />;
         }
         return <div className="whitespace-pre-wrap">{message.content}</div>;
     };
@@ -201,10 +228,10 @@ export default function Chat() {
                     <div className="space-y-4 p-4 max-w-3xl mx-auto">
                         {messages?.map((m: Message) => (
                             <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <Card className={`px-4 py-2 max-w-[80%] sm:max-w-[70%] ${
+                                <Card className={`px-2 py-2 max-w-[90%] sm:max-w-[80%] ${
                                     m.role === 'user' 
                                         ? 'bg-primary text-primary-foreground' 
-                                        : 'bg-muted'
+                                    : 'bg-secondary text-secondary-foreground'
                                 }`}>
                                     {renderMessageContent(m)}
                                 </Card>
@@ -223,7 +250,6 @@ export default function Chat() {
                                 onChange={(e) => setInput(e.target.value)}
                             />
                             <Button type="submit" className="shrink-0">
-                                <Send className="w-4 h-4 mr-2" />
                                 发送
                             </Button>
                         </form>

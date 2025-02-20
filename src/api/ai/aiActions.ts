@@ -1,10 +1,8 @@
 'use server';
 import { uploadToGallery } from '@/utils/upload';
-import { bookmarkPrompt, taskPrompt } from './prompts';
+import { bookmarkPrompt, taskPrompt, polishPrompt } from './prompts';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config';
-
-
 
 export interface RobotResponse<T> {
   success: boolean;
@@ -212,3 +210,17 @@ export async function getTaskTags(
   );
   return response.success ? response.data.tagNames : [];
 }
+
+
+
+export const polishContent = async (content: string): Promise<string> => {
+  try {
+    const response = await axios.post('https://bhwa-us.zeabur.app/api/ai/google-chat', {
+      prompt: polishPrompt(content)
+    });
+    return response.data;
+  } catch (error) {
+    console.error('润色文本时出错:', error);
+    throw error;
+  }
+};

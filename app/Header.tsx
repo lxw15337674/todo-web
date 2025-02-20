@@ -6,7 +6,6 @@ import { Button } from '../src/components/ui/button';
 import { Separator } from '../src/components/ui/separator';
 import { LayoutGrid, Github } from 'lucide-react'; // 新增导入
 import { usePathname } from 'next/navigation';
-import { Toaster } from '../src/components/ui/toaster';
 import { Apps, Links } from './RouterConfig';
 import Link from 'next/link';
 import { usePermission } from '../src/hooks/usePermission';
@@ -26,7 +25,6 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-black">
       <link rel="icon" href="/favicon.ico" sizes="any" />
-      <Toaster />
       <div
         className={
           'px-4 py-2   bg-zine-800 dark:border-zinc-800 border-b-[1px] flex items-center '
