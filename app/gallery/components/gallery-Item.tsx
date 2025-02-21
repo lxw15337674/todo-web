@@ -19,7 +19,6 @@ export const GalleryItem = ({ image }: Props) => {
     const videoRef = useRef<HTMLVideoElement>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [isHovered, setIsHovered] = useState(false)
-
     function handleHoverChange(isEnter: boolean, videoEl: HTMLVideoElement | null) {
         if (isEnter) {
             try {
@@ -141,7 +140,7 @@ export const GalleryItem = ({ image }: Props) => {
                         "transition-all duration-300 rounded-full",
                         isHovered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
                     )}
-                    onClick={() => window.open(image.originSrc ?? `https://weibo.com/${image.post?.userId}/${image.post?.platformId}`, '_blank')}
+                    onClick={() => window.open(`https://weibo.com/${image.post?.userId}/${image.post?.platformId}#repost`, '_blank')}
                 >
                     <ExternalLink className="h-4 w-4 text-white" />
                 </Button>
