@@ -8,9 +8,6 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig = withSerwist({
-  env: {
-    API_URL: process.env.API_URL,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },

@@ -83,29 +83,21 @@ export default function Chat() {
         if (e) e.preventDefault();
         const commandText = commandOverride || input?.trim();
         if (!commandText) return;
-
+        const id = `${Date.now()}`;
         if (!commandOverride) setInput('');
         setMessages(produce(draft => {
             if (!draft) draft = [];
             draft.push({
-                id: draft.length.toString(),
-                role: 'user',
-                type: 'text',
-                content: commandText
-            });
-            draft.push({
-                id: draft.length.toString(),
+                id,
                 role: 'assistant',
                 type: 'text',
                 content: '处理中...'
             });
         }));
+        console.log(id)
         try {
-            const messageId = (messages ?? []).length.toString()
-            const response = await axios.post('/api/command', {
-                command: commandText,
-            });
 
+            const response = await axios.post('/api/command', { command: commandText });
             const processedData = response.data;
             if (!processedData.content) {
                 processedData.content = await polishContent(commandText);
@@ -113,12 +105,12 @@ export default function Chat() {
             }
             setMessages(produce(draft => {
                 if (!draft) return;
-                const messageIndex = draft.findIndex(msg => msg.id === messageId);
+                const messageIndex = draft.findIndex(msg => msg.id === id);
                 if (messageIndex !== -1) {
                     draft[messageIndex] = {
-                        id: messageId,
+                        id,
                         role: 'assistant',
-                        type: processedData?.type ?? 'text',
+                        type: processedData.type || 'text',
                         content: processedData.content || '未知错误'
                     };
                 }
