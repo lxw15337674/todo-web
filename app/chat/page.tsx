@@ -94,9 +94,7 @@ export default function Chat() {
                 content: '处理中...'
             });
         }));
-        console.log(id)
         try {
-
             const response = await axios.post('/api/command', { command: commandText });
             const processedData = response.data;
             if (!processedData.content) {
@@ -149,7 +147,6 @@ export default function Chat() {
         }
         return <div className="whitespace-pre-wrap">{message.content}</div>;
     };
-    console.log(messages)
     return (
         <div className="h-[calc(100vh-56px)] flex bg-background">
             {/* 左侧命令列表 - 在小屏幕上隐藏 */}
