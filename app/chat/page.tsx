@@ -44,17 +44,12 @@ export default function Chat() {
     const [showCommands, setShowCommands] = useSessionStorageState<boolean>('show_commands', {
         defaultValue: false
     });
-
     // 获取命令列表
     useEffect(() => {
         const fetchCommands = async () => {
             try {
                 const response = await axios.get('/api/command');
-                if (response.data.success) {
-                    setCommands(response.data.commands);
-                }
-
-
+                setCommands(response.data);
             } catch (error) {
                 console.error('Failed to fetch commands:', error);
             }
@@ -88,60 +83,37 @@ export default function Chat() {
         if (e) e.preventDefault();
         const commandText = commandOverride || input?.trim();
         if (!commandText) return;
-
-        // Add user message
-        const userMessage: Message = {
-            id: Date.now().toString(),
-            role: 'user',
-            type: 'text',
-            content: commandText
-        };
-        
+        const id = `${Date.now()}`;
+        if (!commandOverride) setInput('');
         setMessages(produce(draft => {
             if (!draft) draft = [];
-            draft.push(userMessage);
-        }));
-
-        if (!commandOverride) setInput('');
-
-        try {
-            // Call command API
-            const messageId = Date.now() + 1;
-            setMessages(produce(draft => {
-                if (!draft) draft = [];
-                draft.push({
-                    id: messageId.toString(),
-                    role: 'assistant',
-                    type: 'text',
-                    content: '处理中...'
-                });
-            }));
-
-            const response = await axios.post('/api/command', {
-                command: commandText,
+            draft.push({
+                id,
+                role: 'assistant',
+                type: 'text',
+                content: '处理中...'
             });
-
+        }));
+        try {
+            const response = await axios.post('/api/command', { command: commandText });
             const processedData = response.data;
             if (!processedData.content) {
                 processedData.content = await polishContent(commandText);
                 processedData.type = 'polish';
             }
-
-            // Update AI response
             setMessages(produce(draft => {
                 if (!draft) return;
-                const messageIndex = draft.findIndex(msg => msg.id === messageId.toString());
+                const messageIndex = draft.findIndex(msg => msg.id === id);
                 if (messageIndex !== -1) {
                     draft[messageIndex] = {
-                        id: messageId.toString(),
+                        id,
                         role: 'assistant',
-                        type: processedData?.type ?? 'text',
+                        type: processedData.type || 'text',
                         content: processedData.content || '未知错误'
                     };
                 }
             }));
         } catch (error) {
-            console.log(error);
             setMessages(produce(draft => {
                 if (!draft) draft = [];
                 draft.push({
@@ -175,7 +147,6 @@ export default function Chat() {
         }
         return <div className="whitespace-pre-wrap">{message.content}</div>;
     };
-
     return (
         <div className="h-[calc(100vh-56px)] flex bg-background">
             {/* 左侧命令列表 - 在小屏幕上隐藏 */}
@@ -225,14 +196,13 @@ export default function Chat() {
                 </div>
 
                 <ScrollArea className="flex-1">
-                    <div className="space-y-4 p-4  mx-auto">
+                    <div className="space-y-4 p-4 w-full mx-auto">
                         {messages?.map((m: Message) => (
-                            <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <Card className={`px-2 py-2 max-w-[90%] sm:max-w-[80%] ${
-                                    m.role === 'user' 
-                                        ? 'bg-primary text-primary-foreground' 
+                            <div key={m.id} className={`flex   ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                <Card className={`px-2 py-2 max-w-[90%] sm:max-w-[80%] ${m.role === 'user'
+                                    ? 'bg-primary text-primary-foreground'
                                     : 'bg-secondary text-secondary-foreground'
-                                }`}>
+                                    }`}>
                                     {renderMessageContent(m)}
                                 </Card>
                             </div>

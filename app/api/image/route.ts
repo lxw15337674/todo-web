@@ -42,19 +42,10 @@ export async function GET() {
 
         await prisma.$disconnect();
 
-        const imageUrl = `${randomMedia.galleryMediaUrl}?t=${timestamp}&r=${random}`;
-        const imageResponse = await fetch(imageUrl);
-
-        if (!imageResponse.ok) {
-            throw new Error('Failed to fetch image');
-        }
-
-        const imageData = await imageResponse.arrayBuffer();
-
-        return new Response(imageData, {
+        // 返回 URL 而不是图片数据
+        return new Response(JSON.stringify({ url: randomMedia.galleryMediaUrl }), {
             headers: {
-                'Content-Type': 'image/webp',
-                // 禁用所有缓存
+                'Content-Type': 'application/json',
                 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
                 'Pragma': 'no-cache',
                 'Expires': '0',

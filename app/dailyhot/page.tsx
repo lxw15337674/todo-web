@@ -18,7 +18,7 @@ export const revalidate = 60
 const getHotLists = (
   async (type: string) => {
     return axios
-      .get(`https://dailyhot.hkg1.zeabur.app/${type}`, {
+      .get(`https://hot-api-bhwa233.vercel.app//${type}`, {
         params: {
           cache: true,
         },
