@@ -16,15 +16,13 @@ export default function Header() {
   usePermission();
   const router = usePathname();
   const currentApp = Apps.find((app) => app.url === router);
-
-
   useEffect(() => {
     if (currentApp) {
       document.title = currentApp.name;
     }
   }, [router]);
   return (
-    <header className="sticky top-0 z-50 bg-black">
+    <header className="fixed left-0 right-0 top-0 z-50 bg-black">
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <div
         className={
@@ -82,7 +80,6 @@ export default function Header() {
         </div>
         <div className="flex-1 " />
         <div className='space-x-2'>
-
           <ScrollToTop scrollTo={10} variant="outline"
             size="icon"
           >

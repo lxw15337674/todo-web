@@ -15,8 +15,6 @@ import { Media, Producer, Post } from '@prisma/client'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
 import Masonry from '@mui/lab/Masonry';
-import { ScrollToTop } from "../../src/components/ScrollToTop"
-import { ArrowUpToLine } from "lucide-react"
 
 const PageSize = 40 * 5
 
