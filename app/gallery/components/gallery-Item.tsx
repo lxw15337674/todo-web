@@ -99,6 +99,7 @@ export const GalleryItem = ({ image }: Props) => {
                                 src={image.thumbnailUrl ?? image.galleryMediaUrl ?? `https://placehold.co/${image.width}x${image.height}?text=${image.id}`}
                             alt={image.originSrc ?? image.id.toString()}
                                 fill
+                                loading="lazy"
                                 onLoad={() => setIsLoading(false)}
                         />
                         {isLoading && (
