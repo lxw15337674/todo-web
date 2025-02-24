@@ -10,13 +10,14 @@ import { Apps, Links } from './RouterConfig';
 import Link from 'next/link';
 import { usePermission } from '../src/hooks/usePermission';
 import { cn } from "@/lib/utils"
-
+import { ScrollToTop } from '../src/components/ScrollToTop';
+import { ArrowUpToLine } from 'lucide-react';
 export default function Header() {
   usePermission();
   const router = usePathname();
   const currentApp = Apps.find((app) => app.url === router);
 
-  
+
   useEffect(() => {
     if (currentApp) {
       document.title = currentApp.name;
@@ -43,8 +44,8 @@ export default function Header() {
                 {Apps.map((app) => {
                   const Icon = app.icon;
                   return (
-                    <Link 
-                      href={app.url} 
+                    <Link
+                      href={app.url}
                       key={app.name}
                       className={cn(
                         "flex flex-col items-center justify-center rounded-md border p-2 hover:bg-accent",
@@ -79,18 +80,25 @@ export default function Header() {
           </DropdownMenu>
           <span className="font-bold ">{currentApp?.name}</span>
         </div>
-        <div className="flex-1" />
-        <ModeToggle />
-        <Button
-          variant="outline"
-          size="icon"
-          className="ml-2" // 添加左外边距
-          onClick={() => {
-            window.open('https://github.com/lxw15337674/todo-web', '_blank')
-          }}
-        >
-          <Github />
-        </Button>
+        <div className="flex-1 " />
+        <div className='space-x-2'>
+
+          <ScrollToTop scrollTo={10} variant="outline"
+            size="icon"
+          >
+            <ArrowUpToLine />
+          </ScrollToTop>
+          <ModeToggle />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              window.open('https://github.com/lxw15337674/todo-web', '_blank')
+            }}
+          >
+            <Github />
+          </Button>
+        </div>
       </div>
     </header>
   );

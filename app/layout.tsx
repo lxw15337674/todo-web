@@ -11,6 +11,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Toaster } from '../src/components/ui/toaster';
 
 
+
 export default function RootLayout({
   children,
 }: {

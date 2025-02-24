@@ -15,6 +15,8 @@ import { Media, Producer, Post } from '@prisma/client'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
 import Masonry from '@mui/lab/Masonry';
+import { ScrollToTop } from "../../src/components/ScrollToTop"
+import { ArrowUpToLine } from "lucide-react"
 
 const PageSize = 40 * 5
 
@@ -123,7 +125,7 @@ export default function ImagePage() {
   })
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col ">
       <div className="p-4 border-b bg-background">
         <div className="max-w-screen-2xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
