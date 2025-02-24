@@ -25,7 +25,7 @@ type MediaWithRelations = Media & {
 
 interface GalleryState {
   producer: string | null
-  sort: 'asc' | 'desc'
+  sort: 'asc' | 'desc' | 'random'
   type: MediaType | null
   tags: string[] | null
 }
@@ -93,7 +93,7 @@ export default function ImagePage() {
   // Infinite scroll
   const loadingRef = useRef<HTMLDivElement>(null)
   const pageRef = useRef(1)
-  const observerRef = useRef<IntersectionObserver>()
+  const observerRef = useRef<IntersectionObserver>(null)
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -191,7 +191,7 @@ export default function ImagePage() {
                 value={state?.sort ?? 'desc'}
                 onValueChange={sort => setState(prev => ({
                   ...prev ?? DEFAULT_STATE,
-                  sort: sort as 'asc' | 'desc'
+                  sort: sort as 'asc' | 'desc' | 'random'
                 }))}
               >
                 <SelectTrigger>
@@ -201,6 +201,7 @@ export default function ImagePage() {
                   <SelectGroup>
                     <SelectItem value="desc">最新优先</SelectItem>
                     <SelectItem value="asc">最早优先</SelectItem>
+                    <SelectItem value="random">随机排序</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>

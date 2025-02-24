@@ -72,46 +72,72 @@ export async function getPics(
   page: number,
   pageSize: number,
   producerId: string | null,
-  sort: 'asc' | 'desc' = 'desc',
+  sort: 'asc' | 'desc' | 'random' = 'desc',
   type: MediaType | null = null,
   tagIds: string[] | null = null,
 ) {
   try {
-    const skip = (page - 1) * pageSize;
-    const take = pageSize;
+    // For random sort, we'll use a subquery to get random IDs first
+    if (sort === 'random') {
+      // Get the media type extensions condition
+      const mediaTypeCondition = getMediaTypeCondition(type);
+      const typeConditions = mediaTypeCondition.OR ? mediaTypeCondition.OR.map(
+        condition => `"galleryMediaUrl" LIKE '%${condition.galleryMediaUrl.endsWith}'`
+      ).join(' OR ') : '';
 
-    const items = await prisma.media.findMany({
-      skip,
-      take,
-      where: getBaseWhereClause(producerId, type, tagIds),
-      orderBy: { createTime: sort },
-      include: {
-        producer: {
-          include: {
-            ProducerToProducerTag: {
-              include: {
-                ProducerTag: true
-              }
-            }
+      // Build tag conditions if tags are provided
+      const tagCondition = tagIds && tagIds.length > 0
+        ? `AND "producerId" IN (
+            SELECT "A" 
+            FROM "ProducerToProducerTag" 
+            WHERE "B" IN (${tagIds.map(id => `'${id}'`).join(',')})
+          )`
+        : '';
+
+      const randomIds = await prisma.$queryRawUnsafe(`
+        SELECT id 
+        FROM "Media" 
+        WHERE "deletedAt" IS NULL 
+          AND status = '${UploadStatus.UPLOADED}'
+          ${producerId ? `AND "producerId" = '${producerId}'` : ''} 
+          ${typeConditions ? `AND (${typeConditions})` : ''}
+          ${tagCondition}
+        ORDER BY RANDOM() 
+        LIMIT ${pageSize} 
+        OFFSET ${(page - 1) * pageSize}
+      `);
+
+      const result = await prisma.media.findMany({
+        where: {
+          id: {
+            in: (randomIds as any[]).map(r => r.id)
           }
         },
+        include: {
+          producer: true,
+          post: true,
+        },
+      });
+
+      return result;
+    }
+
+    // Normal sorting
+    return await prisma.media.findMany({
+      where: getBaseWhereClause(producerId, type, tagIds),
+      orderBy: { createTime: sort },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+      include: {
+        producer: true,
         post: true,
       },
     });
-
-    // Transform the result to match the expected type
-    return items.map(item => ({
-      ...item,
-      producer: item.producer ? {
-        ...item.producer,
-        tags: item.producer.ProducerToProducerTag.map(p => p.ProducerTag)
-      } : null
-    }));
   } catch (error) {
     console.error(
-      'Failed to fetch media:',
+      'Failed to get media:',
       error instanceof Error ? error.message : error,
     );
-    throw error instanceof Error ? error : new Error('Failed to fetch media');
+    throw new Error('Failed to get media');
   }
 }
