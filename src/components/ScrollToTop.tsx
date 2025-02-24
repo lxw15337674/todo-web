@@ -7,7 +7,7 @@ export function ScrollToTop({
 }: ButtonProps & { minHeight?: number; scrollTo?: number }) {
     return (
             <Button
-            className="sticky bottom-4 right-4 z-50 ml-auto"
+            className=" bottom-4 right-4 z-50 ml-auto"
                 onClick={() =>
                     window.scrollTo({
                         top: scrollTo,

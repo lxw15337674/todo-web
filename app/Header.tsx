@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect } from 'react';
 import { ModeToggle } from 'src/components/ModeToggle';
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../src/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../src/components/ui/dropdown-menu';
 import { Button } from '../src/components/ui/button';
 import { Separator } from '../src/components/ui/separator';
 import { LayoutGrid, Github } from 'lucide-react'; // 新增导入
@@ -22,11 +22,11 @@ export default function Header() {
     }
   }, [router]);
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 bg-black">
+    <header className="fixed left-0 right-0 top-0 z-50">
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <div
         className={
-          'px-4 py-2   bg-zine-800 dark:border-zinc-800 border-b-[1px] flex items-center '
+          'px-4 py-2 bg-background border-b border-border flex items-center'
         }
       >
         <div className="mr-4 flex items-center space-x-2">
