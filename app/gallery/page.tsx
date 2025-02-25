@@ -16,7 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { MediaType } from "@/api/gallery/type"
 import Masonry from '@mui/lab/Masonry';
 
-const PageSize = 40 * 5
+const PageSize = 20 * 6
 
 type MediaWithRelations = Media & {
   producer: Producer | null
@@ -93,7 +93,7 @@ export default function ImagePage() {
   // Infinite scroll
   const loadingRef = useRef<HTMLDivElement>(null)
   const pageRef = useRef(1)
-  const observerRef = useRef<IntersectionObserver>(null)
+  const observerRef = useRef<IntersectionObserver>()
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -123,7 +123,7 @@ export default function ImagePage() {
   })
 
   return (
-    <div className="min-h-screen flex flex-col ">
+    <div className="min-h-screen flex flex-col">
       <div className="p-4 border-b bg-background">
         <div className="max-w-screen-2xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -191,7 +191,7 @@ export default function ImagePage() {
                 value={state?.sort ?? 'desc'}
                 onValueChange={sort => setState(prev => ({
                   ...prev ?? DEFAULT_STATE,
-                  sort: sort as 'asc' | 'desc' | 'random'
+                  sort: sort as 'asc' | 'desc'
                 }))}
               >
                 <SelectTrigger>
@@ -201,7 +201,6 @@ export default function ImagePage() {
                   <SelectGroup>
                     <SelectItem value="desc">最新优先</SelectItem>
                     <SelectItem value="asc">最早优先</SelectItem>
-                    <SelectItem value="random">随机排序</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
