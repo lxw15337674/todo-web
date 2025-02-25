@@ -1,14 +1,14 @@
 'use client';
 
 import axios from 'axios';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useSessionStorageState } from 'ahooks';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Trash2, X } from "lucide-react";
+import { MessageCircle, Trash2, X, Copy, Check } from "lucide-react";
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import { polishContent } from '../../src/api/ai/aiActions';
@@ -44,6 +44,8 @@ export default function Chat() {
     const [showCommands, setShowCommands] = useSessionStorageState<boolean>('show_commands', {
         defaultValue: false
     });
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+
     // 获取命令列表
     useEffect(() => {
         const fetchCommands = async () => {
@@ -126,6 +128,13 @@ export default function Chat() {
         }
     };
 
+    const handleCopyClick = (text: string, id: string) => {
+        navigator.clipboard.writeText(text).then(() => {
+            setCopiedId(id);
+            setTimeout(() => setCopiedId(null), 2000);
+        });
+    };
+
     const renderMessageContent = (message: Message) => {
         if (message.type === 'image') {
             return (
@@ -145,8 +154,23 @@ export default function Chat() {
         if (message.type === 'polish') {
             return <PolishCard content={message.content} />;
         }
-        return <div className="whitespace-pre-wrap">{message.content}</div>;
+        return (
+            <div className="relative group">
+                <div className="whitespace-pre-wrap">{message.content}</div>
+                <button
+                    onClick={() => handleCopyClick(message.content, message.id)}
+                    className="absolute top-0 right-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity bg-secondary rounded-md"
+                    title="复制内容"
+                >
+                    {copiedId === message.id ?
+                        <Check className="w-4 h-4 text-green-500" /> :
+                        <Copy className="w-4 h-4" />
+                    }
+                </button>
+            </div>
+        );
     };
+
     return (
         <div className="h-[calc(100vh-56px)] flex bg-background">
             {/* 左侧命令列表 - 在小屏幕上隐藏 */}
