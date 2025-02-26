@@ -1,8 +1,8 @@
 'use server';
 import { PrismaClient, Bookmark, BookmarkTag } from '@prisma/client';
 import getSummarizeBookmark from '../ai/aiActions';
+import prisma from '../prisma';
 
-const prisma = new PrismaClient();
 
 // 创建书签
 export const createBookmark = async (

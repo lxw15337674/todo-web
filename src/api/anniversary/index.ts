@@ -1,7 +1,7 @@
 'use server';
-import { PrismaClient, Anniversary } from '@prisma/client';
+import { Anniversary } from '@prisma/client';
+import prisma from '../prisma';
 
-const prisma = new PrismaClient();
 
 export const getAnniversary = async (): Promise<Anniversary[]> => {
   return await prisma.anniversary.findMany({

@@ -215,7 +215,7 @@ export async function getTaskTags(
 
 export const polishContent = async (content: string): Promise<string> => {
   try {
-    const response = await axios.post('https://bhwa-us.zeabur.app/api/ai/google-chat', {
+    const response = await axios.post(API_ENDPOINTS.GOOGLE_CHAT, {
       prompt: polishPrompt(content)
     });
     return response.data;
