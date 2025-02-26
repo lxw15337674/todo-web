@@ -43,10 +43,6 @@ div#__next {
   width: 100%;
 }
 
-main {
-  height: calc(100vh - 60px);
-  overflow: auto;
-}
 
 @layer base {
   :root {
