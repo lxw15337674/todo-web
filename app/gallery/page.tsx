@@ -201,6 +201,7 @@ export default function ImagePage() {
                   <SelectGroup>
                     <SelectItem value="desc">最新优先</SelectItem>
                     <SelectItem value="asc">最早优先</SelectItem>
+                    <SelectItem value="random">随机</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
