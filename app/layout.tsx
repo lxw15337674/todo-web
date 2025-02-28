@@ -30,9 +30,7 @@ export default function RootLayout({
                 <CssBaseline enableColorScheme />
                 <main className='min-h-screen h-full w-screen'>
                   <Header />
-                  <div className={'mt-[53px]'}>
                   {children}
-                  </div>
                   <Toaster />
                   <SpeedInsights />
                 </main>
