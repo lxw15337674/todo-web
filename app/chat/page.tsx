@@ -50,11 +50,7 @@ export default function Chat() {
     useEffect(() => {
         const fetchCommands = async () => {
             try {
-                const response = await axios.get('/bhwa233-api/command', {
-                    params: {
-                        command: 'hp text'
-                    }
-                });
+                const response = await axios.get('/bhwa233-api/command/hp');
                 setCommands(response.data);
             } catch (error) {
                 console.error('Failed to fetch commands:', error);
@@ -178,7 +174,6 @@ export default function Chat() {
             </div>
         );
     };
-
     return (
         <div className="h-[calc(100vh-56px)] flex bg-background">
             {/* 左侧命令列表 - 在小屏幕上隐藏 */}
