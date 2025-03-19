@@ -26,17 +26,3 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
   }
 }
-
-// 转发https://bhwa-us.zeabur.app/api/command/hp接口
-export async function GET() {
-  try {
-    const { data } = await axios.get('https://bhwa-us.zeabur.app/api/command/hp');
-    return NextResponse.json(data);
-  }
-  catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: '服务调用失败'
-    }, { status: 500 });
-  }
-}

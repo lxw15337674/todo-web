@@ -50,7 +50,11 @@ export default function Chat() {
     useEffect(() => {
         const fetchCommands = async () => {
             try {
-                const response = await axios.get('/api/command');
+                const response = await axios.get('/bhwa233-api/command', {
+                    params: {
+                        command: 'hp text'
+                    }
+                });
                 setCommands(response.data);
             } catch (error) {
                 console.error('Failed to fetch commands:', error);
@@ -97,7 +101,11 @@ export default function Chat() {
             });
         }));
         try {
-            const response = await axios.post('/api/command', { command: commandText });
+            const response = await axios.get('/bhwa233-api/command', {
+                params: {
+                    command: commandText
+                }
+            });
             const processedData = response.data;
             if (!processedData.content) {
                 processedData.content = await polishContent(commandText);

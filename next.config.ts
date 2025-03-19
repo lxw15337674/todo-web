@@ -52,6 +52,10 @@ const nextConfig = withSerwist({
         source: '/routing/game/:path*',
         destination: 'https://game.gtimg.cn/:path*',
       },
+      {
+        source: '/bhwa233-api/:path*',
+        destination: 'https://bhwa-us.zeabur.app/api/:path*',
+      }
     ];
   },
 });
