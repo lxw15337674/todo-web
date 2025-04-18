@@ -114,10 +114,12 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
   const checked = task.status === '1';
 
   return (
+    // 修改样式：移除 border 和 shadow-sm，添加 border-b-2 使下划线更明显
     <div className={cn(
-      "bg-card rounded-lg border shadow-sm h-full",
-      task.priority && priorityConfig[task.priority]?.border
+      "bg-card  border-b",
+      'border-border' // 默认下边框颜色
     )} suppressHydrationWarning={true}>
+      {/* 保持内部布局不变 */}
         <div className="flex flex-col gap-2 px-2 py-1 hover:bg-accent h-full rounded-lg">
             {isClient && (
                 <>
