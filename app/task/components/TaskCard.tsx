@@ -27,7 +27,7 @@ interface TaskCardProps {
 }
 
 // 优先级颜色和文本映射
-const priorityConfig = {
+export const priorityConfig = { // 添加 export
     [Priority.IMPORTANT_URGENT]: {
         label: "重要且紧急",
         color: "bg-red-500/10 text-red-500",
