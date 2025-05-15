@@ -1,6 +1,6 @@
 'use server';
 import { uploadToGallery } from '@/utils/upload';
-import { bookmarkPrompt, taskPrompt, polishPrompt } from './prompts';
+import { bookmarkUrlPrompt, taskPrompt, polishPrompt } from './prompts';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config';
 
@@ -15,22 +15,18 @@ export async function generateResponse<T>(
   prompt: string,
 ): Promise<RobotResponse<T>> {
   try {
-    const { data } = await axios.post(API_ENDPOINTS.GOOGLE_CHAT, {
+
+    const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, {
       prompt,
     }, {
       timeout: 50000,
     });
 
     try {
-      const match = data.match(/```json\s*([\s\S]*?)\s*```/) || [
-        null,
-        data,
-      ];
-      const parsed = JSON.parse(match[1]);
-      console.log('AI服务响应:', parsed);
+      console.log('AI服务响应:', data);
       return {
         success: true,
-        data: parsed,
+        data: data,
       };
     } catch (parseError) {
       return {
@@ -155,41 +151,24 @@ export default async function getSummarizeBookmark(
   console.log(`[书签摘要] 开始处理URL: ${url}`);
 
   try {
-    // 获取页面内容
-    const fetchStartTime = Date.now();
-    const apiUrl = `${API_ENDPOINTS.PAGE_CONTENT}?url=${encodeURIComponent(url)}`;
-    const { data, status } = await axios.get(apiUrl);
-    console.log(`[书签摘要] 获取页面内容耗时: ${Date.now() - fetchStartTime}毫秒`);
-
-    if (status !== 200 || !data.content) {
-      console.error('[书签摘要] 获取页面内容失败:', data);
-      return { tags: [], summary: '', title: '', image: '' };
-    }
-
-    // 清理HTML内容
-    const cleanStartTime = Date.now();
-    const { content, title } = data;
-    const cleanedContent = await cleanHtml(content);
-    const html = cleanedContent.text.substring(0, 60000);
-    console.log(`[书签摘要] 清理HTML内容耗时: ${Date.now() - cleanStartTime}毫秒`);
-
-    // 生成AI响应
+    // 直接将URL传给AI进行总结
     const aiStartTime = Date.now();
-    const aiResponse = await generateResponse<Pick<OpenAICompletion, 'summary' | 'tags'>>(
-      bookmarkPrompt(html, existedTags)
+    const prompt = bookmarkUrlPrompt(url, existedTags);
+    const aiResponse = await generateResponse<OpenAICompletion>(
+      prompt
     );
     console.log(`[书签摘要] AI处理耗时: ${Date.now() - aiStartTime}毫秒`);
 
     if (!aiResponse.success) {
       console.warn('[书签摘要] AI响应未成功');
-      return { tags: [], summary: '', title: title || '', image: '' };
+      return { tags: [], summary: '', title: '', image: '' };
     }
 
     const result = {
       tags: aiResponse.data.tags,
       summary: aiResponse.data.summary,
-      title: title || '',
-      image: cleanedContent.image,
+      title: aiResponse.data.title || '',
+      image: aiResponse.data.image || '', // 使用AI推荐的图片URL
     };
 
     console.log(`[书签摘要] 总处理耗时: ${Date.now() - startTime}毫秒`);
@@ -215,7 +194,7 @@ export async function getTaskTags(
 
 export const polishContent = async (content: string): Promise<string> => {
   try {
-    const response = await axios.post(API_ENDPOINTS.GOOGLE_CHAT, {
+    const response = await axios.post(API_ENDPOINTS.AI_CHAT, {
       prompt: polishPrompt(content)
     });
     return response.data;
