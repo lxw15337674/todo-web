@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         type: 'text'
       }, { status: 400 });
     }
-    const { data } = await axios.get('https://bhwa-us.zeabur.app/api/command', {
+    const { data } = await axios.get('/bhwa233-api/command', {
       params: {
         command
       }

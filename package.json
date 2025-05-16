@@ -9,7 +9,7 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "cross-env next dev --turbo",
+    "dev": "cross-env next dev ",
     "vercel-build": "npx prisma generate &&  next build",
     "build": "npx prisma generate &&  next build",
     "start": "pnpm dev",
@@ -59,7 +59,6 @@
     "decimal.js": "^10.5.0",
     "immer": "^10.1.1",
     "lucide-react": "^0.475.0",
-    "next": "^15.3.1",
     "next-themes": "^0.4.6",
     "playwright": "^1.52.0",
     "react": "^19.1.0",

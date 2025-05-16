@@ -1,4 +1,4 @@
 export const API_ENDPOINTS = {
-    GOOGLE_CHAT: 'https://bhwa233-api.vercel.app/api/ai/google-chat',
-    PAGE_CONTENT: 'https://bhwa-us.zeabur.app/api/page-scraper/content',
+    AI_CHAT: 'https://bhwa233-api.vercel.app/api/ai/chat',
+    PAGE_CONTENT: 'https://bhwa-hk.zeabur.app/api/page-scraper/content',
 } as const;

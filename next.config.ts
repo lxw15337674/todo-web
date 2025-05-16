@@ -54,7 +54,7 @@ const nextConfig = withSerwist({
       },
       {
         source: '/bhwa233-api/:path*',
-        destination: 'https://bhwa-us.zeabur.app/api/:path*',
+        destination: 'https://bhwa-hk.zeabur.app/api/:path*',
       }
     ];
   },
