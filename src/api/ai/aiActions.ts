@@ -2,7 +2,7 @@
 import { uploadToGallery } from '@/utils/upload';
 import { bookmarkPrompt, taskPrompt, polishPrompt } from './prompts';
 import axios from 'axios';
-import { API_ENDPOINTS } from '../config';
+import { API_ENDPOINTS } from './config';
 
 export interface RobotResponse<T> {
   success: boolean;
@@ -15,7 +15,7 @@ export async function generateResponse<T>(
   prompt: string,
 ): Promise<RobotResponse<T>> {
   try {
-    const { data } = await axios.post(API_ENDPOINTS.GOOGLE_CHAT, {
+    const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, {
       prompt,
     }, {
       timeout: 50000,
@@ -158,14 +158,14 @@ export default async function getSummarizeBookmark(
     // 获取页面内容
     const fetchStartTime = Date.now();
     const apiUrl = API_ENDPOINTS.PAGE_CONTENT;
-    const { data, status } = await axios.post(apiUrl, {
+    const { data } = await axios.post(apiUrl, {
       url: url
     }, {
       timeout: 30000 // 设置30秒超时
     });
     console.log(`[书签摘要] 获取页面内容耗时: ${Date.now() - fetchStartTime}毫秒`);
 
-    if (status !== 200 || !data.content) {
+    if (!data.content) {
       console.error('[书签摘要] 获取页面内容失败:', data);
       return { tags: [], summary: '', title: '', image: '' };
     }
