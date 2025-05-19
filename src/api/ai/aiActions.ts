@@ -183,9 +183,9 @@ export default async function getSummarizeBookmark(
       bookmarkPrompt(html, existedTags)
     );
     console.log(`[书签摘要] AI处理耗时: ${Date.now() - aiStartTime}毫秒`);
-
+    debugger
     if (!aiResponse.success) {
-      console.warn('[书签摘要] AI响应未成功');
+      console.warn('[书签摘要] AI响应未成功', aiResponse.error);
       return { tags: [], summary: '', title: title || '', image: '' };
     }
 
@@ -219,7 +219,7 @@ export async function getTaskTags(
 
 export const polishContent = async (content: string): Promise<string> => {
   try {
-    const response = await axios.post(API_ENDPOINTS.DEEPSEEK_CHAT, {
+    const response = await axios.post(API_ENDPOINTS.AI_CHAT, {
       prompt: polishPrompt(content)
     });
     return response.data;

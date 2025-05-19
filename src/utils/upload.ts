@@ -54,6 +54,10 @@ export async function uploadToGallery(
     headers: Record<string, string> = {}
 ): Promise<string | null> {
     try {
+        if (!originMediaUrl) {
+            log('无效的媒体URL', 'error');
+            return null;
+        }
         const mediaBuffer = await downloadMedia(originMediaUrl, headers);
         if (!mediaBuffer) {
             log(`下载媒体文件失败: ${originMediaUrl}`, 'error');
