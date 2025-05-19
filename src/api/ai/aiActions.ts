@@ -157,8 +157,12 @@ export default async function getSummarizeBookmark(
   try {
     // 获取页面内容
     const fetchStartTime = Date.now();
-    const apiUrl = `${API_ENDPOINTS.PAGE_CONTENT}?url=${encodeURIComponent(url)}`;
-    const { data, status } = await axios.get(apiUrl);
+    const apiUrl = API_ENDPOINTS.PAGE_CONTENT;
+    const { data, status } = await axios.post(apiUrl, {
+      url: url
+    }, {
+      timeout: 30000 // 设置30秒超时
+    });
     console.log(`[书签摘要] 获取页面内容耗时: ${Date.now() - fetchStartTime}毫秒`);
 
     if (status !== 200 || !data.content) {
