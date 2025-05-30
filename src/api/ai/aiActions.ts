@@ -183,7 +183,6 @@ export default async function getSummarizeBookmark(
       bookmarkPrompt(html, existedTags)
     );
     console.log(`[书签摘要] AI处理耗时: ${Date.now() - aiStartTime}毫秒`);
-    debugger
     if (!aiResponse.success) {
       console.warn('[书签摘要] AI响应未成功', aiResponse.error);
       return { tags: [], summary: '', title: title || '', image: '' };

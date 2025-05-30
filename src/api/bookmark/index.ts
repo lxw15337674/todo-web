@@ -4,26 +4,24 @@ import getSummarizeBookmark from '../ai/aiActions';
 import prisma from '../prisma';
 
 
+interface CreateBookmarkData {
+  url: string;
+  title: string;
+  image: string;
+  remark: string;
+}
+
 // 创建书签
 export const createBookmark = async (
-  url: string,
-  remark: string,
+  data: CreateBookmarkData,
 ): Promise<Bookmark | null> => {
-  // 判断是否已经存在相同的书签
-  const existingBookmark = await prisma.bookmark.findFirst({
-    where: { url },
-  });
-  if (existingBookmark) {
-    return existingBookmark;
-  }
 
   // 创建新书签
-  const newBookmark = await prisma.bookmark.create({
-    data: { url, remark, loading: true },
+  const newBookmark = await prisma.bookmark.upsert({
+    where: { url: data.url },
+    update: { ...data, loading: true },
+    create: { ...data, loading: true },
   });
-
-  // 异步处理摘要生成
-  summarizeBookmark(newBookmark.id, url).catch(console.error);
 
   return newBookmark;
 };

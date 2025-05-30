@@ -19,11 +19,8 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const { url, remark } = await request.json();
-
-        // 使用服务端函数处理书签的创建和摘要生成
-        const newBookmark = await serverCreateBookmark(url, remark).catch(console.error);
-
+        const data = await request.json();
+        const newBookmark = await serverCreateBookmark(data).catch(console.error);
         return NextResponse.json(newBookmark);
     } catch (error) {
         console.error('处理书签失败:', error);
