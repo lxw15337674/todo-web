@@ -1,7 +1,9 @@
-'use server';
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/api/prisma';
-import { summarizeBookmark } from '@/api/bookmark';
+import {
+    createBookmark as serverCreateBookmark,
+    getBookmarkByUrl,
+    deleteBookmarkByUrl
+} from 'src/api/bookmark';
 
 // 验证API密钥
 function validateApiKey(request: NextRequest) {
@@ -17,67 +19,75 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const { url, remark, title, id } = await request.json();
+        const { url, remark } = await request.json();
 
-        // 验证URL
-        if (!url || typeof url !== 'string') {
-            return NextResponse.json({ error: '无效的URL' }, { status: 400 });
-        }
-
-        // 构建基本数据对象
-        const bookmarkData: any = {
-            url,
-            remark: remark || ''
-        };
-
-        // 如果提供了标题，则添加到数据中
-        if (title) {
-            bookmarkData.title = title;
-        }
-
-        // 尝试查找现有书签
-        let existingBookmark;
-
-        // 优先按ID查找
-        if (id) {
-            existingBookmark = await prisma.bookmark.findUnique({
-                where: { id },
-                include: { tags: true }
-            });
-        }
-
-        // 如果没有找到，则按URL查找
-        if (!existingBookmark) {
-            existingBookmark = await prisma.bookmark.findFirst({
-                where: { url },
-                include: { tags: true }
-            });
-        }
-
-        // 如果存在，则更新
-        if (existingBookmark) {
-            // 更新现有书签
-            const updatedBookmark = await prisma.bookmark.update({
-                where: { id: existingBookmark.id },
-                data: bookmarkData,
-                include: { tags: true }
-            });
-
-            return NextResponse.json(updatedBookmark);
-        }
-
-        // 不存在，则创建新书签
-        bookmarkData.loading = true; // 新建的书签需要标记为加载中
-        const newBookmark = await prisma.bookmark.create({
-            data: bookmarkData,
-        });
-
-        // 异步处理摘要生成
-        summarizeBookmark(newBookmark.id, url).catch(console.error);
+        // 使用服务端函数处理书签的创建和摘要生成
+        const newBookmark = await serverCreateBookmark(url, remark).catch(console.error);
 
         return NextResponse.json(newBookmark);
     } catch (error) {
         console.error('处理书签失败:', error);
+        return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
+    }
+}
+
+// 通过 URL 获取书签 API
+export async function GET(request: NextRequest) {
+    // 验证 API 密钥
+    if (!validateApiKey(request)) {
+        return NextResponse.json({ error: '未授权访问' }, { status: 401 });
+    }
+
+    try {
+        // 从 URL 参数中获取 url
+        const url = request.nextUrl.searchParams.get('url');
+
+        if (!url) {
+            return NextResponse.json({ error: '缺少必要参数: url' }, { status: 400 });
+        }
+
+        // 使用服务端函数获取书签
+        const bookmark = await getBookmarkByUrl(url);
+
+        if (!bookmark) {
+            return NextResponse.json({ error: '未找到书签' }, { status: 404 });
+        }
+
+        return NextResponse.json(bookmark);
+    } catch (error) {
+        console.error('获取书签失败:', error);
+        return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
+    }
+}
+
+// 通过 URL 删除书签 API
+export async function DELETE(request: NextRequest) {
+    // 验证 API 密钥
+    if (!validateApiKey(request)) {
+        return NextResponse.json({ error: '未授权访问' }, { status: 401 });
+    }
+
+    try {
+        // 从 URL 参数中获取 url
+        const url = request.nextUrl.searchParams.get('url');
+
+        if (!url) {
+            return NextResponse.json({ error: '缺少必要参数: url' }, { status: 400 });
+        }
+
+        // 使用服务端函数删除书签
+        const deletedBookmark = await deleteBookmarkByUrl(url);
+
+        if (!deletedBookmark) {
+            return NextResponse.json({ error: '未找到书签' }, { status: 404 });
+        }
+
+        return NextResponse.json({
+            message: '书签删除成功',
+            bookmark: deletedBookmark
+        });
+    } catch (error) {
+        console.error('删除书签失败:', error);
         return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
     }
 }

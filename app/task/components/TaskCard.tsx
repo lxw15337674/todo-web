@@ -114,74 +114,74 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
   const checked = task.status === '1';
 
   return (
-    // 修改样式：移除 border 和 shadow-sm，添加 border-b-2 使下划线更明显
-    <div className={cn(
-      "bg-card  border-b",
-      'border-border' // 默认下边框颜色
-    )} suppressHydrationWarning={true}>
-      {/* 保持内部布局不变 */}
-        <div className="flex flex-col gap-2 px-2 py-1 hover:bg-accent h-full rounded-lg">
-            {isClient && (
-                <>
-                    <div className="flex items-start gap-2">
-                        <Checkbox
-                            checked={checked}
-                            onCheckedChange={() => toggleTask(task.id)}
-                            className="focus:outline-none focus-visible:outline-none shrink-0 mt-1.5"
-                        />
-                        <AutosizeTextarea
-                            value={taskName}
-                            minHeight={24}
-                            readOnly={!isEditing}
-                            onDoubleClick={() => setIsEditing(true)}
-                            onChange={(e) => setTaskName(e.target.value)}
-                            onBlur={renameTask}
-                            className={cn(
-                                'flex-1 resize-none p-1',
-                                checked && 'line-through text-muted-foreground',
-                                !isEditing && 'bg-transparent border-none focus-visible:ring-0 hover:bg-transparent'
-                            )}
-                        />
-                    </div>
-                    <div className="flex items-center gap-2 pl-7">
-                        {task.tags && task.tags.length > 0 && (
-                            <div className="flex-1 flex flex-wrap gap-1">
-                                {task.tags.map((tag) => (
-                                    <Badge
-                                        key={tag.id}
-                                        variant="outline"
-                                        className={cn(
-                                            "text-xs border",
-                                            getTagColor(tag.name)
-                                        )}
-                                    >
-                                        {tag.name}
-                                    </Badge>
-                                ))}
-                            </div>
-                        )}
-                        <div className="flex items-center gap-2 shrink-0">
-                            <Select value={task.priority || Priority.NOT_IMPORTANT_NOT_URGENT} onValueChange={handlePriorityChange}>
-                                <SelectTrigger className={cn("h-7 w-[120px] text-xs", task.priority && priorityConfig[task.priority]?.color)}>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.entries(priorityConfig).map(([value, config]) => (
-                                        <SelectItem key={value} value={value} className={cn("text-xs", config.color)}>
-                                            {config.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <span className="text-sm text-muted-foreground whitespace-nowrap">
-                                {dayjs(task.updateTime).format('MM/DD HH:mm')}
-                            </span>
-                        </div>
-                    </div>
-                </>
-            )}
-        </div>
-    </div>
+      // 修改样式：移除 border 和 shadow-sm，添加 border-b-2 使下划线更明显
+      <div className={cn(
+        "bg-card  border-b",
+        'border-border' // 默认下边框颜色
+      )} suppressHydrationWarning={true}>
+          {/* 保持内部布局不变 */}
+          <div className="flex flex-col gap-2 px-2 py-1 hover:bg-accent h-full rounded-lg">
+              {isClient && (
+                  <>
+                      <div className="flex items-start gap-2">
+                          <Checkbox
+                              checked={checked}
+                              onCheckedChange={() => toggleTask(task.id)}
+                              className="focus:outline-none focus-visible:outline-none shrink-0 mt-1.5"
+                          />
+                          <AutosizeTextarea
+                              value={taskName}
+                              minHeight={24}
+                              readOnly={!isEditing}
+                              onDoubleClick={() => setIsEditing(true)}
+                              onChange={(e) => setTaskName(e.target.value)}
+                              onBlur={renameTask}
+                              className={cn(
+                                  'flex-1 resize-none p-1',
+                                  checked && 'line-through text-muted-foreground',
+                                  !isEditing && 'bg-transparent border-none focus-visible:ring-0 hover:bg-transparent'
+                              )}
+                          />
+                      </div>
+                      <div className="flex items-center gap-2 pl-7">
+                          {task.tags && task.tags.length > 0 && (
+                              <div className="flex-1 flex flex-wrap gap-1">
+                                  {task.tags.map((tag) => (
+                                      <Badge
+                                          key={tag.id}
+                                          variant="outline"
+                                          className={cn(
+                                              "text-xs border",
+                                              getTagColor(tag.name)
+                                          )}
+                                      >
+                                          {tag.name}
+                                      </Badge>
+                                  ))}
+                              </div>
+                          )}
+                          <div className="flex items-center gap-2 shrink-0">
+                              <Select value={task.priority || Priority.NOT_IMPORTANT_NOT_URGENT} onValueChange={handlePriorityChange}>
+                                  <SelectTrigger className={cn("h-7 w-[120px] text-xs", task.priority && priorityConfig[task.priority]?.color)}>
+                                      <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      {Object.entries(priorityConfig).map(([value, config]) => (
+                                          <SelectItem key={value} value={value} className={cn("text-xs", config.color)}>
+                                              {config.label}
+                                          </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                                  {dayjs(task.updateTime).format('MM/DD HH:mm')}
+                              </span>
+                          </div>
+                      </div>
+                  </>
+              )}
+          </div>
+      </div>
   );
 }
 

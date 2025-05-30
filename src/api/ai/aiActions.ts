@@ -118,7 +118,7 @@ const extractImage = async (html: string): Promise<string> => {
     }
   }
 
-  return await uploadToGallery(Array.from(imageUrls)[0]) ?? '';
+  return (await uploadToGallery(Array.from(imageUrls)[0])) ?? '';
 };
 
 const cleanHtml = async (html: string): Promise<CleanedContent> => {

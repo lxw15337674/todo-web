@@ -274,7 +274,6 @@ export default function Page() {
                     </div>
                 </div>
             </div>
-
             {/* 减少任务列表区域的垂直间距 space-y-4 -> space-y-2 */}
             <div className="space-y-2">
                 {/* 渲染未完成任务，按优先级分组 */} 
@@ -334,6 +333,6 @@ export default function Page() {
                 )}
             </div>
         </div>
-    )
+    );
 }
 

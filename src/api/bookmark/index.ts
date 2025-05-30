@@ -200,6 +200,29 @@ export const getAllBookmarkTags = async (): Promise<BookmarkTagWithCount[]> => {
     .sort((a, b) => b.count - a.count);
 };
 
+// 通过 URL 获取书签
+export const getBookmarkByUrl = async (url: string): Promise<CompleteBookmark | null> => {
+  return await prisma.bookmark.findFirst({
+    where: { url },
+    include: { tags: true },
+  });
+};
+
+// 通过 URL 删除书签
+export const deleteBookmarkByUrl = async (url: string): Promise<Bookmark | null> => {
+  const bookmark = await prisma.bookmark.findFirst({
+    where: { url },
+  });
+
+  if (!bookmark) {
+    return null;
+  }
+
+  return await prisma.bookmark.delete({
+    where: { id: bookmark.id },
+  });
+};
+
 // 更新标签
 export const updateBookmarkTag = async (
   id: string,
