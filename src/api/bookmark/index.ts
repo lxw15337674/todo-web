@@ -6,21 +6,32 @@ import prisma from '../prisma';
 
 interface CreateBookmarkData {
   url: string;
-  title: string;
-  image: string;
-  remark: string;
+  title?: string;
+  image?: string;
+  remark?: string;
 }
 
 // 创建书签
 export const createBookmark = async (
   data: CreateBookmarkData,
 ): Promise<Bookmark | null> => {
+  // 验证 URL
+  if (!data.url || typeof data.url !== 'string' || data.url.trim() === '') {
+    throw new Error('URL is required and cannot be empty');
+  }
+
+  const bookmarkData = {
+    url: data.url,
+    title: data.title || '',
+    image: data.image || '',
+    remark: data.remark || '',
+  };
 
   // 创建新书签
   const newBookmark = await prisma.bookmark.upsert({
-    where: { url: data.url },
-    update: { ...data, loading: true },
-    create: { ...data, loading: true },
+    where: { url: bookmarkData.url },
+    update: { ...bookmarkData, loading: true },
+    create: { ...bookmarkData, loading: true },
   });
 
   return newBookmark;

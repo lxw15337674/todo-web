@@ -60,7 +60,7 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
                     <HoverCard>
                         <HoverCardTrigger asChild>
                             <Image
-                                src={bookmark?.image || `https://placehold.co/600x400?text=${bookmark.loading ? 'Loading' : bookmark.title}`}
+                                src={bookmark?.image || `https://placehold.co/600x400?text=${bookmark.title}`}
                                 alt={bookmark.title ?? 'Bookmark Image'}
                                 width={400}
                                 height={600}

@@ -24,11 +24,12 @@ async function main() {
     if (!url) {
       console.warn(`书签 "${title}" 缺少 URL，已跳过`);
       continue;
-    }
-
-    // 创建书签
+    }    // 创建书签
     try {
-      const newBookmark = await createBookmark(url, '');
+      const newBookmark = await createBookmark({
+        url: url,
+        remark: ''
+      });
       if (!newBookmark) {
         console.warn(`创建书签 "${title}" 失败`);
         continue;

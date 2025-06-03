@@ -53,10 +53,11 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
                 variant: 'destructive'
             });
             return;
-        }
-
-        try {
-            const data = await createBookmark(newBookmarkUrl, remark);
+        } try {
+            const data = await createBookmark({
+                url: newBookmarkUrl,
+                remark: remark
+            });
             if (!data) {
                 toast({
                     title: '书签创建失败',
