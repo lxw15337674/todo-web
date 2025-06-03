@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// 通过 URL 获取书签 API
+// 通过 URL 获取书签 API 或健康检查
 export async function GET(request: NextRequest) {
     // 验证 API 密钥
     if (!validateApiKey(request)) {
@@ -39,8 +39,14 @@ export async function GET(request: NextRequest) {
         // 从 URL 参数中获取 url
         const url = request.nextUrl.searchParams.get('url');
 
+        // 如果是健康检查请求
         if (!url) {
-            return NextResponse.json({ error: '缺少必要参数: url' }, { status: 400 });
+            return NextResponse.json({
+                status: 'success',
+                message: 'API和API密钥验证成功',
+                timestamp: new Date().toISOString(),
+                service: 'bookmark-api',
+            });
         }
 
         // 使用服务端函数获取书签
