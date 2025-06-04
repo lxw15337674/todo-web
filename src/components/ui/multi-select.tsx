@@ -293,16 +293,34 @@ export const MultiSelect = React.forwardRef<
                 return 1;
               return 0;
             }}
-          >
-            <CommandInput
-              placeholder="查找或创建标签"
+          >            <CommandInput
+              placeholder="查找或创建标签..."
               onKeyDown={handleInputKeyDown}
               onInput={(e) => setSearchQuery(e.currentTarget.value)}
             />
             <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandEmpty>
+                {searchQuery.trim() && props.onCreateNewOption ? (
+                  <div className="p-2 text-center">
+                    <p className="text-sm text-muted-foreground mb-2">未找到匹配的标签</p>
+                    <CommandItem
+                      onSelect={() => props.onCreateNewOption?.(searchQuery.trim())}
+                      className="cursor-pointer border border-dashed border-primary/50 rounded-md"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 rounded-sm border border-primary/50 flex items-center justify-center">
+                          <XIcon className="h-3 w-3 text-primary/50" />
+                        </div>
+                        <span className="text-primary">创建标签 "{searchQuery.trim()}"</span>
+                      </div>
+                    </CommandItem>
+                  </div>
+                ) : (
+                  "未找到结果"
+                )}
+              </CommandEmpty>
               <CommandGroup>
-                <CommandItem
+                {/* <CommandItem
                   key="all"
                   onSelect={toggleAll}
                   className="cursor-pointer"
@@ -317,8 +335,8 @@ export const MultiSelect = React.forwardRef<
                   >
                     <CheckIcon className="h-4 w-4" />
                   </div>
-                  <span>(Select All)</span>
-                </CommandItem>
+                  <span>(全选)</span>
+                </CommandItem> */}
                 {options.map((option) => {
                   const isSelected = selectedValues.includes(option.value);
                   return (
@@ -345,30 +363,30 @@ export const MultiSelect = React.forwardRef<
                   );
                 })}
                 {
+                  searchQuery.trim() && props.onCreateNewOption && (
                   <CommandItem
-                    key="new"
-                    onSelect={() => props.onCreateNewOption?.(searchQuery)}
-                    className="cursor-pointer"
+                      key="create-new"
+                      onSelect={() => props.onCreateNewOption?.(searchQuery.trim())}
+                      className="cursor-pointer border-t border-border/50 mt-1 pt-1"
                   >
-                    <div>
-                      <span className="text-muted-foreground mr-2">
-                        创建标签
-                      </span>
-                      {searchQuery}
+                      <div className="flex items-center gap-2 text-primary">
+                        <div className="h-4 w-4 rounded-sm border border-primary/50 flex items-center justify-center">
+                          <XIcon className="h-3 w-3 rotate-45" />
+                        </div>
+                        <span>创建标签 "{searchQuery.trim()}"</span>
                     </div>
                   </CommandItem>
-                }
+                  )}
               </CommandGroup>
               <CommandSeparator />
               <CommandGroup>
-                <div className="flex items-center justify-between">
-                  {selectedValues.length > 0 && (
+                <div className="flex items-center justify-between">                  {selectedValues.length > 0 && (
                     <>
                       <CommandItem
                         onSelect={handleClear}
                         className="flex-1 justify-center cursor-pointer"
                       >
-                        Clear
+                      清空
                       </CommandItem>
                       <Separator
                         orientation="vertical"
@@ -380,7 +398,7 @@ export const MultiSelect = React.forwardRef<
                     onSelect={() => setIsPopoverOpen(false)}
                     className="flex-1 justify-center cursor-pointer max-w-full"
                   >
-                    Close
+                    关闭
                   </CommandItem>
                 </div>
               </CommandGroup>
