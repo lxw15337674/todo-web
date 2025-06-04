@@ -445,11 +445,6 @@ export function ProducerDialog({ open, onOpenChange, producers=[], onSuccess }: 
             <div className="space-y-4">              <div className="flex justify-between items-center">
               <div className="text-sm text-muted-foreground">
                 {producers.length} 个制作者 {editingProducer && '| 正在编辑中...'}
-                {producers.length > 0 && (
-                  <span className="ml-2 text-xs">
-                    双击行快速编辑 | 支持键盘导航
-                  </span>
-                )}
               </div>
               <Button
                 onClick={handleAdd}
