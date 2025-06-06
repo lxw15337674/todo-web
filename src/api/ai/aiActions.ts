@@ -17,28 +17,17 @@ export async function generateResponse<T>(
     const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, {
       prompt,
     }, {
-      timeout: 30000,
+      timeout: 100000,
     });
 
-    try {
-      const match = data.match(/```json\s*([\s\S]*?)\s*```/) || [
-        null,
-        data,
-      ];
-      const parsed = JSON.parse(match[1]);
-      console.log('AI服务响应:', parsed);
-      return {
-        success: true,
-        data: parsed,
-      };
-    } catch (parseError) {
-      return {
-        success: false,
-        data: {} as T,
-        error: '解析响应失败',
-      };
-    }
+    console.log('AI服务响应:', data);
+
+    return {
+      success: true,
+      data: data as T,
+    };
   } catch (error) {
+    console.error('AI服务调用失败:', error);
     return {
       success: false,
       data: {} as T,

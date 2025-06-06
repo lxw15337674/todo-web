@@ -90,4 +90,4 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
         </Card>
     )
 }
-
+}
