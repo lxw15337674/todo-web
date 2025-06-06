@@ -56,7 +56,7 @@ export default function BookmarkManager() {
             })
         }
     })
-
+    console.log()
     return (
         <div className="relative  w-full ">
             <div className={`h-full p-4 ${state === 'expanded' ? 'md:ml-64' : ''} duration-200 space-y-4`} >

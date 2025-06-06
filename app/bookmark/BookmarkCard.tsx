@@ -23,12 +23,14 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
             e.preventDefault();
             setIsConfirming(true);
             return;
-        }
-        await deleteBookmark(bookmark.id);
+        } await deleteBookmark(bookmark.id);
         toast({
             title: '删除成功',
             description: `书签 ${bookmark.title} 删除成功`
-        }); setBookmarks(bookmarks => (bookmarks ? bookmarks.filter(item => item.id !== bookmark.id) : []));
+        });
+        setBookmarks(bookmarks => (bookmarks ? bookmarks.filter(item => item.id !== bookmark.id) : []));
+    };
+
     return (
         <Card className="hover:bg-accent/50 transition-colors "
         >
@@ -37,7 +39,7 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
                     <HoverCard>
                         <HoverCardTrigger asChild>
                             <Image
-                                src={bookmark?.image || `https://placehold.co/600x400?text=${bookmark.title}`}
+                                src={bookmark?.image || `https://placehold.co/600x400`}
                                 alt={bookmark.title ?? 'Bookmark Image'}
                                 width={400}
                                 height={600}
@@ -84,10 +86,8 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
                                 </DropdownMenuItem>
                             </>
                         </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+                    </DropdownMenu>                </div>
             </CardContent>
         </Card>
     )
-}
 }
