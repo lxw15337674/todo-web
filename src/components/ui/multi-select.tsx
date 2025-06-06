@@ -306,12 +306,11 @@ export const MultiSelect = React.forwardRef<
                     <CommandItem
                       onSelect={() => props.onCreateNewOption?.(searchQuery.trim())}
                       className="cursor-pointer border border-dashed border-primary/50 rounded-md"
-                    >
-                      <div className="flex items-center gap-2">
+                    >                      <div className="flex items-center gap-2">
                         <div className="h-4 w-4 rounded-sm border border-primary/50 flex items-center justify-center">
                           <XIcon className="h-3 w-3 text-primary/50" />
                         </div>
-                        <span className="text-primary">创建标签 "{searchQuery.trim()}"</span>
+                        <span className="text-primary">创建标签 &quot;{searchQuery.trim()}&quot;</span>
                       </div>
                     </CommandItem>
                   </div>
@@ -368,12 +367,11 @@ export const MultiSelect = React.forwardRef<
                       key="create-new"
                       onSelect={() => props.onCreateNewOption?.(searchQuery.trim())}
                       className="cursor-pointer border-t border-border/50 mt-1 pt-1"
-                  >
-                      <div className="flex items-center gap-2 text-primary">
+                    >                      <div className="flex items-center gap-2 text-primary">
                         <div className="h-4 w-4 rounded-sm border border-primary/50 flex items-center justify-center">
                           <XIcon className="h-3 w-3 rotate-45" />
                         </div>
-                        <span>创建标签 "{searchQuery.trim()}"</span>
+                        <span>创建标签 &quot;{searchQuery.trim()}&quot;</span>
                     </div>
                   </CommandItem>
                   )}
