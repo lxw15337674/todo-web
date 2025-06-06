@@ -1,6 +1,6 @@
 'use server';
 import { PrismaClient, Bookmark, BookmarkTag } from '@prisma/client';
-import getSummarizeBookmark from '../ai/aiActions';
+import { getSummarizeBookmarkByContent } from '../ai/aiActions';
 import prisma from '../prisma';
 
 
@@ -9,6 +9,7 @@ interface CreateBookmarkData {
   title?: string;
   image?: string;
   remark?: string;
+  content?: string; // 页面内容，用于AI摘要
 }
 
 // 创建书签
@@ -34,13 +35,29 @@ export const createBookmark = async (
     create: { ...bookmarkData, loading: true },
   });
 
+  // 如果提供了内容，则异步生成AI摘要和标签（不等待完成）
+  if (data.content && data.content.trim() !== '') {
+    // 异步执行，不阻塞返回
+    summarizeBookmarkByContent(newBookmark.id, data.content).catch(error => {
+      console.error('异步生成AI摘要失败:', error);
+      // 如果AI摘要失败，至少将loading状态设为false
+      prisma.bookmark.update({
+        where: { id: newBookmark.id },
+        data: { loading: false },
+      }).catch(updateError => {
+        console.error('更新loading状态失败:', updateError);
+      });
+    });
+  }
+
   return newBookmark;
 };
 
-export async function summarizeBookmark(id: string, url: string) {
+// 通过文章内容总结书签
+export async function summarizeBookmarkByContent(id: string, content: string) {
   try {
     const tags: BookmarkTag[] = await getBookmarkTags()
-    const data = await getSummarizeBookmark(url, tags.map(tag => tag.name));
+    const data = await getSummarizeBookmarkByContent(content, tags.map(tag => tag.name));
     if (!data) {
       throw new Error('Failed to get summary data');
     }
@@ -62,6 +79,8 @@ export async function summarizeBookmark(id: string, url: string) {
     );
 
     const allTags = [...existingTags, ...newTags];
+
+    // Remove all existing tag connections first
     await prisma.bookmark.update({
       where: { id },
       data: {
@@ -70,20 +89,11 @@ export async function summarizeBookmark(id: string, url: string) {
         },
       },
     });
-    const updatedBookmark = await prisma.bookmark.upsert({
+
+    // Update bookmark with new data and tags
+    const updatedBookmark = await prisma.bookmark.update({
       where: { id },
-      create: {
-        id,
-        url,
-        title: data.title,
-        summary: data.summary,
-        image: data.image,
-        tags: {
-          connect: allTags.map(tag => ({ id: tag.id }))
-        },
-        loading: false
-      },
-      update: {
+      data: {
         title: data.title,
         summary: data.summary,
         image: data.image,
@@ -94,13 +104,13 @@ export async function summarizeBookmark(id: string, url: string) {
       },
       include: { tags: true },
     });
+
     console.info(
-      `Created bookmark ${updatedBookmark.title}-${updatedBookmark.id
-      } with tags ${updatedBookmark.tags.map((tag) => tag.name).join(', ')}`,
+      `Updated bookmark ${updatedBookmark.title}-${updatedBookmark.id} with tags ${updatedBookmark.tags.map((tag) => tag.name).join(', ')}`,
     );
     return updatedBookmark;
   } catch (e) {
-    console.error(e);
+    console.error('Error in summarizeBookmarkByContent:', e);
     return null;
   }
 }
