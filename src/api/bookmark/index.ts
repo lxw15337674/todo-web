@@ -15,7 +15,7 @@ interface CreateBookmarkData {
 // 创建书签
 export const createBookmark = async (
   data: CreateBookmarkData,
-): Promise<Bookmark | null> => {
+): Promise<CompleteBookmark | null> => {
   // 验证 URL
   if (!data.url || typeof data.url !== 'string' || data.url.trim() === '') {
     throw new Error('URL is required and cannot be empty');
@@ -34,23 +34,33 @@ export const createBookmark = async (
     update: { ...bookmarkData, loading: true },
     create: { ...bookmarkData, loading: true },
   });
-
-  // 如果提供了内容，则异步生成AI摘要和标签（不等待完成）
+  // 如果提供了内容，则生成AI摘要和标签，并返回完整书签
   if (data.content && data.content.trim() !== '') {
-    // 异步执行，不阻塞返回
-    await summarizeBookmarkByContent(newBookmark.id, data.content).catch(error => {
-      console.error('异步生成AI摘要失败:', error);
+    try {
+      const updatedBookmark = await summarizeBookmarkByContent(newBookmark.id, data.content);
+      // 如果AI摘要成功，返回包含summary和tags的完整书签
+      if (updatedBookmark) {
+        return updatedBookmark;
+      }
+    } catch (error) {
+      console.error('生成AI摘要失败:', error);
       // 如果AI摘要失败，至少将loading状态设为false
-      prisma.bookmark.update({
+      await prisma.bookmark.update({
         where: { id: newBookmark.id },
         data: { loading: false },
       }).catch(updateError => {
         console.error('更新loading状态失败:', updateError);
       });
-    });
+    }
   }
 
-  return newBookmark;
+  // 如果没有AI处理，返回包含空tags的完整书签
+  const completeBookmark = await prisma.bookmark.findUnique({
+    where: { id: newBookmark.id },
+    include: { tags: true },
+  });
+
+  return completeBookmark;
 };
 
 // 通过文章内容总结书签
