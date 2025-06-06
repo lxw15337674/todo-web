@@ -41,7 +41,6 @@ export interface OpenAICompletion {
   tags: string[];
   summary: string;
   title: string;
-  image: string;
 }
 
 // 通过内容直接总结书签（不需要获取页面内容）
@@ -65,14 +64,13 @@ export async function getSummarizeBookmarkByContent(
 
     if (!aiResponse.success) {
       console.warn('[书签摘要] AI响应未成功', aiResponse.error);
-      return { tags: [], summary: '', title: '', image: '' };
+      return { tags: [], summary: '', title: '', };
     }
 
     const result = {
       tags: aiResponse.data.tags,
       summary: aiResponse.data.summary,
       title: aiResponse.data.title || '',
-      image: '', // 直接传入内容时没有图片
     };
 
     console.log(`[书签摘要] 总处理耗时: ${Date.now() - startTime}毫秒`);
@@ -80,7 +78,7 @@ export async function getSummarizeBookmarkByContent(
   } catch (error) {
     const errorTime = Date.now() - startTime;
     console.error(`[书签摘要] 处理出错，已耗时${errorTime}毫秒:`, error);
-    return { tags: [], summary: '', title: '', image: '' };
+    return { tags: [], summary: '', title: '' };
   }
 }
 

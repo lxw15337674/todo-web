@@ -88,9 +88,7 @@ export async function summarizeBookmarkByContent(id: string, content: string) {
       )
     );
 
-    const allTags = [...existingTags, ...newTags];
-
-    // Remove all existing tag connections first
+    const allTags = [...existingTags, ...newTags];    // Remove all existing tag connections first
     await prisma.bookmark.update({
       where: { id },
       data: {
@@ -106,7 +104,6 @@ export async function summarizeBookmarkByContent(id: string, content: string) {
       data: {
         title: data.title,
         summary: data.summary,
-        image: data.image,
         tags: {
           connect: allTags.map(tag => ({ id: tag.id }))
         },
