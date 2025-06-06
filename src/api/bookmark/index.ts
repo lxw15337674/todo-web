@@ -38,7 +38,7 @@ export const createBookmark = async (
   // 如果提供了内容，则异步生成AI摘要和标签（不等待完成）
   if (data.content && data.content.trim() !== '') {
     // 异步执行，不阻塞返回
-    summarizeBookmarkByContent(newBookmark.id, data.content).catch(error => {
+    await summarizeBookmarkByContent(newBookmark.id, data.content).catch(error => {
       console.error('异步生成AI摘要失败:', error);
       // 如果AI摘要失败，至少将loading状态设为false
       prisma.bookmark.update({
