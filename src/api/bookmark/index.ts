@@ -72,16 +72,19 @@ export async function summarizeBookmarkByContent(id: string, content: string) {
       throw new Error('Failed to get summary data');
     }
 
+    // 确保 data.tags 是数组
+    const tagArray = Array.isArray(data.tags) ? data.tags : [];
+
     // First find existing tags
     const existingTags = await prisma.bookmarkTag.findMany({
       where: {
-        name: { in: data.tags }
+        name: { in: tagArray }
       }
     });
 
     // Create missing tags
     const existingTagNames = existingTags.map(t => t.name);
-    const missingTagNames = data.tags.filter(t => !existingTagNames.includes(t));
+    const missingTagNames = tagArray.filter(t => !existingTagNames.includes(t));
     const newTags = await Promise.all(
       missingTagNames.map(name =>
         prisma.bookmarkTag.create({ data: { name } })
@@ -102,8 +105,8 @@ export async function summarizeBookmarkByContent(id: string, content: string) {
     const updatedBookmark = await prisma.bookmark.update({
       where: { id },
       data: {
-        title: data.title,
-        summary: data.summary,
+        title: data.title || '',
+        summary: data.summary || '',
         tags: {
           connect: allTags.map(tag => ({ id: tag.id }))
         },

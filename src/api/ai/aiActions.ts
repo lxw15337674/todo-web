@@ -14,6 +14,9 @@ export async function generateResponse<T>(
   prompt: string,
 ): Promise<RobotResponse<T>> {
   try {
+    console.log('发送AI请求到:', API_ENDPOINTS.AI_CHAT);
+    console.log('请求提示长度:', prompt.length);
+
     const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, {
       prompt,
     }, {
@@ -21,6 +24,23 @@ export async function generateResponse<T>(
     });
 
     console.log('AI服务响应:', data);
+    console.log('响应类型:', typeof data);
+
+    // 检查响应是否为错误消息
+    if (typeof data === 'string' && (
+      data.includes('获取AI回答失败') ||
+      data.includes('AI回答失败') ||
+      data.includes('失败') ||
+      data.includes('error') ||
+      data.includes('Error')
+    )) {
+      console.warn('AI服务返回错误消息:', data);
+      return {
+        success: false,
+        data: {} as T,
+        error: data,
+      };
+    }
 
     return {
       success: true,
@@ -28,6 +48,10 @@ export async function generateResponse<T>(
     };
   } catch (error) {
     console.error('AI服务调用失败:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('请求状态:', error.response?.status);
+      console.error('响应数据:', error.response?.data);
+    }
     return {
       success: false,
       data: {} as T,
@@ -67,10 +91,17 @@ export async function getSummarizeBookmarkByContent(
       return { tags: [], summary: '', title: '', };
     }
 
+    // 检查AI响应数据是否有效结构
+    if (typeof aiResponse.data !== 'object' || aiResponse.data === null) {
+      console.warn('[书签摘要] AI响应数据格式无效:', aiResponse.data);
+      return { tags: [], summary: '', title: '', };
+    }
+
+    // 安全地访问响应数据，提供默认值
     const result = {
-      tags: aiResponse.data.tags,
-      summary: aiResponse.data.summary,
-      title: aiResponse.data.title || '',
+      tags: Array.isArray(aiResponse.data.tags) ? aiResponse.data.tags : [],
+      summary: typeof aiResponse.data.summary === 'string' ? aiResponse.data.summary : '',
+      title: typeof aiResponse.data.title === 'string' ? aiResponse.data.title : '',
     };
 
     console.log(`[书签摘要] 总处理耗时: ${Date.now() - startTime}毫秒`);
