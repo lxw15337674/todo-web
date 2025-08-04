@@ -13,12 +13,11 @@ export interface HotType {
   children: IData[];
 }
 
-export const revalidate = 60
-
+export const dynamic = 'force-dynamic';
 const getHotLists = (
   async (type: string) => {
     return axios
-      .get(`https://hot-api-bhwa233.vercel.app//${type}`, {
+      .get(`https://hot-api-bhwa233.vercel.app/${type}`, {
         params: {
           cache: true,
         },

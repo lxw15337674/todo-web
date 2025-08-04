@@ -8,6 +8,8 @@ import { GalleryClient } from './components/gallery-client'
 import { GalleryFilters } from './components/gallery-filters'
 import { Skeleton } from "@/components/ui/skeleton"
 
+export const dynamic = 'force-dynamic';
+
 const PageSize = 100 * 6
 
 interface SearchParams {
@@ -111,44 +113,8 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
   )
 }
 
-// 生成元数据用于SEO优化
-export async function generateMetadata({ searchParams }: GalleryPageProps) {
-  const params = await searchParams
-  const producer = params.producer
-  const type = params.type
-  
-  let title = 'Gallery - 图片画廊'
-  let description = '浏览精美的图片和视频内容'
-  
-  if (producer) {
-    try {
-      const producers = await getProducersWithCount()
-      const producerInfo = producers.find(p => p.id === producer)
-      if (producerInfo) {
-        title = `${producerInfo.name} - Gallery`
-        description = `浏览 ${producerInfo.name} 的 ${producerInfo.mediaCount} 张图片`
-      }
-    } catch (error) {
-      console.error('Error generating metadata:', error)
-    }
-  }
-  
-  if (type && type !== MediaType.image) {
-    title += ` - ${type === 'video' ? '视频' : '实况照片'}`
-  }
-  
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      type: 'website',
-    },
-  }
-}
 
-// 为常用的筛选组合生成静态参数
+
 export async function generateStaticParams() {
   try {
     const [producers, tags] = await Promise.all([
