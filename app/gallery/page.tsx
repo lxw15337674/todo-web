@@ -93,7 +93,7 @@ export default function ImagePage() {
   // Infinite scroll
   const loadingRef = useRef<HTMLDivElement>(null)
   const pageRef = useRef(1)
-  const observerRef = useRef<IntersectionObserver>()
+  const observerRef = useRef<IntersectionObserver>(null)
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
