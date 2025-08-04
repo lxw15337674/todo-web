@@ -16,7 +16,6 @@ const nextConfig = withSerwist({
   },
   images: {
     dangerouslyAllowSVG: true,
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
