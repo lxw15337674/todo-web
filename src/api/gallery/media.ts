@@ -77,49 +77,36 @@ export async function getPics(
   tagIds: string[] | null = null,
 ) {
   try {
-    // For random sort, we'll use a subquery to get random IDs first
+    // For random sort, we'll use a different approach to avoid ORDER BY RANDOM() performance issues
     if (sort === 'random') {
-      // Get the media type extensions condition
-      const mediaTypeCondition = getMediaTypeCondition(type);
-      const typeConditions = mediaTypeCondition.OR ? mediaTypeCondition.OR.map(
-        condition => `"galleryMediaUrl" LIKE '%${condition.galleryMediaUrl.endsWith}'`
-      ).join(' OR ') : '';
-
-      // Build tag conditions if tags are provided
-      const tagCondition = tagIds && tagIds.length > 0
-        ? `AND "producerId" IN (
-            SELECT "A" 
-            FROM "ProducerToProducerTag" 
-            WHERE "B" IN (${tagIds.map(id => `'${id}'`).join(',')})
-          )`
-        : '';
-
-      const randomIds = await prisma.$queryRawUnsafe(`
-        SELECT id 
-        FROM "Media" 
-        WHERE "deletedAt" IS NULL 
-          AND status = '${UploadStatus.UPLOADED}'
-          ${producerId ? `AND "producerId" = '${producerId}'` : ''} 
-          ${typeConditions ? `AND (${typeConditions})` : ''}
-          ${tagCondition}
-        ORDER BY RANDOM() 
-        LIMIT ${pageSize} 
-        OFFSET ${(page - 1) * pageSize}
-      `);
-
-      const result = await prisma.media.findMany({
-        where: {
-          id: {
-            in: (randomIds as any[]).map(r => r.id)
-          }
-        },
+      // First, get all matching records without ORDER BY RANDOM() due to performance concerns
+      // We're using an alternative approach by getting random offset
+      
+      // Build the base where clause
+      const whereClause = getBaseWhereClause(producerId, type, tagIds);
+      
+      // Get total count to calculate a random offset
+      const totalCount = await prisma.media.count({
+        where: whereClause
+      });
+      
+      // Calculate a random offset within the range
+      let randomOffset = 0;
+      if (totalCount > pageSize) {
+        randomOffset = Math.floor(Math.random() * (totalCount - pageSize));
+      }
+      
+      // Retrieve records with the random offset
+      return await prisma.media.findMany({
+        where: whereClause,
+        orderBy: { id: 'asc' }, // Order by ID for consistency
+        skip: randomOffset,
+        take: pageSize,
         include: {
           producer: true,
           post: true,
         },
       });
-
-      return result;
     }
 
     // Normal sorting

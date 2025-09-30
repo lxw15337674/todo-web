@@ -1,290 +1,149 @@
-'use client'
+import { Suspense } from 'react'
 import { getProducersWithCount, getProducerTags } from "@/api/gallery/producer"
 import { getPics, getPicsCount } from "@/api/gallery/media"
-import { useEffect, useRef } from "react"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { PhotoProvider } from 'react-photo-view'
-import 'react-photo-view/dist/react-photo-view.css'
-import { ProducerDialog } from "@/public/app/gallery/components/producer-dialog"
-import { UploadStatus } from "@prisma/client"
-import { GalleryItem } from './components/gallery-Item'
-import { useRequest, useSessionStorageState } from "ahooks"
 import { getPostCount } from "@/api/gallery/post"
-import { Media, Producer, Post } from '@prisma/client'
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { UploadStatus } from "@prisma/client"
 import { MediaType } from "@/api/gallery/type"
-import Masonry from '@mui/lab/Masonry';
+import { GalleryClient } from './components/gallery-client'
+import { GalleryFilters } from './components/gallery-filters'
+import { Skeleton } from "@/components/ui/skeleton"
+
+export const dynamic = 'force-dynamic';
 
 const PageSize = 100 * 6
 
-type MediaWithRelations = Media & {
-  producer: Producer | null
-  post: Post | null
+interface SearchParams {
+  producer?: string
+  sort?: 'asc' | 'desc' | 'random'
+  type?: MediaType
+  tags?: string
 }
 
-interface GalleryState {
-  producer: string | null
-  sort: 'asc' | 'desc' | 'random'
-  type: MediaType | null
-  tags: string[] | null
+interface GalleryPageProps {
+  searchParams: Promise<SearchParams>
 }
 
-const DEFAULT_STATE: GalleryState = {
-  producer: null,
-  sort: 'desc',
-  type: MediaType.image,
-  tags: null
-}
-
-
-
-export default function ImagePage() {
-  const { data: producers = [], refresh: refreshProducers } = useRequest(getProducersWithCount, {
-    cacheKey: 'gallery-producers'
-  })
-
-  const { data: tags = [] } = useRequest(getProducerTags, {
-    cacheKey: 'gallery-tags'
-  })
-
-  const [state, setState] = useSessionStorageState<GalleryState>('gallery-state', {
-    defaultValue: DEFAULT_STATE
-  })
-
-  const { data: images = [], loading, run: loadImages } = useRequest<MediaWithRelations[], [number]>(
-    async (page: number): Promise<MediaWithRelations[]> => {
-      const result = await getPics(
-        page,
-        PageSize,
-        state?.producer ?? null,
-        state?.sort ?? 'desc',
-        state?.type ?? null,
-        state?.tags ?? null
-      )
-      return page === 1 ? result : [...(images ?? []), ...result]
-    },
-    {
-      manual: true,
-      throttleWait: 1000,
-    }
-  )
-
-  const { data: total = 0 } = useRequest(
-    () => getPicsCount(state?.producer ?? null, state?.type ?? null, state?.tags ?? null),
-    {
-      refreshDeps: [state],
-    }
-  )
-
-  const { data: stats } = useRequest(
-    async () => {
-      const [uploaded, pending] = await Promise.all([
-        getPostCount({ status: UploadStatus.UPLOADED, producerId: state?.producer || undefined }),
-        getPostCount({ status: UploadStatus.PENDING, producerId: state?.producer || undefined })
-      ])
-      return { uploaded, pending }
-    },
-    {
-      refreshDeps: [state?.producer],
-    }
-  )
-
-  // Infinite scroll
-  const loadingRef = useRef<HTMLDivElement>(null)
-  const pageRef = useRef(1)
-  const observerRef = useRef<IntersectionObserver>()
-
-  useEffect(() => {
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !loading && PageSize * pageRef.current < (total ?? 0)) {
-          pageRef.current += 1
-          loadImages(pageRef.current)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (loadingRef.current) {
-      observerRef.current.observe(loadingRef.current)
-    }
-
-    return () => observerRef.current?.disconnect()
-  }, [loading, total, loadImages])
-
-  useEffect(() => {
-    pageRef.current = 1
-    loadImages(1)
-  }, [state])
-
-  const [dialogOpen, setDialogOpen] = useSessionStorageState('producer-dialog-open', {
-    defaultValue: false
-  })
-
+// 加载骨架屏组件
+function GalleryLoadingSkeleton() {
   return (
     <div className="min-h-screen flex flex-col">
       <div className="p-4 border-b bg-background">
         <div className="max-w-screen-2xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">生产者</label>
-              <Select
-                value={state?.producer ?? 'all'}
-                onValueChange={value => setState(prev => ({
-                  ...prev ?? DEFAULT_STATE,
-                  producer: value === 'all' ? null : value
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="全部生产者" />
-                </SelectTrigger>
-                <SelectContent>
-                  <ScrollArea className="h-[300px]">
-                    <SelectGroup>
-                      <SelectItem value="all">全部生产者</SelectItem>
-                      {producers.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          <div className="truncate">
-                            {p.name} ({p.postCount} 帖子 / {p.mediaCount} 图片)
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </ScrollArea>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">标签</label>
-              <Select
-                value={state?.tags?.[0] ?? 'all'}
-                onValueChange={value => setState(prev => ({
-                  ...prev ?? DEFAULT_STATE,
-                  tags: value === 'all' ? null : [value]
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="全部标签" />
-                </SelectTrigger>
-                <SelectContent>
-                  <ScrollArea className="h-[300px]">
-                    <SelectGroup>
-                      <SelectItem value="all">全部标签</SelectItem>
-                      {tags.map(tag => (
-                        <SelectItem key={tag.id} value={tag.id}>
-                          <div className="truncate">
-                            {tag.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </ScrollArea>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">排序方式</label>
-              <Select
-                value={state?.sort ?? 'desc'}
-                onValueChange={sort => setState(prev => ({
-                  ...prev ?? DEFAULT_STATE,
-                  sort: sort as 'asc' | 'desc'
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="排序方式" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="desc">最新优先</SelectItem>
-                    <SelectItem value="asc">最早优先</SelectItem>
-                    <SelectItem value="random">随机</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">媒体类型</label>
-              <Select
-                value={state?.type ?? 'all'}
-                onValueChange={type => setState(prev => ({
-                  ...prev ?? DEFAULT_STATE,
-                  type: type === 'all' ? null : type as MediaType
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="媒体类型" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="all">全部</SelectItem>
-                    <SelectItem value="image">图片</SelectItem>
-                    <SelectItem value="video">视频</SelectItem>
-                    <SelectItem value="livephoto">实况照片</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setDialogOpen(true)}
-                className="w-full"
-              >
-                管理生产者
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-2 mt-4 text-sm text-muted-foreground">
-            <div>共 {total} 个媒体文件</div>
-            <div className="sm:ml-auto">
-              已爬取 {stats?.uploaded ?? 0} 帖子 · 待爬取 {stats?.pending ?? 0} 帖子
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 p-2">
-        <PhotoProvider>
-          <Masonry columns={{ xs: 2, md: 3, lg: 4, xl: 6 }}
-            spacing={2}
-            defaultHeight={450}
-            defaultColumns={4}
-            defaultSpacing={1}
-            sequential
-          >
-            {images.map((image, index) => (
-              <GalleryItem
-                key={image.id}
-                image={image}
-                index={index}
-              />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-10 w-full" />
+              </div>
             ))}
-          </Masonry>
-        </PhotoProvider>
-
-        <div ref={loadingRef} className="py-4 text-center">
-          {loading && <p className="text-muted-foreground">加载中...</p>}
-          {!loading && images.length > 0 && (
-            <p className="text-muted-foreground">
-              ---- 已加载 {images.length} / {total} 个媒体文件 ----
-            </p>
-          )}
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-48 sm:ml-auto" />
+          </div>
         </div>
       </div>
-
-      <ProducerDialog
-        open={dialogOpen ?? false}
-        onOpenChange={setDialogOpen}
-        producers={producers}
-        onSuccess={refreshProducers}
-      />
+      <div className="flex-1 p-2">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+          {Array.from({ length: 24 }).map((_, i) => (
+            <Skeleton key={i} className="aspect-[3/4] rounded-lg" />
+          ))}
+        </div>
+      </div>
     </div>
   )
+}
+
+export default async function GalleryPage({ searchParams }: GalleryPageProps) {
+  // 解析查询参数
+  const params = await searchParams
+  const producer = params.producer || null
+  const sort = (params.sort || 'desc') as 'asc' | 'desc' | 'random'
+  const type = params.type || MediaType.image
+  const tags = params.tags ? [params.tags] : null
+
+  // 并行获取所有初始数据
+  const [
+    producers,
+    tagsList,
+    initialImages,
+    total,
+    stats
+  ] = await Promise.all([
+    getProducersWithCount(),
+    getProducerTags(),
+    getPics(1, PageSize, producer, sort, type, tags),
+    getPicsCount(producer, type, tags),
+    Promise.all([
+      getPostCount({ status: UploadStatus.UPLOADED, producerId: producer || undefined }),
+      getPostCount({ status: UploadStatus.PENDING, producerId: producer || undefined })
+    ]).then(([uploaded, pending]) => ({ uploaded, pending }))
+  ])
+
+  const initialState = {
+    producer,
+    sort,
+    type,
+    tags
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* 服务端渲染的筛选器 */}
+      <Suspense fallback={<Skeleton className="h-32 border-b" />}>
+        <GalleryFilters 
+          producers={producers}
+          tags={tagsList}
+          stats={stats}
+          total={total}
+          initialState={initialState}
+        />
+      </Suspense>
+
+      {/* 客户端渲染的图片网格 */}
+      <Suspense fallback={<GalleryLoadingSkeleton />}>
+        <GalleryClient 
+          initialImages={initialImages}
+          initialState={initialState}
+          total={total}
+          pageSize={PageSize}
+        />
+      </Suspense>
+    </div>
+  )
+}
+
+
+
+export async function generateStaticParams() {
+  try {
+    const [producers, tags] = await Promise.all([
+      getProducersWithCount(),
+      getProducerTags()
+    ])
+    
+    const params = []
+    
+    // 默认页面
+    params.push({})
+    
+    // 热门生产者的页面
+    const topProducers = producers
+      .sort((a, b) => b.mediaCount - a.mediaCount)
+      .slice(0, 10)
+    
+    for (const producer of topProducers) {
+      params.push({ producer: producer.id })
+      params.push({ producer: producer.id, type: 'video' })
+    }
+    
+    // 不同媒体类型的页面
+    params.push({ type: 'video' })
+    params.push({ type: 'livephoto' })
+    
+    return params
+  } catch (error) {
+    console.error('Error generating static params:', error)
+    return [{}]
+  }
 }

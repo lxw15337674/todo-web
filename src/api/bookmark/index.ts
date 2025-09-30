@@ -1,56 +1,97 @@
 'use server';
 import { PrismaClient, Bookmark, BookmarkTag } from '@prisma/client';
-import getSummarizeBookmark from '../ai/aiActions';
+import { getSummarizeBookmarkByContent } from '../ai/aiActions';
 import prisma from '../prisma';
 
 
 interface CreateBookmarkData {
   url: string;
-  title: string;
-  image: string;
-  remark: string;
+  title?: string;
+  image?: string;
+  remark?: string;
+  content?: string; // 页面内容，用于AI摘要
 }
 
 // 创建书签
 export const createBookmark = async (
   data: CreateBookmarkData,
-): Promise<Bookmark | null> => {
+): Promise<CompleteBookmark | null> => {
+  // 验证 URL
+  if (!data.url || typeof data.url !== 'string' || data.url.trim() === '') {
+    throw new Error('URL is required and cannot be empty');
+  }
+
+  const bookmarkData = {
+    url: data.url,
+    title: data.title || '',
+    image: data.image || '',
+    remark: data.remark || '',
+  };
 
   // 创建新书签
   const newBookmark = await prisma.bookmark.upsert({
-    where: { url: data.url },
-    update: { ...data, loading: true },
-    create: { ...data, loading: true },
+    where: { url: bookmarkData.url },
+    update: { ...bookmarkData, loading: true },
+    create: { ...bookmarkData, loading: true },
+  });
+  // 如果提供了内容，则生成AI摘要和标签，并返回完整书签
+  if (data.content && data.content.trim() !== '') {
+    try {
+      const updatedBookmark = await summarizeBookmarkByContent(newBookmark.id, data.content);
+      // 如果AI摘要成功，返回包含summary和tags的完整书签
+      if (updatedBookmark) {
+        return updatedBookmark;
+      }
+    } catch (error) {
+      console.error('生成AI摘要失败:', error);
+      // 如果AI摘要失败，至少将loading状态设为false
+      await prisma.bookmark.update({
+        where: { id: newBookmark.id },
+        data: { loading: false },
+      }).catch(updateError => {
+        console.error('更新loading状态失败:', updateError);
+      });
+    }
+  }
+
+  // 如果没有AI处理，返回包含空tags的完整书签
+  const completeBookmark = await prisma.bookmark.findUnique({
+    where: { id: newBookmark.id },
+    include: { tags: true },
   });
 
-  return newBookmark;
+  return completeBookmark;
 };
 
-export async function summarizeBookmark(id: string, url: string) {
+// 通过文章内容总结书签
+export async function summarizeBookmarkByContent(id: string, content: string) {
   try {
     const tags: BookmarkTag[] = await getBookmarkTags()
-    const data = await getSummarizeBookmark(url, tags.map(tag => tag.name));
+    const data = await getSummarizeBookmarkByContent(content, tags.map(tag => tag.name));
     if (!data) {
       throw new Error('Failed to get summary data');
     }
 
+    // 确保 data.tags 是数组
+    const tagArray = Array.isArray(data.tags) ? data.tags : [];
+
     // First find existing tags
     const existingTags = await prisma.bookmarkTag.findMany({
       where: {
-        name: { in: data.tags }
+        name: { in: tagArray }
       }
     });
 
     // Create missing tags
     const existingTagNames = existingTags.map(t => t.name);
-    const missingTagNames = data.tags.filter(t => !existingTagNames.includes(t));
+    const missingTagNames = tagArray.filter(t => !existingTagNames.includes(t));
     const newTags = await Promise.all(
       missingTagNames.map(name =>
         prisma.bookmarkTag.create({ data: { name } })
       )
     );
 
-    const allTags = [...existingTags, ...newTags];
+    const allTags = [...existingTags, ...newTags];    // Remove all existing tag connections first
     await prisma.bookmark.update({
       where: { id },
       data: {
@@ -59,23 +100,13 @@ export async function summarizeBookmark(id: string, url: string) {
         },
       },
     });
-    const updatedBookmark = await prisma.bookmark.upsert({
+
+    // Update bookmark with new data and tags
+    const updatedBookmark = await prisma.bookmark.update({
       where: { id },
-      create: {
-        id,
-        url,
-        title: data.title,
-        summary: data.summary,
-        image: data.image,
-        tags: {
-          connect: allTags.map(tag => ({ id: tag.id }))
-        },
-        loading: false
-      },
-      update: {
-        title: data.title,
-        summary: data.summary,
-        image: data.image,
+      data: {
+        title: data.title || '',
+        summary: data.summary || '',
         tags: {
           connect: allTags.map(tag => ({ id: tag.id }))
         },
@@ -83,13 +114,13 @@ export async function summarizeBookmark(id: string, url: string) {
       },
       include: { tags: true },
     });
+
     console.info(
-      `Created bookmark ${updatedBookmark.title}-${updatedBookmark.id
-      } with tags ${updatedBookmark.tags.map((tag) => tag.name).join(', ')}`,
+      `Updated bookmark ${updatedBookmark.title}-${updatedBookmark.id} with tags ${updatedBookmark.tags.map((tag) => tag.name).join(', ')}`,
     );
     return updatedBookmark;
   } catch (e) {
-    console.error(e);
+    console.error('Error in summarizeBookmarkByContent:', e);
     return null;
   }
 }

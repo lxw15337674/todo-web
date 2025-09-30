@@ -1,5 +1,4 @@
 'use server';
-import { uploadToGallery } from '@/utils/upload';
 import { bookmarkPrompt, taskPrompt, polishPrompt } from './prompts';
 import axios from 'axios';
 import { API_ENDPOINTS } from './config';
@@ -15,35 +14,48 @@ export async function generateResponse<T>(
   prompt: string,
 ): Promise<RobotResponse<T>> {
   try {
+    console.log('发送AI请求到:', API_ENDPOINTS.AI_CHAT);
+    console.log('请求提示长度:', prompt.length);
+
     const { data } = await axios.post(API_ENDPOINTS.AI_CHAT, {
       prompt,
     }, {
-      timeout: 50000,
+      timeout: 100000,
     });
 
-    try {
-      const match = data.match(/```json\s*([\s\S]*?)\s*```/) || [
-        null,
-        data,
-      ];
-      const parsed = JSON.parse(match[1]);
-      console.log('AI服务响应:', parsed);
-      return {
-        success: true,
-        data: parsed,
-      };
-    } catch (parseError) {
+    console.log('AI服务响应:', data);
+    console.log('响应类型:', typeof data);
+
+    // 检查响应是否为错误消息
+    if (typeof data === 'string' && (
+      data.includes('获取AI回答失败') ||
+      data.includes('AI回答失败') ||
+      data.includes('失败') ||
+      data.includes('error') ||
+      data.includes('Error')
+    )) {
+      console.warn('AI服务返回错误消息:', data);
       return {
         success: false,
         data: {} as T,
-        error: '解析响应失败',
+        error: data,
       };
     }
+
+    return {
+      success: true,
+      data: data as T,
+    };
   } catch (error) {
+    console.error('AI服务调用失败:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('请求状态:', error.response?.status);
+      console.error('响应数据:', error.response?.data);
+    }
     return {
       success: false,
       data: {} as T,
-      error: 'AI服务调用失败',
+      error: 'AI服务调用失败,' + error,
     };
   }
 }
@@ -53,146 +65,43 @@ export interface OpenAICompletion {
   tags: string[];
   summary: string;
   title: string;
-  image: string;
 }
 
-interface CleanedContent {
-  text: string;
-  image: string;
-}
-
-interface ImageInfo {
-  isImage: boolean;
-  size: number;
-}
-
-// Image handling utilities
-const isImageAccessible = async (url: string): Promise<ImageInfo> => {
-  try {
-    const response = await axios.head(url, {
-      timeout: 5000,
-      validateStatus: (status: number) => status === 200,
-      headers: {
-        host: new URL(url).hostname,
-      }
-    });
-    return {
-      isImage: response.headers['content-type']?.startsWith('image/') || false,
-      size: parseInt(response.headers['content-length'] || '0', 10),
-    };
-  } catch {
-    return { isImage: false, size: 0 };
-  }
-};
-
-const extractImage = async (html: string): Promise<string> => {
-  // 匹配所有可能的图片标签格式
-  const imgPatterns = [
-    /<img[^>]+src=["']([^"']+)["'][^>]*>/gi,  // 标准img标签
-  ];
-
-  const imageUrls = new Set<string>();
-
-  // 从所有模式中提取URL
-  for (const pattern of imgPatterns) {
-    const matches = Array.from(html.matchAll(pattern));
-    for (const match of matches) {
-      let src = match[1];
-      // 处理相对URL
-      if (src.startsWith('//')) {
-        src = `https:${src}`;
-      } else if (!src.startsWith('http')) {
-        continue;
-      }
-      imageUrls.add(src);
-    }
-  }
-  // 检查每个URL是否为可访问的图片
-  for (const url of imageUrls) {
-    const imageInfo = await isImageAccessible(url);
-    if (imageInfo.isImage && imageInfo.size > 1024 * 200) { // 确保图片大小至少200KB
-      const extraUrl = await uploadToGallery(url);
-      if (extraUrl) {
-        return extraUrl;
-      }
-    }
-  }
-
-  return (await uploadToGallery(Array.from(imageUrls)[0])) ?? '';
-};
-
-const cleanHtml = async (html: string): Promise<CleanedContent> => {
-  const image = await extractImage(html);
-
-  const cleaned = html
-    // Remove style tags and their contents
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-    // Remove script tags and their contents
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove inline style attributes
-    .replace(/\s*style=["'][^"']*["']/gi, '')
-    // Remove class attributes
-    .replace(/\s*class=["'][^"']*["']/gi, '')
-    // Remove remaining HTML tags
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .trim();
-
-  return { text: cleaned, image };
-};
-
-export default async function getSummarizeBookmark(
-  url: string,
+// 通过内容直接总结书签（不需要获取页面内容）
+export async function getSummarizeBookmarkByContent(
+  content: string,
   existedTags: string[],
 ): Promise<OpenAICompletion> {
   const startTime = Date.now();
-  console.log(`[书签摘要] 开始处理URL: ${url}`);
+  console.log(`[书签摘要] 开始处理内容，长度: ${content.length}`);
 
   try {
-    // 获取页面内容
-    const fetchStartTime = Date.now();
-    const apiUrl = API_ENDPOINTS.PAGE_CONTENT;
-    const { data } = await axios.post(apiUrl, {
-      url: url
-    }, {
-      timeout: 30000 // 设置30秒超时
-    });
-    console.log(`[书签摘要] 获取页面内容耗时: ${Date.now() - fetchStartTime}毫秒`);
-
-    if (!data.content) {
-      console.error('[书签摘要] 获取页面内容失败:', data);
-      return { tags: [], summary: '', title: '', image: '' };
-    }
-
-    // 清理HTML内容
-    const cleanStartTime = Date.now();
-    const { content, title } = data;
-    const cleanedContent = await cleanHtml(content);
-    const html = cleanedContent.text.substring(0, 60000);
-    console.log(`[书签摘要] 清理HTML内容耗时: ${Date.now() - cleanStartTime}毫秒`);
+    // 直接使用传入的内容，限制长度
+    const html = content.substring(0, 60000);
 
     // 生成AI响应
     const aiStartTime = Date.now();
-    const aiResponse = await generateResponse<Pick<OpenAICompletion, 'summary' | 'tags'>>(
+    const aiResponse = await generateResponse<Pick<OpenAICompletion, 'summary' | 'tags' | 'title'>>(
       bookmarkPrompt(html, existedTags)
     );
     console.log(`[书签摘要] AI处理耗时: ${Date.now() - aiStartTime}毫秒`);
+
     if (!aiResponse.success) {
       console.warn('[书签摘要] AI响应未成功', aiResponse.error);
-      return { tags: [], summary: '', title: title || '', image: '' };
+      return { tags: [], summary: '', title: '', };
     }
 
+    // 检查AI响应数据是否有效结构
+    if (typeof aiResponse.data !== 'object' || aiResponse.data === null) {
+      console.warn('[书签摘要] AI响应数据格式无效:', aiResponse.data);
+      return { tags: [], summary: '', title: '', };
+    }
+
+    // 安全地访问响应数据，提供默认值
     const result = {
-      tags: aiResponse.data.tags,
-      summary: aiResponse.data.summary,
-      title: title || '',
-      image: cleanedContent.image,
+      tags: Array.isArray(aiResponse.data.tags) ? aiResponse.data.tags : [],
+      summary: typeof aiResponse.data.summary === 'string' ? aiResponse.data.summary : '',
+      title: typeof aiResponse.data.title === 'string' ? aiResponse.data.title : '',
     };
 
     console.log(`[书签摘要] 总处理耗时: ${Date.now() - startTime}毫秒`);
@@ -200,7 +109,7 @@ export default async function getSummarizeBookmark(
   } catch (error) {
     const errorTime = Date.now() - startTime;
     console.error(`[书签摘要] 处理出错，已耗时${errorTime}毫秒:`, error);
-    return { tags: [], summary: '', title: '', image: '' };
+    return { tags: [], summary: '', title: '' };
   }
 }
 

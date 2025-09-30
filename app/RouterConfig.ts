@@ -53,11 +53,7 @@ export const Apps: MenuItem[] = [
     url: '/fishingTime',
     icon: Fish
   },
-  {
-    name: '云顶之弈一图流',
-    url: '/tft',
-    icon: Gamepad2
-  },
+
   {
     name: '每日热点',
     url: '/dailyhot',

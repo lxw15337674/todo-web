@@ -44,17 +44,12 @@ const nextConfig = withSerwist({
           'https://s3.cn-north-1.amazonaws.com.cn/general.lesignstatic.com/config/jiaqi.json',
       },
       {
-        source: '/routing/tftVersionConfig',
-        destination:
-          'https://lol.qq.com/zmtftzone/public-lib/versionconfig.json',
-      },
-      {
         source: '/routing/game/:path*',
         destination: 'https://game.gtimg.cn/:path*',
       },
       {
         source: '/bhwa233-api/:path*',
-        destination: 'https://bhwa-hk.zeabur.app/api/:path*',
+        destination: 'https://bhwa233-api.vercel.app/api/:path*',
       }
     ];
   },
