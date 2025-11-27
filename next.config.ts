@@ -11,9 +11,6 @@ const nextConfig = withSerwist({
   typescript: {
     ignoreBuildErrors: true,
   },
-  experimental: {
-    largePageDataBytes: 512 * 100000,
-  },
   images: {
     dangerouslyAllowSVG: true,
     unoptimized: true,
