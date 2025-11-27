@@ -185,28 +185,6 @@ const adaptZhihuTopicData = (zhihuData: ZhihuTopicResponse): IRootObject => {
   };
 };
 
-// 适配猫眼电影数据为通用格式
-const adaptMaoyanMovieData = (movieData: MaoyanMovieResponse): IRootObject => {
-  const adaptedData: IData[] = movieData.data.list.map((item) => ({
-    title: item.movie_name,
-    desc: `${item.release_info} | 票房: ${item.box_office}${item.box_office_unit} | 占比: ${item.box_office_rate}`,
-    hot: parseFloat(item.box_office), // 使用票房作为热度值
-    url: '', // 猫眼电影可能没有直接的链接
-  }));
-
-  return {
-    code: movieData.code,
-    message: movieData.message,
-    name: 'maoyan-movie',
-    title: '猫眼电影',
-    subtitle: '实时票房',
-    from: 'maoyan-movie',
-    total: adaptedData.length,
-    updateTime: movieData.data.updated_at.toString(),
-    data: adaptedData,
-  };
-};
-
 // 适配猫眼网剧数据为通用格式
 const adaptMaoyanWebSeriesData = (webSeriesData: MaoyanWebSeriesResponse): IRootObject => {
   const adaptedData: IData[] = webSeriesData.data.list.map((item) => ({
@@ -317,31 +295,6 @@ export const getZhihuTopics = unstable_cache(
   { revalidate: 60 * 30 }, // 每30分钟更新一次
 );
 
-// 获取猫眼电影数据
-export const getMaoyanMovie = unstable_cache(
-  async () => {
-    try {
-      // 使用60s.viki.moe的API 获取实时票房数据 (该API已包含猫眼实时票房数据)
-      const response = await fetchFrom60sApi('maoyan/realtime/movie');
-      return adaptMaoyanMovieData(response);
-    } catch (error) {
-      console.error('获取猫眼实时票房数据失败:', error);
-      return {
-        code: -1,
-        message: '获取数据失败',
-        name: 'maoyan-movie',
-        title: '猫眼电影',
-        subtitle: '全球票房总榜',
-        from: 'maoyan-movie',
-        total: 0,
-        updateTime: Date.now().toString(),
-        data: [],
-      };
-    }
-  },
-  ['maoyan-movie'],
-  { revalidate: 60 * 60 }, // 每小时更新一次
-);
 
 // 获取猫眼网剧数据
 export const getMaoyanWebSeries = unstable_cache(

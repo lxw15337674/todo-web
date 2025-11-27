@@ -7,7 +7,6 @@ import {
   IRootObject,
   getHotLists as getOriginalHotLists,
   getZhihuTopics,
-  getMaoyanMovie,
   getMaoyanWebSeries,
   getDailyNews,
   getAiNews

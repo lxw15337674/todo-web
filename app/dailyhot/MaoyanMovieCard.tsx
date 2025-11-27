@@ -1,11 +1,10 @@
-'use client';
-
 import Image from 'next/image';
-import React, { useState, useEffect } from 'react';
-import dayjs from 'dayjs'; 
+import React from 'react';
+import dayjs from 'dayjs';
 import { Card } from '../../src/components/ui/card';
 import { ScrollArea } from '../../src/components/ui/scroll-area';
 
+// 定义猫眼电影数据类型
 interface MaoyanMovieItem {
   movie_id: number;
   movie_name: string;
@@ -27,17 +26,21 @@ interface MaoyanMovieItem {
 }
 
 interface MaoyanMovieData {
-  title: string;
-  show_count_desc: string;
-  view_count_desc: string;
-  split_box_office: string;
-  split_box_office_unit: string;
-  box_office: string;
-  box_office_unit: string;
-  update_gap_second: number;
-  updated: string;
-  updated_at: number;
-  list: MaoyanMovieItem[];
+  code: number;
+  message: string;
+  data: {
+    title: string;
+    show_count_desc: string;
+    view_count_desc: string;
+    split_box_office: string;
+    split_box_office_unit: string;
+    box_office: string;
+    box_office_unit: string;
+    update_gap_second: number;
+    updated: string;
+    updated_at: number;
+    list: MaoyanMovieItem[];
+  };
 }
 
 interface MaoyanMovieCardProps {
@@ -66,63 +69,29 @@ export const formatTime = (timestamp?: string) => {
   }
 };
 
-const MaoyanMovieCard = ({ label, name }: MaoyanMovieCardProps) => {
-  const [movieData, setMovieData] = useState<MaoyanMovieData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// 服务端获取猫眼电影数据
+async function getMaoyanMovieData(): Promise<MaoyanMovieData | null> {
+  try {
+    const response = await fetch('https://60s.viki.moe/v2/maoyan/realtime/movie', {
+      next: { revalidate: 300 } // 5分钟重新验证
+    });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('https://60s.viki.moe/v2/maoyan/realtime/movie');
-        const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-        if (data && data.data) {
-          setMovieData(data.data);
-        } else {
-          throw new Error('API返回格式不正确');
-        }
-      } catch (err) {
-        console.error('获取猫眼电影数据失败:', err);
-        setError('获取数据失败');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return (
-      <Card className="w-full max-w-2xl bg-zinc-900 text-white">
-        <div className="p-2 border-b border-zinc-800">
-          <div className="flex items-center gap-2">
-            <Image
-              src={`/logo/${name}.png`}
-              alt="avatar"
-              loading="lazy"
-              width={24}
-              height={24}
-              style={{
-                height: 24
-              }}
-            />
-            <span className="font-bold">{label}</span>
-          </div>
-        </div>
-        <div className="h-[410px] flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-            <p>加载中...</p>
-          </div>
-        </div>
-      </Card>
-    );
+    const data: MaoyanMovieData = await response.json();
+    return data;
+  } catch (error) {
+    console.error('获取猫眼电影数据失败:', error);
+    return null;
   }
+}
 
-  if (error || !movieData) {
+const MaoyanMovieCard = async ({ label, name }: { label: string; name: string }) => {
+  const movieData = await getMaoyanMovieData();
+
+  if (!movieData || !movieData.data) {
     return (
       <Card className="w-full max-w-2xl bg-zinc-900 text-white">
         <div className="p-2 border-b border-zinc-800">
@@ -143,53 +112,67 @@ const MaoyanMovieCard = ({ label, name }: MaoyanMovieCardProps) => {
         <div className="h-[410px] flex items-center justify-center">
           <div className="text-center text-red-500">
             <p>数据加载失败</p>
-            <p className="text-sm mt-1">{error}</p>
           </div>
         </div>
       </Card>
     );
   }
 
-  const date = formatTime(movieData.updated_at.toString());
+  // 只取前20条数据
+  const topMovies = movieData.data.list.slice(0, 20);
+  const date = formatTime(movieData.data.updated_at.toString());
 
   return (
     <Card className="w-full max-w-2xl bg-zinc-900 text-white">
       <div className="p-2 border-b border-zinc-800">
-        <div className="flex items-center gap-2">
-          <Image
-            src={`/logo/${name}.png`}
-            alt="avatar"
-            loading="lazy"
-            width={24}
-            height={24}
-            style={{
-              height: 24
-            }}
-          />
-          <span className="font-bold">{label}</span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Image
+              src={`/logo/${name}.png`}
+              alt="avatar"
+              loading="lazy"
+              width={24}
+              height={24}
+              style={{
+                height: 24
+              }}
+            />
+            <span className="font-bold">{label}</span>
+          </div>
+          <div className="hidden md:flex items-center gap-4 text-xs">
+            <div className="text-center">
+              <div className="text-zinc-400">总票房</div>
+              <div className="text-yellow-400 font-bold">{movieData.data.box_office}{movieData.data.box_office_unit}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-zinc-400">排片</div>
+              <div className="text-cyan-400">{movieData.data.show_count_desc}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-zinc-400">人次</div>
+              <div className="text-green-400">{movieData.data.view_count_desc}</div>
+            </div>
+          </div>
+        </div>
+        {/* 移动端显示的总体票房信息 */}
+        <div className="md:hidden grid grid-cols-3 gap-2 mt-2 text-xs">
+          <div className="text-center">
+            <div className="text-zinc-400">总票房</div>
+            <div className="text-yellow-400 font-bold">{movieData.data.box_office}{movieData.data.box_office_unit}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-zinc-400">排片</div>
+            <div className="text-cyan-400">{movieData.data.show_count_desc}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-zinc-400">人次</div>
+            <div className="text-green-400">{movieData.data.view_count_desc}</div>
+          </div>
         </div>
       </div>
       <ScrollArea className="h-[410px]">
         <div className="divide-y divide-zinc-800">
-          {/* 总体票房信息 */}
-          <div className="p-1 bg-blue-900/20 border-b border-zinc-800">
-            <div className="grid grid-cols-3 gap-2 text-sm">
-              <div className="text-center">
-                <div className="text-zinc-400">总票房</div>
-                <div className="text-yellow-400 font-bold text-lg">{movieData.box_office + movieData.box_office_unit}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-zinc-400">排片数</div>
-                <div className="text-cyan-400">{movieData.show_count_desc}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-zinc-400">观影人次</div>
-                <div className="text-green-400">{movieData.view_count_desc}</div>
-              </div>
-            </div>
-          </div>
-
-          {movieData.list.map((movie, index) => (
+          {topMovies.map((movie, index) => (
             <div key={movie.movie_id} className="flex items-start gap-4 p-2 hover:bg-zinc-800/50 transition-colors">
               <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center shrink-0 mt-1">
                 <span className="text-xs font-medium text-zinc-400">{index + 1}</span>
@@ -201,6 +184,7 @@ const MaoyanMovieCard = ({ label, name }: MaoyanMovieCardProps) => {
                     <div className="text-yellow-400 font-bold">
                       {movie.box_office}{movie.box_office_unit}
                     </div>
+                    <div className="text-xs text-zinc-400">{movie.box_office_rate}</div>
                   </div>
                 </div>
 
@@ -211,20 +195,12 @@ const MaoyanMovieCard = ({ label, name }: MaoyanMovieCardProps) => {
                       <span className="text-white">{movie.release_info}</span>
                     </div>
                     <div className="flex items-center space-x-1 px-2 py-1 bg-zinc-800/50 rounded">
-                      <span className="text-zinc-500">实时票房:</span>
-                      <span className="text-yellow-400">{movie.box_office}{movie.box_office_unit}</span>
-                    </div>
-                    <div className="flex items-center space-x-1 px-2 py-1 bg-zinc-800/50 rounded">
                       <span className="text-zinc-500">票房占比:</span>
                       <span className="text-green-400">{movie.box_office_rate}</span>
                     </div>
                     <div className="flex items-center space-x-1 px-2 py-1 bg-zinc-800/50 rounded">
                       <span className="text-zinc-500">场次占比:</span>
                       <span className="text-cyan-400">{movie.show_count_rate}</span>
-                    </div>
-                    <div className="flex items-center space-x-1 px-2 py-1 bg-zinc-800/50 rounded">
-                      <span className="text-zinc-500">场均人次:</span>
-                      <span className="text-purple-400">{movie.avg_show_view}</span>
                     </div>
                     <div className="flex items-center space-x-1 px-2 py-1 bg-zinc-800/50 rounded">
                       <span className="text-zinc-500">上座率:</span>
