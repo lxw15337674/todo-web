@@ -184,7 +184,6 @@ const MaoyanMovieCard = async ({ label, name }: { label: string; name: string })
                     <div className="text-yellow-400 font-bold">
                       {movie.box_office}{movie.box_office_unit}
                     </div>
-                    <div className="text-xs text-zinc-400">{movie.box_office_rate}</div>
                   </div>
                 </div>
 
@@ -209,10 +208,6 @@ const MaoyanMovieCard = async ({ label, name }: { label: string; name: string })
                     <div className="flex items-center space-x-1 px-2 py-1 bg-zinc-800/50 rounded">
                       <span className="text-zinc-500">累计票房:</span>
                       <span className="text-blue-400">{movie.sum_box_desc}</span>
-                    </div>
-                    <div className="flex items-center space-x-1 px-2 py-1 bg-zinc-800/50 rounded">
-                      <span className="text-zinc-500">场次数:</span>
-                      <span className="text-red-400">{movie.show_count}</span>
                     </div>
                   </div>
                 </div>
