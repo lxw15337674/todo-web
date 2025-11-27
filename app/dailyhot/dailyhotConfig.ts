@@ -1,5 +1,9 @@
 export const news = [
   {
+    label: '猫眼电影',
+    name: 'maoyan-movie',
+  },
+  {
     label: '微博',
     name: 'weibo',
   },
@@ -23,16 +27,7 @@ export const news = [
     label: 'V2EX',
     name: 'v2ex',
   },
-  {
-    label: '酷安',
-    name: 'coolapk',
-  },
 
-
-  {
-    label: '知乎',
-    name: 'zhihu',
-  },
   {
     label: '知乎日报',
     name: 'zhihu-daily',
@@ -59,15 +54,28 @@ export const news = [
     name: 'netease-news',
   },
   {
-    label: '虎嗅',
-    name: 'huxiu',
-  },
-  {
     label: '微信读书',
     name: 'weread',
   },
   {
     label: 'HelloGitHub',
     name: 'hellogithub',
+  },
+  // 新增API源
+  {
+    label: '知乎话题',
+    name: 'zhihu',
+  },
+  {
+    label: '猫眼网剧',
+    name: 'maoyan-web',
+  },
+  {
+    label: '每日新闻',
+    name: 'daily-news',
+  },
+  {
+    label: 'AI资讯',
+    name: 'ai-news',
   },
 ];

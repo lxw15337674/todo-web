@@ -1,4 +1,4 @@
-import { HotType } from '@/public/app/dailyhot/page';
+import { HotType } from './page';
 import Image from 'next/image';
 import React from 'react';
 import dayjs from 'dayjs'; // 新增 dayjs 导入
