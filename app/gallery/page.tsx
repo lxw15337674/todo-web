@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export const dynamic = 'force-dynamic';
 
-const PageSize = 100 * 6
+const PageSize = 20 * 5
 
 interface SearchParams {
   producer?: string

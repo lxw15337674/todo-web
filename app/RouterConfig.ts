@@ -20,28 +20,33 @@ interface MenuItem {
   name: string;
   url: string;
   icon?: any;
+  auth?: boolean;
 }
 
 export const Apps: MenuItem[] = [
   {
     name: 'ToDo',
     url: '/task',
-    icon: CheckSquare
+    icon: CheckSquare,
+    auth: true
   },
   {
     name: '打卡',
     url: '/habit',
-    icon: Calendar
+    icon: Calendar,
+    auth: true
   },
   {
     name: '书签',
     url: '/bookmark',
-    icon: Bookmark
+    icon: Bookmark,
+    auth: true
   },
   {
     name:'紀念日',
     url:'/anniversary',
-    icon: AnniversaryIcon
+    icon: AnniversaryIcon,
+    auth: true
   },
   {
     name : '图床',
@@ -61,7 +66,7 @@ export const Apps: MenuItem[] = [
   },
   { name: '命令聊天', url: '/chat', icon: MessageCircle },
   {
-    name: '资产管理', url: '/fund', icon: CircleDollarSign
+    name: '资产管理', url: '/fund', icon: CircleDollarSign, auth: true
   }
 ];
 
