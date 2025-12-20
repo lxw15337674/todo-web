@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server';
 
 // 定义需要密码保护的路由
 const PROTECTED_ROUTES = [
-  '/gallery',
   '/task',
   '/habit',
   '/fund',
