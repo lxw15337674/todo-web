@@ -130,7 +130,7 @@ export function GalleryClient({
         speed={() => 300}
         easing={(type) => (type === 2 ? 'cubic-bezier(0.36, 0, 0.66, -0.56)' : 'cubic-bezier(0.34, 1.56, 0.64, 1)')}
       >
-        <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 6 }} spacing={1}>
+        <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 6 }} spacing={1} sequential>
           {images.map((image, index) => (
             <GalleryItem
               key={generateKey(image, index)}
