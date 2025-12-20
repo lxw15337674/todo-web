@@ -22,6 +22,7 @@ interface GalleryClientProps {
   total: number
   pageSize: number
   initialSeed?: number
+  loadMorePageSize?: number
 }
 
 export function GalleryClient({ 
@@ -29,10 +30,12 @@ export function GalleryClient({
   initialState, 
   total, 
   pageSize,
-  initialSeed
+  initialSeed,
+  loadMorePageSize = 40
 }: GalleryClientProps) {
   const searchParams = useSearchParams()
   const [images, setImages] = useState(initialImages)
+  // Page state is kept for potential URL syncing but not used for fetching anymore
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(initialImages.length < total)
   const isLoadingMoreRef = useRef(false)
@@ -76,18 +79,30 @@ export function GalleryClient({
       if (isLoadingMoreRef.current || !hasMore) return []
       
       isLoadingMoreRef.current = true
-      const nextPage = page + 1
       
       const producer = searchParams.get('producer')
       const sort = (searchParams.get('sort') || 'desc') as 'asc' | 'desc' | 'random'
       const type = (searchParams.get('type') || MediaType.image) as MediaType
       const tags = searchParams.get('tags') ? [searchParams.get('tags')!] : null
       
-      const newImages = await getPics(nextPage, pageSize, producer, sort, type, tags, seedRef.current)
+      // Calculate skip based on current loaded images
+      const currentCount = images.length;
+      
+      // Use explicit skip for pagination to handle mixed page sizes (100 initial -> 40 subsequent)
+      const newImages = await getPics(
+        1, // page (ignored when skip is present)
+        loadMorePageSize, // pageSize for this batch
+        producer, 
+        sort, 
+        type, 
+        tags, 
+        seedRef.current,
+        currentCount // explicitSkip
+      )
       
       setImages(prev => [...prev, ...newImages])
-      setPage(nextPage)
-      setHasMore(newImages.length === pageSize)
+      setPage(prev => prev + 1)
+      setHasMore(images.length + newImages.length < total)
       isLoadingMoreRef.current = false
       
       return newImages

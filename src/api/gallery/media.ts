@@ -109,6 +109,7 @@ export async function getPics(
   type: MediaType | null = null,
   tagIds: string[] | null = null,
   seed?: number, // Optional seed for deterministic random sort
+  explicitSkip?: number, // Optional explicit skip count
 ) {
   try {
     // For random sort, we'll use a different approach to avoid ORDER BY RANDOM() performance issues
@@ -132,7 +133,8 @@ export async function getPics(
       const shuffledIds = shuffleWithSeed(allIds, validSeed);
 
       // 3. Slice for current page
-      const startIndex = (page - 1) * pageSize;
+      // Use explicitSkip if available, otherwise calculate from page number
+      const startIndex = explicitSkip ?? ((page - 1) * pageSize);
       const pageIds = shuffledIds.slice(startIndex, startIndex + pageSize);
 
       if (pageIds.length === 0) {
@@ -159,7 +161,7 @@ export async function getPics(
       where: getBaseWhereClause(producerId, type, tagIds),
       orderBy: { createTime: sort },
       take: pageSize,
-      skip: (page - 1) * pageSize,
+      skip: explicitSkip ?? ((page - 1) * pageSize),
       include: {
         producer: true,
         post: true,
