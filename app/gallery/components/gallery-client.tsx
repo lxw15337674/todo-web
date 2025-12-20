@@ -21,13 +21,15 @@ interface GalleryClientProps {
   }
   total: number
   pageSize: number
+  initialSeed?: number
 }
 
 export function GalleryClient({ 
   initialImages, 
   initialState, 
   total, 
-  pageSize 
+  pageSize,
+  initialSeed
 }: GalleryClientProps) {
   const searchParams = useSearchParams()
   const [images, setImages] = useState(initialImages)
@@ -35,6 +37,14 @@ export function GalleryClient({
   const [hasMore, setHasMore] = useState(initialImages.length < total)
   const isLoadingMoreRef = useRef(false)
   const observerRef = useRef<HTMLDivElement>(null)
+  
+  // 保持 seed 在客户端的持久化，但允许服务端更新它
+  const seedRef = useRef(initialSeed)
+
+  // 当服务端返回新的 seed 时（例如刷新页面或参数改变导致 RSC 重运行），更新 ref
+  useEffect(() => {
+    seedRef.current = initialSeed
+  }, [initialSeed])
 
   // 当URL参数变化时重置数据
   useEffect(() => {
@@ -73,7 +83,7 @@ export function GalleryClient({
       const type = (searchParams.get('type') || MediaType.image) as MediaType
       const tags = searchParams.get('tags') ? [searchParams.get('tags')!] : null
       
-      const newImages = await getPics(nextPage, pageSize, producer, sort, type, tags)
+      const newImages = await getPics(nextPage, pageSize, producer, sort, type, tags, seedRef.current)
       
       setImages(prev => [...prev, ...newImages])
       setPage(nextPage)

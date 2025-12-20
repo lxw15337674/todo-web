@@ -62,6 +62,10 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
   const type = params.type || MediaType.image
   const tags = params.tags ? [params.tags] : null
 
+  // Generate a random seed for consistent pagination during this session
+  // This seed is generated on the server for the initial render and passed to the client
+  const seed = sort === 'random' ? Math.floor(Math.random() * 1000000) : undefined
+
   // 并行获取所有初始数据
   const [
     producers,
@@ -72,7 +76,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
   ] = await Promise.all([
     getProducersWithCount(),
     getProducerTags(),
-    getPics(1, PageSize, producer, sort, type, tags),
+    getPics(1, PageSize, producer, sort, type, tags, seed),
     getPicsCount(producer, type, tags),
     Promise.all([
       getPostCount({ status: UploadStatus.UPLOADED, producerId: producer || undefined }),
@@ -107,6 +111,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
           initialState={initialState}
           total={total}
           pageSize={PageSize}
+          initialSeed={seed}
         />
       </Suspense>
     </div>

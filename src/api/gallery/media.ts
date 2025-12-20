@@ -1,9 +1,9 @@
 'use server';
 
 import { UploadStatus } from '@prisma/client';
-import { headers } from 'next/headers';
 import prisma from '../prisma';
 import { MediaType } from './type';
+
 
 // 定义支持的媒体类型扩展名
 const VIDEO_EXTENSIONS = ['.mp4', '.mov'];
@@ -108,18 +108,16 @@ export async function getPics(
   sort: 'asc' | 'desc' | 'random' = 'desc',
   type: MediaType | null = null,
   tagIds: string[] | null = null,
+  seed?: number, // Optional seed for deterministic random sort
 ) {
   try {
     // For random sort, we'll use a different approach to avoid ORDER BY RANDOM() performance issues
     if (sort === 'random') {
       const whereClause = getBaseWhereClause(producerId, type, tagIds);
 
-      // Get user IP and current hour for deterministic seeding
-      const headersList = await headers();
-      const ip = headersList.get('x-forwarded-for') || 'default-user';
-      // Use hourly window for stable pagination
-      const timeKey = new Date().toISOString().slice(0, 13); // "YYYY-MM-DDTHH"
-      const seed = stringToSeed(ip + timeKey);
+      // Use provided seed or generate a random one if missing
+      // (Though client should usually provide one for consistent pagination)
+      const validSeed = seed ?? Math.floor(Math.random() * 1000000);
 
       // 1. Fetch ALL IDs (lightweight)
       const allMedia = await prisma.media.findMany({
@@ -131,7 +129,7 @@ export async function getPics(
       const allIds = allMedia.map((m) => m.id);
 
       // 2. Shuffle IDs deterministically
-      const shuffledIds = shuffleWithSeed(allIds, seed);
+      const shuffledIds = shuffleWithSeed(allIds, validSeed);
 
       // 3. Slice for current page
       const startIndex = (page - 1) * pageSize;
