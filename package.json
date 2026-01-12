@@ -10,7 +10,6 @@
   ],
   "scripts": {
     "dev": "cross-env next dev --webpack",
-    "vercel-build": "npx prisma generate &&  next build --webpack",
     "build": "npx prisma generate &&  next build --webpack",
     "start": "pnpm dev",
     "type-check": " tsc --noEmit",
