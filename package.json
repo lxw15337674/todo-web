@@ -10,8 +10,8 @@
   ],
   "scripts": {
     "dev": "cross-env next dev --webpack",
-    "vercel-build": "npx prisma generate &&  next build",
-    "build": "npx prisma generate &&  next build",
+    "vercel-build": "npx prisma generate &&  next build --webpack",
+    "build": "npx prisma generate &&  next build --webpack",
     "start": "pnpm dev",
     "type-check": " tsc --noEmit",
     "lint": " eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
