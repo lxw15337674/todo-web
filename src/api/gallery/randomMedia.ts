@@ -1,6 +1,6 @@
 'use server';
 
-import { UploadStatus } from '@prisma/client';
+import { UploadStatus, ProducerType } from '@prisma/client';
 import prisma from '../prisma';
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif'];
@@ -12,17 +12,19 @@ const getImageTypeCondition = () => ({
     })),
 });
 
-// 构建基础的 where 子句 - 只返回图片
+// 构建基础的 where 子句 - 只返回个人微博的图片
 const getRandomImageWhereClause = (
     producerId: string | null,
     tagIds: string[] | null = null,
 ) => ({
     deletedAt: null,
     status: UploadStatus.UPLOADED,
-    ...(producerId ? { producerId } : {}),
-    ...(tagIds && tagIds.length > 0
-        ? {
-            producer: {
+    // 只返回个人微博的图片，排除超话
+    producer: {
+        type: ProducerType.WEIBO_PERSONAL,
+        ...(producerId ? { id: producerId } : {}),
+        ...(tagIds && tagIds.length > 0
+            ? {
                 ProducerToProducerTag: {
                     some: {
                         B: {
@@ -30,9 +32,9 @@ const getRandomImageWhereClause = (
                         },
                     },
                 },
-            },
-        }
-        : {}),
+            }
+            : {}),
+    },
     ...getImageTypeCondition(),
 });
 
