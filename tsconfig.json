@@ -17,7 +17,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "baseUrl": ".",
     "paths": {
@@ -38,14 +38,15 @@
       // This allows Serwist to type `window.serwist`.
       "@serwist/next/typings",
       "bun-types"
-    ],
+    ]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "next.config.ts"
+    "next.config.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -10,7 +10,7 @@ const PROTECTED_ROUTES = [
   '/anniversary',
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // 1. 如果没有设置 EDIT_CODE 环境变量，直接放行
   if (!process.env.EDIT_CODE) {
     return NextResponse.next();
