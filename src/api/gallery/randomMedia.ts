@@ -51,22 +51,30 @@ export async function getRandomImage(
     try {
         const whereClause = getRandomImageWhereClause(producerId, tagIds);
 
-        // 获取符合条件的图片总数
-        const totalCount = await prisma.media.count({
+        // 获取符合条件的最小和最大 ID
+        const result = await prisma.media.aggregate({
             where: whereClause,
+            _min: { id: true },
+            _max: { id: true },
         });
 
-        if (totalCount === 0) {
+        const minId = result._min.id;
+        const maxId = result._max.id;
+
+        if (minId === null || maxId === null) {
             return null;
         }
 
-        // 生成随机偏移量
-        const randomOffset = Math.floor(Math.random() * totalCount);
+        // 在范围内随机选择一个 ID
+        const randomId = Math.floor(Math.random() * (maxId - minId + 1)) + minId;
 
-        // 获取随机图片
+        // 查找 >= randomId 的第一条符合条件的记录
         const media = await prisma.media.findFirst({
-            where: whereClause,
-            skip: randomOffset,
+            where: {
+                ...whereClause,
+                id: { gte: randomId },
+            },
+            orderBy: { id: 'asc' },
             select: {
                 galleryMediaUrl: true,
                 originMediaUrl: true,
