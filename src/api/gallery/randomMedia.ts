@@ -67,7 +67,7 @@ export async function getRandomImage(
 
         // 在范围内随机选择一个 ID
         const randomId = Math.floor(Math.random() * (maxId - minId + 1)) + minId;
-
+        console.log(`Random ID selected: ${randomId}`);
         // 查找 >= randomId 的第一条符合条件的记录
         const media = await prisma.media.findFirst({
             where: {
