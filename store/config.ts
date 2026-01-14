@@ -23,6 +23,7 @@ interface SettingStore {
     setEditCodePermission: (editCode: string) => Promise<boolean>;
     hasEditCodePermission: boolean;
     validateEditCode: () => Promise<boolean>;
+    logout: () => void;
 }
 
 const defaultConfig: Config = {
@@ -73,6 +74,12 @@ const useConfigStore = create<SettingStore>()(
                 validateEditCode: async () => {
                     const editCode = get().config.codeConfig.editCode;
                     return validateEditCode(editCode);
+                },
+                logout: () => {
+                    set((state) => {
+                        state.config.codeConfig.editCode = '';
+                        state.hasEditCodePermission = false;
+                    })
                 }
             })),
             {

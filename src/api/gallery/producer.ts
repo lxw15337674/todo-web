@@ -3,6 +3,15 @@ import { Producer, ProducerTag } from '@prisma/client';
 import { NewProducer, UpdateProducer } from './type';
 import prisma from '../prisma';
 
+// 验证编辑密码
+const verifyEditCode = (editCode?: string): boolean => {
+  const requiredCode = process.env.EDIT_CODE;
+  if (!requiredCode) {
+    return true; // 如果没有设置密码要求，则允许所有操作
+  }
+  return editCode === requiredCode;
+};
+
 // 通用的Producer查询配置
 const defaultProducerInclude = {
   ProducerToProducerTag: {
@@ -22,10 +31,15 @@ const mapProducerWithTags = (
   tags: producer.ProducerToProducerTag.map((p) => p.ProducerTag),
 });
 
-export const createProducer = async (data: NewProducer): Promise<Producer> => {
+export const createProducer = async (data: NewProducer & { editCode?: string }): Promise<Producer> => {
+  if (!verifyEditCode(data.editCode)) {
+    throw new Error('无效的访问密码');
+  }
+
+  const { editCode, ...producerData } = data;
   return await prisma.producer
     .create({
-      data,
+      data: producerData,
       include: defaultProducerInclude,
     })
     .then(mapProducerWithTags);
@@ -92,8 +106,12 @@ export const getProducerById = async (id: string) => {
     .then((producer) => (producer ? mapProducerWithTags(producer) : null));
 };
 
-export const updateProducer = async (data: UpdateProducer) => {
-  const { id, ...updateData } = data;
+export const updateProducer = async (data: UpdateProducer & { editCode?: string }) => {
+  if (!verifyEditCode(data.editCode)) {
+    throw new Error('无效的访问密码');
+  }
+
+  const { id, editCode, ...updateData } = data;
   return await prisma.producer
     .update({
       where: { id },
@@ -106,7 +124,11 @@ export const updateProducer = async (data: UpdateProducer) => {
     .then(mapProducerWithTags);
 };
 
-export const deleteProducer = async (id: string) => {
+export const deleteProducer = async (id: string, editCode?: string) => {
+  if (!verifyEditCode(editCode)) {
+    throw new Error('无效的访问密码');
+  }
+
   return await prisma.producer.update({
     where: { id },
     data: {
@@ -129,13 +151,23 @@ export const getProducerTags = async () => {
 export const createProducerTag = async (data: {
   name: string;
   remark?: string;
+  editCode?: string;
 }) => {
+  if (!verifyEditCode(data.editCode)) {
+    throw new Error('无效的访问密码');
+  }
+
+  const { editCode, ...tagData } = data;
   return await prisma.producerTag.create({
-    data,
+    data: tagData,
   });
 };
 
-export const deleteProducerTag = async (id: string) => {
+export const deleteProducerTag = async (id: string, editCode?: string) => {
+  if (!verifyEditCode(editCode)) {
+    throw new Error('无效的访问密码');
+  }
+
   return await prisma.producerTag.update({
     where: { id },
     data: {
@@ -147,7 +179,12 @@ export const deleteProducerTag = async (id: string) => {
 export const updateProducerTags = async (
   producerId: string,
   tagIds: string[],
+  editCode?: string,
 ) => {
+  if (!verifyEditCode(editCode)) {
+    throw new Error('无效的访问密码');
+  }
+
   return await prisma.$transaction(async (tx) => {
     // 删除现有关联
     await tx.producerToProducerTag.deleteMany({
