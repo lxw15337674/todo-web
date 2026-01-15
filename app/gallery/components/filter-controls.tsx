@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import useConfigStore from '../../../store/config'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -43,6 +44,7 @@ export function FilterControls({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isProducerDialogOpen, setIsProducerDialogOpen] = useState(false)
+  const { hasEditCodePermission } = useConfigStore()
 
   // 更新URL参数的通用函数
   const updateSearchParams = useCallback((updates: Record<string, string | null>) => {
@@ -155,13 +157,15 @@ export function FilterControls({
         <div className="space-y-2">
           <label className="text-sm font-medium">操作</label>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsProducerDialogOpen(true)}
-            >
-              管理生产者
-            </Button>
+            {hasEditCodePermission && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsProducerDialogOpen(true)}
+              >
+                管理生产者
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

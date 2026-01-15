@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useRequest } from 'ahooks'
-import { Masonry } from '@mui/lab'
 import { PhotoProvider } from 'react-photo-view'
 import { getPics } from '@/api/gallery/media'
 import { MediaType } from '@/api/gallery/type'
@@ -155,24 +154,83 @@ export function GalleryClient({
         speed={() => 300}
         easing={(type) => (type === 2 ? 'cubic-bezier(0.36, 0, 0.66, -0.56)' : 'cubic-bezier(0.34, 1.56, 0.64, 1)')}
       >
-        <Masonry columns={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 6 }} spacing={1} sequential>
+        <div 
+          className="masonry-grid"
+          style={{
+            columnCount: 2,
+            columnGap: '0.5rem',
+          }}
+        >
+          <style jsx>{`
+            @media (min-width: 640px) {
+              .masonry-grid {
+                column-count: 3 !important;
+              }
+            }
+            @media (min-width: 768px) {
+              .masonry-grid {
+                column-count: 4 !important;
+              }
+            }
+            @media (min-width: 1024px) {
+              .masonry-grid {
+                column-count: 5 !important;
+              }
+            }
+            @media (min-width: 1280px) {
+              .masonry-grid {
+                column-count: 6 !important;
+              }
+            }
+          `}</style>
           {images.map((image, index) => (
-            <GalleryItem
-              key={generateKey(image, index)}
-              image={image}
-              index={index}
-            />
+            <div key={generateKey(image, index)} className="mb-2 break-inside-avoid">
+              <GalleryItem
+                image={image}
+                index={index}
+              />
+            </div>
           ))}
-        </Masonry>
+        </div>
       </PhotoProvider>
 
       {/* 加载更多的触发器和加载状态 */}
       {hasMore && (
         <div ref={observerRef} className="mt-4">
           {loadingMore && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+            <div 
+              className="masonry-grid"
+              style={{
+                columnCount: 2,
+                columnGap: '0.5rem',
+              }}
+            >
+              <style jsx>{`
+                @media (min-width: 640px) {
+                  .masonry-grid {
+                    column-count: 3 !important;
+                  }
+                }
+                @media (min-width: 768px) {
+                  .masonry-grid {
+                    column-count: 4 !important;
+                  }
+                }
+                @media (min-width: 1024px) {
+                  .masonry-grid {
+                    column-count: 5 !important;
+                  }
+                }
+                @media (min-width: 1280px) {
+                  .masonry-grid {
+                    column-count: 6 !important;
+                  }
+                }
+              `}</style>
               {Array.from({ length: 12 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-[3/4] rounded-lg" />
+                <div key={i} className="mb-2 break-inside-avoid">
+                  <Skeleton className="aspect-[3/4] rounded-lg w-full" />
+                </div>
               ))}
             </div>
           )}

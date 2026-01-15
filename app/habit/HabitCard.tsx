@@ -7,10 +7,9 @@ import {
   History,
   Ellipsis,
   XCircle,
-  Eraser,
   CalendarOff,
 } from 'lucide-react';
-import { use, useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   createTrackItem,
   deleteTrackItem,
@@ -23,7 +22,6 @@ import { useCountUp } from 'use-count-up';
 import { Button } from '../../src/components/ui/button';
 import { Progress } from '../../src/components/ui/progress';
 import { useMemoizedFn } from 'ahooks';
-import { Calendar } from '../../src/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../../src/components/ui/sheet';
 import dayjs from 'dayjs';
 import {
@@ -36,7 +34,6 @@ import {
   TimelineSeparator,
 } from '@mui/lab';
 import { ScrollArea } from '../../src/components/ui/scroll-area';
-import { zhCN } from 'date-fns/locale';
 import {
   DropdownMenu,
   DropdownMenuContent,

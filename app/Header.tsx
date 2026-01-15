@@ -1,26 +1,38 @@
 'use client'
 import React, { useEffect } from 'react';
 import { ModeToggle } from 'src/components/ModeToggle';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../src/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator } from '../src/components/ui/dropdown-menu';
 import { Button } from '../src/components/ui/button';
 import { Separator } from '../src/components/ui/separator';
-import { LayoutGrid, Github } from 'lucide-react'; // 新增导入
-import { usePathname } from 'next/navigation';
+import { LayoutGrid, Github, User, LogIn, LogOut, Check } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Apps, Links } from './RouterConfig';
 import Link from 'next/link';
 import { usePermission } from '../src/hooks/usePermission';
+import useConfigStore from '../store/config';
 import { cn } from "@/lib/utils"
 import { ScrollToTop } from '../src/components/ScrollToTop';
 import { ArrowUpToLine } from 'lucide-react';
 export default function Header() {
   usePermission();
-  const router = usePathname();
-  const currentApp = Apps.find((app) => app.url === router);
+  const pathname = usePathname();
+  const router = useRouter();
+  const currentApp = Apps.find((app) => app.url === pathname);
+  const { hasEditCodePermission, logout } = useConfigStore();
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  const handleLogin = () => {
+    router.push('/login');
+  };
+
   useEffect(() => {
     if (currentApp) {
       document.title = currentApp.name;
     }
-  }, [router]);
+  }, [pathname, currentApp]);
   return (
     <header className="sticky left-0 right-0 top-0  z-50 bg-background border-b-0.5 border-border">
       <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -95,6 +107,30 @@ export default function Header() {
           >
             <Github />
           </Button>
+          {hasEditCodePermission ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <User className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem disabled>
+                  <Check className="mr-2 h-4 w-4" />
+                  已登录
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  退出登录
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="outline" size="icon" onClick={handleLogin}>
+              <LogIn className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
     </header>
