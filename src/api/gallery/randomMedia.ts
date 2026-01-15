@@ -12,16 +12,15 @@ const getImageTypeCondition = () => ({
     })),
 });
 
-// 构建基础的 where 子句 - 只返回个人微博的图片
+// 构建基础的 where 子句 - 返回个人微博和超话的图片
 const getRandomImageWhereClause = (
     producerId: string | null,
     tagIds: string[] | null = null,
 ) => ({
     deletedAt: null,
     status: UploadStatus.UPLOADED,
-    // 只返回个人微博的图片，排除超话
+    width: { gte: 500 },
     producer: {
-        type: ProducerType.WEIBO_PERSONAL,
         ...(producerId ? { id: producerId } : {}),
         ...(tagIds && tagIds.length > 0
             ? {
