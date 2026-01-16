@@ -162,7 +162,7 @@ const HackerNewsCard = async ({ label, name }: HackerNewsCardProps) => {
 
                             <div className="min-w-0 flex-1">
                                 <Link
-                                    href={story.url || `https://news.ycombinator.com/item?id=${story.id}`}
+                                    href={`https://news.ycombinator.com/item?id=${story.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-base cursor-pointer text-zinc-50 hover:text-orange-400 transition-colors visited:text-blue-400 block"
@@ -170,6 +170,17 @@ const HackerNewsCard = async ({ label, name }: HackerNewsCardProps) => {
                                 >
                                     {story.title}
                                 </Link>
+                                {story.url && (
+                                    <a
+                                        href={story.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-zinc-500 hover:text-zinc-400 truncate block mt-0.5"
+                                        title={story.url}
+                                    >
+                                        {new URL(story.url).hostname}
+                                    </a>
+                                )}
 
                                 <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-400">
                                     <span className="flex items-center gap-1">
