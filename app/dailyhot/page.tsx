@@ -1,6 +1,7 @@
 import React from 'react';
 import DailyHotCard from './DailyHotCard';
 import MaoyanMovieCard from './MaoyanMovieCard';
+import HackerNewsCard from './HackerNewsCard';
 import { news } from './dailyhotConfig';
 import {
   IData,
@@ -170,6 +171,15 @@ const DailyHot = async () => {
             return (
               <div className="w-full overflow-auto" key={item.name}>
                 <MaoyanMovieCard label={item.label} name={item.name} />
+              </div>
+            );
+          }
+
+          // 对于 Hacker News，使用专用的卡片组件
+          if (item.name === 'hackernews') {
+            return (
+              <div className="w-full overflow-auto" key={item.name}>
+                <HackerNewsCard label={item.label} name={item.name} />
               </div>
             );
           }
