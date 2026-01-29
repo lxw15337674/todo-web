@@ -53,6 +53,7 @@ const normalizeTimeoutMs = (value: number) => {
 };
 
 const detectPersonFromUrl = async (imageUrl: string, timeoutMs: number) => {
+    const startedAt = Date.now();
     try {
         const response = await axios.post(
             PERSON_DETECT_URL,
@@ -66,7 +67,7 @@ const detectPersonFromUrl = async (imageUrl: string, timeoutMs: number) => {
                 validateStatus: () => true,
             },
         );
-        return response?.data?.isPerson ?? false
+        return response?.data?.isPerson ?? false;
     } catch (error) {
         if (axios.isAxiosError(error) && error.message) {
             console.warn('Person detect request error:', error.message);
@@ -76,6 +77,10 @@ const detectPersonFromUrl = async (imageUrl: string, timeoutMs: number) => {
             console.warn('Person detect request error:', error.message);
         }
         return false;
+    } finally {
+        console.log(
+            `Person detect request finished in ${Date.now() - startedAt}ms`,
+        );
     }
 };
 
