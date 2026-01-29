@@ -1,9 +1,17 @@
 'use server';
 
-import { UploadStatus, ProducerType } from '@prisma/client';
+import { UploadStatus } from '@prisma/client';
+import axios from 'axios';
 import prisma from '../prisma';
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif'];
+const PERSON_DETECT_URL =
+    process.env.PERSON_DETECT_URL ??
+    'https://cf-api.bhwa233.com/ai/vision/person-detect';
+const PERSON_DETECT_API_KEY = process.env.PERSON_DETECT_API_KEY ?? '';
+const PERSON_DETECT_TIMEOUT_MS = Number(
+    process.env.PERSON_DETECT_TIMEOUT_MS ?? '20000',
+);
 
 // 构建图片类型的 OR 条件
 const getImageTypeCondition = () => ({
@@ -37,6 +45,40 @@ const getRandomImageWhereClause = (
     ...getImageTypeCondition(),
 });
 
+const normalizeTimeoutMs = (value: number) => {
+    if (Number.isNaN(value) || !Number.isFinite(value) || value <= 0) {
+        return 10000;
+    }
+    return value;
+};
+
+const detectPersonFromUrl = async (imageUrl: string, timeoutMs: number) => {
+    try {
+        const response = await axios.post(
+            PERSON_DETECT_URL,
+            { url: imageUrl },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': PERSON_DETECT_API_KEY,
+                },
+                timeout: timeoutMs,
+                validateStatus: () => true,
+            },
+        );
+        return response?.data?.isPerson ?? false
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.message) {
+            console.warn('Person detect request error:', error.message);
+            return false;
+        }
+        if (error instanceof Error && error.message) {
+            console.warn('Person detect request error:', error.message);
+        }
+        return false;
+    }
+};
+
 /**
  * 获取一张随机图片
  * @param producerId 可选的制作者ID
@@ -67,25 +109,51 @@ export async function getRandomImage(
         // 在范围内随机选择一个 ID
         const randomId = Math.floor(Math.random() * (maxId - minId + 1)) + minId;
         console.log(`Random ID selected: ${randomId}`);
-        // 查找 >= randomId 的第一条符合条件的记录
-        const media = await prisma.media.findFirst({
+        // 查找 >= randomId 的前 3 条符合条件的记录
+        const mediaList = await prisma.media.findMany({
             where: {
                 ...whereClause,
                 id: { gte: randomId },
             },
             orderBy: { id: 'asc' },
+            take: 3,
             select: {
                 galleryMediaUrl: true,
                 originMediaUrl: true,
             },
         });
 
-        if (!media) {
+        if (!mediaList.length) {
             return null;
         }
 
-        // 优先返回 galleryMediaUrl，如果不存在则返回 originMediaUrl
-        return media.galleryMediaUrl || media.originMediaUrl || null;
+        const candidates = mediaList
+            .map((media) => media.galleryMediaUrl || media.originMediaUrl || null)
+            .filter((url): url is string => Boolean(url));
+
+        if (!candidates.length) {
+            return null;
+        }
+
+        const timeoutMs = normalizeTimeoutMs(PERSON_DETECT_TIMEOUT_MS);
+
+        if (!PERSON_DETECT_API_KEY) {
+            console.warn('Person detect API key missing; returning fallback.');
+            return candidates[0] ?? null;
+        }
+
+        const results = await Promise.all(
+            candidates.map((imageUrl) =>
+                detectPersonFromUrl(imageUrl, timeoutMs),
+            ),
+        );
+
+        const matchIndex = results.findIndex(Boolean);
+        if (matchIndex >= 0) {
+            return candidates[matchIndex] ?? null;
+        }
+
+        return candidates[0] ?? null;
     } catch (error) {
         console.error(
             'Failed to get random image:',
