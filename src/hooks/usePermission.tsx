@@ -1,21 +1,27 @@
 import useConfigStore from '../../store/config';
 import { useEffect } from 'react';
-import { redirect, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Apps } from '../../app/RouterConfig';
 
 export function usePermission() {
-  const { validateEditCode } = useConfigStore();
+  const { checkAuth } = useConfigStore();
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
-    const currentApp = Apps.find(app => app.url === pathname);
-    
-    if (currentApp?.auth) {
-      validateEditCode().then((hasEditCodePermission) => {
-        if (!hasEditCodePermission) {
-          redirect('/login');
+    const currentApp = Apps.find(app => pathname === app.url || pathname.startsWith(`${app.url}/`));
+    const requiredRoles = currentApp?.requiredRoles;
+
+    if (requiredRoles && requiredRoles.length > 0) {
+      let cancelled = false;
+      checkAuth().then((role) => {
+        if ((role === 'none' || !requiredRoles.includes(role)) && !cancelled) {
+          router.push('/login');
         }
       });
+      return () => {
+        cancelled = true;
+      };
     }
-  }, [pathname, validateEditCode]);
+  }, [pathname, checkAuth, router]);
 }

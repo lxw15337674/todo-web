@@ -1,12 +1,31 @@
 import Link from 'next/link'
-import { Apps, Links } from './RouterConfig'
+import { cookies } from 'next/headers'
+import { Apps, Links, canAccessApp, type Role } from './RouterConfig'
 
-export default function Home() {
+export default async function Home() {
+  const adminCode = process.env.EDIT_CODE;
+  const galleryCode = process.env.GALLERY_EDIT_CODE;
+  let role: Role = 'none';
+
+  if (!adminCode && !galleryCode) {
+    role = 'admin';
+  } else {
+    const cookieStore = await cookies();
+    const cookieRole = cookieStore.get('auth_role')?.value;
+    if (cookieRole === 'admin' || cookieRole === 'gallery') {
+      role = cookieRole;
+    } else if (!cookieRole && cookieStore.has('auth_token') && adminCode) {
+      role = 'admin';
+    }
+  }
+
+  const visibleApps = Apps.filter((app) => canAccessApp(app, role));
+
   return (
     <div className="container px-4 py-4 mx-auto max-w-7xl">
       <h1 className="text-2xl font-bold mb-4">应用导航</h1>
       <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {Apps.map((app) => (
+        {visibleApps.map((app) => (
           <Link
             key={app.url}
             href={app.url}

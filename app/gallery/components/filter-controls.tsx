@@ -44,7 +44,7 @@ export function FilterControls({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isProducerDialogOpen, setIsProducerDialogOpen] = useState(false)
-  const { hasEditCodePermission } = useConfigStore()
+  const { role } = useConfigStore()
 
   // 更新URL参数的通用函数
   const updateSearchParams = useCallback((updates: Record<string, string | null>) => {
@@ -157,7 +157,7 @@ export function FilterControls({
         <div className="space-y-2">
           <label className="text-sm font-medium">操作</label>
           <div className="flex gap-2">
-            {hasEditCodePermission && (
+            {(role === 'admin' || role === 'gallery') && (
               <Button
                 variant="outline"
                 size="sm"

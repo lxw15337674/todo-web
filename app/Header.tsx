@@ -6,7 +6,7 @@ import { Button } from '../src/components/ui/button';
 import { Separator } from '../src/components/ui/separator';
 import { LayoutGrid, Github, User, LogIn, LogOut, Check } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Apps, Links } from './RouterConfig';
+import { Apps, Links, canAccessApp } from './RouterConfig';
 import Link from 'next/link';
 import { usePermission } from '../src/hooks/usePermission';
 import useConfigStore from '../store/config';
@@ -18,15 +18,21 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const currentApp = Apps.find((app) => app.url === pathname);
-  const { hasEditCodePermission, logout } = useConfigStore();
+  const { role, logout, checkAuth } = useConfigStore();
+  const visibleApps = Apps.filter((app) => canAccessApp(app, role));
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
   };
 
   const handleLogin = () => {
     router.push('/login');
   };
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   useEffect(() => {
     if (currentApp) {
@@ -51,7 +57,7 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[300px] p-4">
               <div className="grid grid-cols-3 gap-4">
-                {Apps.map((app) => {
+                {visibleApps.map((app) => {
                   const Icon = app.icon;
                   return (
                     <Link
@@ -107,7 +113,7 @@ export default function Header() {
           >
             <Github />
           </Button>
-          {hasEditCodePermission ? (
+          {role !== 'none' ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
@@ -117,7 +123,7 @@ export default function Header() {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem disabled>
                   <Check className="mr-2 h-4 w-4" />
-                  已登录
+                  {role === 'admin' ? '已登录（管理员）' : '已登录（图床）'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>

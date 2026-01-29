@@ -17,17 +17,16 @@ import { useToast } from "../../src/hooks/use-toast";
 import PasswordInput from "../../src/components/PasswordInput";
 
 export default function Login() {
-    const { setEditCodePermission, validateEditCode } = useConfigStore();
+    const { setEditCodePermission, checkAuth } = useConfigStore();
     const [password, setPassword] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast();
     const router = useRouter()
 
-    useMount(async () => {
-        validateEditCode().then((hasEditCodePermission) => {
-            if (hasEditCodePermission) {
+    useMount(() => {
+        checkAuth().then((role) => {
+            if (role !== 'none') {
                 router.push('/')
-                return
             }
         });
     })
@@ -44,8 +43,8 @@ export default function Login() {
         
         setIsLoading(true);
         try {
-            const hasEditCodePermission = await setEditCodePermission(password ?? '')
-            if (!hasEditCodePermission) {
+            const role = await setEditCodePermission(password ?? '')
+            if (role === 'none') {
                 toast({
                     variant: "destructive",
                     title: "验证失败",

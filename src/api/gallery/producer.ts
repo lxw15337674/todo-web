@@ -1,15 +1,33 @@
 'use server';
 import { Producer, ProducerTag } from '@prisma/client';
+import { cookies } from 'next/headers';
 import { NewProducer, UpdateProducer } from './type';
 import prisma from '../prisma';
 
 // 验证编辑密码
-const verifyEditCode = (editCode?: string): boolean => {
-  const requiredCode = process.env.EDIT_CODE;
-  if (!requiredCode) {
+const verifyEditCode = async (editCode?: string): Promise<boolean> => {
+  const adminCode = process.env.EDIT_CODE;
+  const galleryCode = process.env.GALLERY_EDIT_CODE;
+  if (!adminCode && !galleryCode) {
     return true; // 如果没有设置密码要求，则允许所有操作
   }
-  return editCode === requiredCode;
+
+  if (editCode && (editCode === adminCode || editCode === galleryCode)) {
+    return true;
+  }
+
+  const cookieStore = await cookies();
+  const role = cookieStore.get('auth_role')?.value;
+  if (role === 'admin' || role === 'gallery') {
+    return true;
+  }
+
+  // Backward compatibility for legacy auth token
+  if (!role && cookieStore.has('auth_token') && adminCode) {
+    return true;
+  }
+
+  return false;
 };
 
 // 通用的Producer查询配置
@@ -32,7 +50,7 @@ const mapProducerWithTags = (
 });
 
 export const createProducer = async (data: NewProducer & { editCode?: string }): Promise<Producer> => {
-  if (!verifyEditCode(data.editCode)) {
+  if (!await verifyEditCode(data.editCode)) {
     throw new Error('无效的访问密码');
   }
 
@@ -107,7 +125,7 @@ export const getProducerById = async (id: string) => {
 };
 
 export const updateProducer = async (data: UpdateProducer & { editCode?: string }) => {
-  if (!verifyEditCode(data.editCode)) {
+  if (!await verifyEditCode(data.editCode)) {
     throw new Error('无效的访问密码');
   }
 
@@ -125,7 +143,7 @@ export const updateProducer = async (data: UpdateProducer & { editCode?: string 
 };
 
 export const deleteProducer = async (id: string, editCode?: string) => {
-  if (!verifyEditCode(editCode)) {
+  if (!await verifyEditCode(editCode)) {
     throw new Error('无效的访问密码');
   }
 
@@ -153,7 +171,7 @@ export const createProducerTag = async (data: {
   remark?: string;
   editCode?: string;
 }) => {
-  if (!verifyEditCode(data.editCode)) {
+  if (!await verifyEditCode(data.editCode)) {
     throw new Error('无效的访问密码');
   }
 
@@ -164,7 +182,7 @@ export const createProducerTag = async (data: {
 };
 
 export const deleteProducerTag = async (id: string, editCode?: string) => {
-  if (!verifyEditCode(editCode)) {
+  if (!await verifyEditCode(editCode)) {
     throw new Error('无效的访问密码');
   }
 
@@ -181,7 +199,7 @@ export const updateProducerTags = async (
   tagIds: string[],
   editCode?: string,
 ) => {
-  if (!verifyEditCode(editCode)) {
+  if (!await verifyEditCode(editCode)) {
     throw new Error('无效的访问密码');
   }
 

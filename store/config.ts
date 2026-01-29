@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { validateEditCode } from '../src/api/validActions';
+
+type Role = 'admin' | 'gallery' | 'none';
 interface CodeConfig {
     editCode: string;
 }
@@ -20,10 +22,10 @@ interface SettingStore {
     resetCodeConfig: () => void;
     resetAllConfig: () => void;
     setConfig: (callback: (config: Config) => void) => void;
-    setEditCodePermission: (editCode: string) => Promise<boolean>;
-    hasEditCodePermission: boolean;
-    validateEditCode: () => Promise<boolean>;
-    logout: () => void;
+    setEditCodePermission: (editCode: string) => Promise<Role>;
+    role: Role;
+    checkAuth: () => Promise<Role>;
+    logout: () => Promise<void>;
 }
 
 const defaultConfig: Config = {
@@ -40,7 +42,7 @@ const useConfigStore = create<SettingStore>()(
         persist(immer<SettingStore>(
             (set, get) => ({
                 config: defaultConfig,
-                hasEditCodePermission: process.env.EDIT_CODE === undefined,
+                role: 'none',
                 resetCodeConfig: () => {
                     set((state) => {
                         state.config.codeConfig = { ...defaultConfig.codeConfig }
@@ -62,24 +64,53 @@ const useConfigStore = create<SettingStore>()(
                     })
                 },
                 setEditCodePermission: async (code) => {
-                    const hasEditCodePermission = await validateEditCode(code)
-                    if (hasEditCodePermission) {
+                    const role = await validateEditCode(code)
+                    if (role !== 'none') {
                         set((state) => {
                             state.config.codeConfig.editCode = code
-                            state.hasEditCodePermission = true
+                            state.role = role
+                        })
+                    } else {
+                        set((state) => {
+                            state.role = 'none'
+                            state.config.codeConfig.editCode = ''
                         })
                     }
-                    return hasEditCodePermission
+                    return role
                 },
-                validateEditCode: async () => {
-                    const editCode = get().config.codeConfig.editCode;
-                    return validateEditCode(editCode);
+                checkAuth: async () => {
+                    try {
+                        const response = await fetch('/api/auth/status', { cache: 'no-store' });
+                        if (!response.ok) {
+                            throw new Error('auth status failed');
+                        }
+                        const data = await response.json();
+                        const role = data?.role === 'admin' || data?.role === 'gallery' ? data.role : 'none';
+                        set((state) => {
+                            state.role = role;
+                            if (role === 'none') {
+                                state.config.codeConfig.editCode = '';
+                            }
+                        })
+                        return role;
+                    } catch {
+                        set((state) => {
+                            state.role = 'none';
+                            state.config.codeConfig.editCode = '';
+                        })
+                        return 'none';
+                    }
                 },
-                logout: () => {
+                logout: async () => {
                     set((state) => {
                         state.config.codeConfig.editCode = '';
-                        state.hasEditCodePermission = false;
+                        state.role = 'none';
                     })
+                    try {
+                        await fetch('/api/auth/logout', { method: 'POST' });
+                    } catch {
+                        // Keep local state logged out even if the server call fails.
+                    }
                 }
             })),
             {

@@ -3,29 +3,32 @@
 import { cookies } from 'next/headers';
 
 export async function validateEditCode(password?: string) {
-  // If no password configured, always allow
-  if (!process.env.EDIT_CODE) {
-    return true;
+  const adminCode = process.env.EDIT_CODE;
+  const galleryCode = process.env.GALLERY_EDIT_CODE;
+
+  // If no password configured, always allow as admin
+  if (!adminCode && !galleryCode) {
+    return 'admin';
   }
 
-  // Verify password
-  if (password === process.env.EDIT_CODE) {
+  let role: 'admin' | 'gallery' | 'none' = 'none';
+  if (adminCode && password === adminCode) {
+    role = 'admin';
+  } else if (galleryCode && password === galleryCode) {
+    role = 'gallery';
+  }
+
+  if (role !== 'none') {
     const cookieStore = await cookies();
-    // Set auth cookie valid for 30 days
-    cookieStore.set('auth_token', 'authenticated', {
+    // Set auth role cookie valid for 30 days
+    cookieStore.set('auth_role', role, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 30, // 30 days
       path: '/',
     });
-    return true;
   }
-  
-  return false;
-}
 
-export async function logout() {
-  const cookieStore = await cookies();
-  cookieStore.delete('auth_token');
+  return role;
 }

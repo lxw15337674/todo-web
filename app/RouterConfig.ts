@@ -16,11 +16,13 @@ import {
   CircleDollarSign
 } from 'lucide-react';
 
+export type Role = 'admin' | 'gallery' | 'none';
+
 interface MenuItem {
   name: string;
   url: string;
   icon?: any;
-  auth?: boolean;
+  requiredRoles?: Array<Exclude<Role, 'none'>>;
 }
 
 export const Apps: MenuItem[] = [
@@ -28,25 +30,25 @@ export const Apps: MenuItem[] = [
     name: 'ToDo',
     url: '/task',
     icon: CheckSquare,
-    auth: true
+    requiredRoles: ['admin']
   },
   {
     name: '打卡',
     url: '/habit',
     icon: Calendar,
-    auth: true
+    requiredRoles: ['admin']
   },
   {
     name: '书签',
     url: '/bookmark',
     icon: Bookmark,
-    auth: true
+    requiredRoles: ['admin']
   },
   {
     name:'紀念日',
     url:'/anniversary',
     icon: AnniversaryIcon,
-    auth: true
+    requiredRoles: ['admin']
   },
   {
     name : '图床',
@@ -66,9 +68,19 @@ export const Apps: MenuItem[] = [
   },
   { name: '命令聊天', url: '/chat', icon: MessageCircle },
   {
-    name: '资产管理', url: '/fund', icon: CircleDollarSign, auth: true
+    name: '资产管理', url: '/fund', icon: CircleDollarSign, requiredRoles: ['admin']
   }
 ];
+
+export function canAccessApp(app: MenuItem, role: Role) {
+  if (!app.requiredRoles || app.requiredRoles.length === 0) {
+    return true;
+  }
+  if (role === 'none') {
+    return false;
+  }
+  return app.requiredRoles.includes(role);
+}
 
 export const Links: MenuItem[] = [
   {
