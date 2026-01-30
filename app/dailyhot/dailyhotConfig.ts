@@ -4,10 +4,6 @@ export const news = [
     name: 'maoyan-movie',
   },
   {
-    label: '猫眼网剧',
-    name: 'maoyan-webseries',
-  },
-  {
     label: 'Hacker News',
     name: 'hackernews',
   },
@@ -77,10 +73,6 @@ export const news = [
   {
     label: '知乎话题',
     name: 'zhihu',
-  },
-  {
-    label: '猫眼网剧',
-    name: 'maoyan-web',
   },
   {
     label: '每日新闻',

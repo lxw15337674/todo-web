@@ -1,7 +1,6 @@
 import React from 'react';
 import DailyHotCard from './DailyHotCard';
 import MaoyanMovieCard from './MaoyanMovieCard';
-import MaoyanWebSeriesCard from './MaoyanWebSeriesCard';
 import HackerNewsCard from './HackerNewsCard';
 import RedNoteCard from './RedNoteCard';
 import { news } from './dailyhotConfig';
@@ -10,7 +9,6 @@ import {
   IRootObject,
   getHotLists as getOriginalHotLists,
   getZhihuTopics,
-  getMaoyanWebSeries,
   getDailyNews,
   getAiNews
 } from '@/api/dailyhot';
@@ -104,10 +102,6 @@ const getHotListByType = async (type: string) => {
       data: [],
     };
   }
-  // 处理猫眼网剧
-  else if (type === 'maoyan-web') {
-    return getMaoyanWebSeries();
-  }
   // 处理每日新闻
   else if (type === 'daily-news') {
     return getDailyNews();
@@ -173,15 +167,6 @@ const DailyHot = async () => {
             return (
               <div className="w-full overflow-auto" key={item.name}>
                 <MaoyanMovieCard label={item.label} name={item.name} />
-              </div>
-            );
-          }
-
-          // 对于猫眼网剧，使用专用的卡片组件
-          if (item.name === 'maoyan-webseries') {
-            return (
-              <div className="w-full overflow-auto" key={item.name}>
-                <MaoyanWebSeriesCard label={item.label} name={item.name} />
               </div>
             );
           }

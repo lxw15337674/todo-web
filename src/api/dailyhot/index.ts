@@ -79,29 +79,6 @@ export interface MaoyanMovieResponse {
   };
 }
 
-// 猫网剧热度API相关接口
-export interface MaoyanWebSeriesItem {
-  series_id: number;
-  series_name: string;
-  release_info: string;
-  platform_desc: string;
-  platform_txt: number;
-  curr_heat: number;
-  curr_heat_desc: string;
-  bar_value: number;
-}
-
-export interface MaoyanWebSeriesResponse {
-  code: number;
-  message: string;
-  data: {
-    update_gap_second: number;
-    updated: string;
-    updated_at: number;
-    list: MaoyanWebSeriesItem[];
-  };
-}
-
 // 每日新闻API相关接口
 export interface DailyNewsItem {
   date: string;
@@ -181,28 +158,6 @@ const adaptZhihuTopicData = (zhihuData: ZhihuTopicResponse): IRootObject => {
     from: 'zhihu',
     total: adaptedData.length,
     updateTime: Date.now().toString(),
-    data: adaptedData,
-  };
-};
-
-// 适配猫眼网剧数据为通用格式
-const adaptMaoyanWebSeriesData = (webSeriesData: MaoyanWebSeriesResponse): IRootObject => {
-  const adaptedData: IData[] = webSeriesData.data.list.map((item) => ({
-    title: item.series_name,
-    desc: item.platform_desc,
-    hot: item.curr_heat, // 使用热度值
-    url: '', // 网剧可能没有直接链接
-  }));
-
-  return {
-    code: webSeriesData.code,
-    message: webSeriesData.message,
-    name: 'maoyan-web',
-    title: '猫眼网剧',
-    subtitle: '网剧实时热度榜',
-    from: 'maoyan-web',
-    total: adaptedData.length,
-    updateTime: webSeriesData.data.updated_at.toString(),
     data: adaptedData,
   };
 };
@@ -295,31 +250,6 @@ export const getZhihuTopics = unstable_cache(
   { revalidate: 60 * 30 }, // 每30分钟更新一次
 );
 
-
-// 获取猫眼网剧数据
-export const getMaoyanWebSeries = unstable_cache(
-  async () => {
-    try {
-      const response = await fetchFrom60sApi('maoyan/realtime/web');
-      return adaptMaoyanWebSeriesData(response);
-    } catch (error) {
-      console.error('获取猫眼网剧数据失败:', error);
-      return {
-        code: -1,
-        message: '获取数据失败',
-        name: 'maoyan-web',
-        title: '猫眼网剧',
-        subtitle: '网剧实时热度榜',
-        from: 'maoyan-web',
-        total: 0,
-        updateTime: Date.now().toString(),
-        data: [],
-      };
-    }
-  },
-  ['maoyan-webseries'],
-  { revalidate: 60 * 30 }, // 每30分钟更新一次
-);
 
 // 获取每日新闻数据
 export const getDailyNews = unstable_cache(
