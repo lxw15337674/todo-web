@@ -2,7 +2,6 @@ import React from 'react';
 import DailyHotCard from './DailyHotCard';
 import MaoyanMovieCard from './MaoyanMovieCard';
 import HackerNewsCard from './HackerNewsCard';
-import RedNoteCard from './RedNoteCard';
 import { news } from './dailyhotConfig';
 import {
   IData,
@@ -10,7 +9,7 @@ import {
   getHotLists as getOriginalHotLists,
   getZhihuTopics,
   getDailyNews,
-  getAiNews
+  getAiNews,
 } from '@/api/dailyhot';
 import axios from 'axios';
 
@@ -138,7 +137,7 @@ const DailyHot = async () => {
           children: [],
         };
       }
-    })
+    }),
   );
 
   // 过滤成功的请求，或者包含失败的请求但有默认值
@@ -148,7 +147,10 @@ const DailyHot = async () => {
     } else {
       // 如果请求失败，返回一个默认结构
       const item = news[index];
-      console.error(`获取 ${item.label}(${item.name}) 数据失败:`, result.reason);
+      console.error(
+        `获取 ${item.label}(${item.name}) 数据失败:`,
+        result.reason,
+      );
       return {
         ...item,
         subtitle: '获取数据失败',
@@ -176,15 +178,6 @@ const DailyHot = async () => {
             return (
               <div className="w-full overflow-auto" key={item.name}>
                 <HackerNewsCard label={item.label} name={item.name} />
-              </div>
-            );
-          }
-
-          // 对于小红书，使用专用的卡片组件
-          if (item.name === 'xiaohongshu') {
-            return (
-              <div className="w-full overflow-auto" key={item.name}>
-                <RedNoteCard label={item.label} name={item.name} />
               </div>
             );
           }

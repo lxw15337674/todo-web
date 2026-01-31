@@ -8,10 +8,6 @@ export const news = [
     name: 'hackernews',
   },
   {
-    label: '小红书',
-    name: 'xiaohongshu',
-  },
-  {
     label: '微博',
     name: 'weibo',
   },
