@@ -71,10 +71,10 @@ interface FilteredTasks {
 }
 
 export default function Page() {
-    const { data: tasks = [], mutate, refresh: refreshTasks } = useLocalStorageRequest<AggregatedTask[]>(fetchAggregatedTask, {
+    const { data: tasks = [], mutate, refresh: refreshTasks } = useLocalStorageRequest<AggregatedTask[], []>(fetchAggregatedTask, {
         cacheKey: 'AggregatedTask',
     });
-    const { data: tags = [], refresh: refreshTags } = useLocalStorageRequest<TaskTag[]>(fetchTaskTags, {
+    const { data: tags = [], refresh: refreshTags } = useLocalStorageRequest<TaskTag[], []>(fetchTaskTags, {
         cacheKey: 'TaskTags',
     });
 
@@ -85,7 +85,6 @@ export default function Page() {
 
     useEffect(() => {
         refreshTasks();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // 修改 filteredTasks 的计算逻辑，并使用 useMemo 优化性能

@@ -8,9 +8,6 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig = withSerwist({
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     dangerouslyAllowSVG: true,
     unoptimized: true,

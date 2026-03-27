@@ -32,7 +32,7 @@ async function uploadToGalleryServer(
 ): Promise<string | null> {
     try {
         const formData = new FormData();
-        formData.append('file', new Blob([buffer]), fileName);
+        formData.append('file', new Blob([new Uint8Array(buffer)]), fileName);
 
         const response = await axios.post(`${GALLERY_URL}/upload`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }

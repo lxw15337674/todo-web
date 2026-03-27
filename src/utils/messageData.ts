@@ -1,6 +1,5 @@
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
-import lodash from 'lodash';
 
 interface UserStat {
   userId: string;
@@ -26,16 +25,22 @@ class MessageData {
   private path: string;
   private data: GroupData[];
   private lastPersistedData: string = '';
-  public debouncePersistMessageFn = lodash.debounce(
-    () => this.persistMessage(),
-    2000,
-  );
+  private persistTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(path: string) {
     this.path = path;
     this.data = [];
     this.initialize();
   }
+
+  public debouncePersistMessageFn = () => {
+    if (this.persistTimer) {
+      clearTimeout(this.persistTimer);
+    }
+    this.persistTimer = setTimeout(() => {
+      void this.persistMessage();
+    }, 2000);
+  };
 
   public async initialize(): Promise<void> {
     await this.initJSON();
@@ -135,11 +140,15 @@ class MessageData {
     return this.data;
   }
 
-  public getGroupData(groupId: string): GroupData {
+  public getGroupData(groupId: string): GroupData | undefined {
     return this.data.find((g) => g.groupId === groupId);
   }
 
   public async remove(): Promise<void> {
+    if (this.persistTimer) {
+      clearTimeout(this.persistTimer);
+      this.persistTimer = null;
+    }
     if (!fs.existsSync(this.path)) {
       return;
     }

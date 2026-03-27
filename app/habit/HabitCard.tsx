@@ -300,13 +300,15 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                         }}
                       >
                         {trackItems.map((count, index) => (
-                          <TimelineItem key={count.id} className="relative group">
+                          <TimelineItem key={count.id}>
                             <TimelineSeparator>
-                              <TimelineDot className="bg-primary" />
-                              {index < trackItems.length - 1 && <TimelineConnector className="bg-primary/30" />}
+                              <TimelineDot sx={{ bgcolor: 'primary.main' }} />
+                              {index < trackItems.length - 1 && (
+                                <TimelineConnector sx={{ bgcolor: 'primary.main', opacity: 0.3 }} />
+                              )}
                             </TimelineSeparator>
                             <TimelineContent>
-                              <div className="flex items-center justify-between py-1">
+                              <div className="group flex items-center justify-between py-1">
                                 <div>
                                   <div className="text-sm font-medium">
                                     第 {trackItems.length - index} 次打卡

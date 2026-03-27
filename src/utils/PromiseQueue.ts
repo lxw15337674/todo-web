@@ -33,7 +33,8 @@ export class PromiseQueue {
         await task(); // 执行任务并等待其完成
         await randomSleep(1000, 3000);
       } catch (error) {
-        console.error('任务执行出错:', error.message);
+        const message = error instanceof Error ? error.message : String(error);
+        console.error('任务执行出错:', message);
       }
       this.queue.shift(); // 从队列中移除已完成的任务
     }

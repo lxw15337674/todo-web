@@ -1,7 +1,14 @@
-import { describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('./sleep', () => ({
+  randomSleep: vi.fn().mockResolvedValue(undefined),
+}));
 import { PromiseQueue } from './PromiseQueue';
 
 describe('PromiseQueue', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('should execute tasks sequentially', async () => {
     const queue = new PromiseQueue();
     const executionOrder: number[] = [];
@@ -41,7 +48,7 @@ describe('PromiseQueue', () => {
           clearInterval(intervalId);
           resolve();
         }
-      }, 100); // 每 100ms 检查一次队列是否为空
+      }, 10); // 每 10ms 检查一次队列是否为空
     });
 
     expect(executionOrder).toEqual([1, 2, 3]);
@@ -57,7 +64,7 @@ describe('PromiseQueue', () => {
     queue.addTask(task2);
 
     // 等待足够长时间，确保两个任务都已执行
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     // 任务 1 执行失败，任务 2 仍然应该执行
     expect(queue.isEmpty()).toBe(true);

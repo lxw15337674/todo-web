@@ -8,6 +8,7 @@ const ADMIN_ROUTES = [
   '/fund',
   '/bookmark',
   '/anniversary',
+  '/admin/monitor',
 ];
 
 export function proxy(request: NextRequest) {

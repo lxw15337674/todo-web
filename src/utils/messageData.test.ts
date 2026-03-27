@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import MessageData from './messageData';
 
 describe('MessageData', () => {
