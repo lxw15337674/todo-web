@@ -8,8 +8,10 @@ const STATS_VIEWS = new Set(['overview', 'daily', 'failures']);
 const STATS_QUERY_KEYS = [
     'view',
     'platform',
+    'sourceDomain',
     'startDate',
     'endDate',
+    'topN',
     'page',
     'pageSize',
     'errorCode',

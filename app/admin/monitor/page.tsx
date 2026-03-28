@@ -16,8 +16,6 @@ import {
     Legend,
     Line,
     LineChart,
-    ResponsiveContainer,
-    Tooltip as RechartsTooltip,
     XAxis,
     YAxis,
 } from 'recharts';
@@ -64,10 +62,27 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+    type ChartConfig,
+} from '@/components/ui/chart';
 
 const AUTO_REFRESH_INTERVAL_MS = 30_000;
 const SLOW_REQUEST_MS = 1_500;
+const SOURCE_DOMAIN_TOP_N = 10;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
+const DAILY_STATS_CHART_CONFIG = {
+    successCount: {
+        label: '成功',
+        color: '#16a34a',
+    },
+    failureCount: {
+        label: '失败',
+        color: '#dc2626',
+    },
+} satisfies ChartConfig;
 const PLATFORM_OPTIONS: Array<{ label: string; value: 'all' | MonitorPlatform }> = [
     { label: '全部平台', value: 'all' },
     { label: 'Bilibili', value: 'bilibili' },
@@ -125,6 +140,13 @@ const formatMetric = (value: number | undefined) => {
         return '-';
     }
     return numberFormatter.format(value);
+};
+
+const formatSourceDomain = (value?: string) => {
+    if (!value || value.trim() === '') {
+        return 'unknown';
+    }
+    return value;
 };
 
 const getRequestStartTime = () => {
@@ -215,6 +237,7 @@ export default function AdminMonitorPage() {
     const [failuresDurationMs, setFailuresDurationMs] = useState<number | null>(null);
 
     const [platform, setPlatform] = useState<'all' | MonitorPlatform>('all');
+    const [sourceDomain, setSourceDomain] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [errorCode, setErrorCode] = useState('');
@@ -225,14 +248,16 @@ export default function AdminMonitorPage() {
     const normalizedFilter = useMemo(() => {
         return {
             platform: platform === 'all' ? undefined : platform,
+            sourceDomain: sourceDomain.trim() || undefined,
             startDate: startDate || undefined,
             endDate: endDate || undefined,
         };
-    }, [platform, startDate, endDate]);
+    }, [platform, sourceDomain, startDate, endDate]);
 
     const failureQuery = useMemo<FailureQuery>(() => {
         return {
             platform: normalizedFilter.platform,
+            sourceDomain: normalizedFilter.sourceDomain,
             startDate: normalizedFilter.startDate,
             endDate: normalizedFilter.endDate,
             page,
@@ -263,14 +288,16 @@ export default function AdminMonitorPage() {
     }, []);
 
     const loadOverviewAndDaily = useCallback(
-        async (query: Pick<FailureQuery, 'platform' | 'startDate' | 'endDate'>) => {
+        async (
+            query: Pick<FailureQuery, 'platform' | 'sourceDomain' | 'startDate' | 'endDate'>,
+        ) => {
             const startTime = getRequestStartTime();
             setStatsLoading(true);
             setStatsError(null);
 
             try {
                 const [overviewResult, dailyResult] = await Promise.all([
-                    fetchAdminOverview(query),
+                    fetchAdminOverview({ ...query, topN: SOURCE_DOMAIN_TOP_N }),
                     fetchAdminDaily(query),
                 ]);
                 setOverview(overviewResult);
@@ -343,6 +370,7 @@ export default function AdminMonitorPage() {
 
     const handleResetFilters = () => {
         setPlatform('all');
+        setSourceDomain('');
         setStartDate('');
         setEndDate('');
         setErrorCode('');
@@ -500,12 +528,19 @@ export default function AdminMonitorPage() {
                                                 趋势数据加载中...
                                             </div>
                                         ) : dailyStats.length > 0 ? (
-                                            <ResponsiveContainer width="100%" height="100%">
+                                            <ChartContainer
+                                                config={DAILY_STATS_CHART_CONFIG}
+                                                className="h-full w-full aspect-auto"
+                                            >
                                                 <LineChart data={dailyStats}>
                                                     <CartesianGrid strokeDasharray="3 3" />
                                                     <XAxis dataKey="date" />
                                                     <YAxis allowDecimals={false} />
-                                                    <RechartsTooltip />
+                                                    <ChartTooltip
+                                                        content={
+                                                            <ChartTooltipContent indicator="line" />
+                                                        }
+                                                    />
                                                     <Legend />
                                                     <Line
                                                         type="monotone"
@@ -524,7 +559,7 @@ export default function AdminMonitorPage() {
                                                         dot={false}
                                                     />
                                                 </LineChart>
-                                            </ResponsiveContainer>
+                                            </ChartContainer>
                                         ) : (
                                             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                                                 暂无趋势数据
@@ -534,27 +569,70 @@ export default function AdminMonitorPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="shadow-none">
-                                <CardHeader>
-                                    <CardTitle className="text-base">平台分布</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-2">
-                                    {(overview?.platformTotals || []).map((item) => (
-                                        <div
-                                            className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
-                                            key={item.platform}
-                                        >
-                                            <span className="font-medium">{item.platform}</span>
-                                            <span className="text-muted-foreground">{formatMetric(item.count)}</span>
-                                        </div>
-                                    ))}
-                                    {(overview?.platformTotals || []).length === 0 && (
-                                        <div className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
-                                            暂无平台统计数据
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
+                            <div className="grid gap-4">
+                                <Card className="shadow-none">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">平台分布</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-2">
+                                        {(overview?.platformTotals || []).map((item) => (
+                                            <div
+                                                className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
+                                                key={item.platform}
+                                            >
+                                                <span className="font-medium">{item.platform}</span>
+                                                <span className="text-muted-foreground">{formatMetric(item.count)}</span>
+                                            </div>
+                                        ))}
+                                        {(overview?.platformTotals || []).length === 0 && (
+                                            <div className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
+                                                暂无平台统计数据
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="shadow-none">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">来源域名 Top {SOURCE_DOMAIN_TOP_N}</CardTitle>
+                                        <CardDescription>
+                                            点击条目可按该来源域名筛选趋势和失败日志。
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-2">
+                                        {(overview?.sourceDomainTopN || []).map((item) => {
+                                            const active = normalizedFilter.sourceDomain === item.sourceDomain;
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                                                        active
+                                                            ? 'border-primary bg-primary/5'
+                                                            : 'hover:border-primary/40'
+                                                    }`}
+                                                    key={item.sourceDomain}
+                                                    onClick={() => {
+                                                        setSourceDomain(item.sourceDomain);
+                                                        setPage(1);
+                                                    }}
+                                                >
+                                                    <span className="truncate font-medium">
+                                                        {formatSourceDomain(item.sourceDomain)}
+                                                    </span>
+                                                    <span className="ml-3 shrink-0 text-muted-foreground">
+                                                        {formatMetric(item.count)}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                        {(overview?.sourceDomainTopN || []).length === 0 && (
+                                            <div className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
+                                                暂无来源域名数据
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -573,7 +651,7 @@ export default function AdminMonitorPage() {
                             />
                         </div>
                         <CardDescription>
-                            支持平台、日期范围、错误码筛选，默认不返回原始 URL。
+                            支持平台、来源域名、日期范围、错误码筛选，默认不返回原始 URL。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -583,7 +661,7 @@ export default function AdminMonitorPage() {
                             </div>
                         )}
 
-                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                             <div className="space-y-2">
                                 <Label htmlFor="platform-filter">平台</Label>
                                 <Select
@@ -604,6 +682,19 @@ export default function AdminMonitorPage() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="source-domain-filter">来源域名</Label>
+                                <Input
+                                    id="source-domain-filter"
+                                    placeholder="如: todo.bhwa233.com"
+                                    value={sourceDomain}
+                                    onChange={(event) => {
+                                        setSourceDomain(event.target.value);
+                                        setPage(1);
+                                    }}
+                                />
                             </div>
 
                             <div className="space-y-2">
@@ -645,7 +736,7 @@ export default function AdminMonitorPage() {
                                 />
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="space-y-2 xl:col-span-1">
                                 <Label htmlFor="page-size">每页数量</Label>
                                 <Select
                                     value={`${pageSize}`}
@@ -667,7 +758,7 @@ export default function AdminMonitorPage() {
                                 </Select>
                             </div>
 
-                            <div className="flex items-end gap-2">
+                            <div className="flex items-end gap-2 md:col-span-2 xl:col-span-2">
                                 <div className="flex items-center gap-2 rounded-md border px-3 py-2">
                                     <Checkbox
                                         id="include-url"
@@ -693,6 +784,7 @@ export default function AdminMonitorPage() {
                                     <TableRow>
                                         <TableHead>时间</TableHead>
                                         <TableHead>平台</TableHead>
+                                        <TableHead>来源域名</TableHead>
                                         <TableHead>错误码</TableHead>
                                         <TableHead>消息</TableHead>
                                         <TableHead>请求ID</TableHead>
@@ -702,7 +794,7 @@ export default function AdminMonitorPage() {
                                 <TableBody>
                                     {failuresLoading ? (
                                         <TableRow>
-                                            <TableCell colSpan={includeUrl ? 6 : 5} className="h-20 text-center">
+                                            <TableCell colSpan={includeUrl ? 7 : 6} className="h-20 text-center">
                                                 日志加载中...
                                             </TableCell>
                                         </TableRow>
@@ -713,6 +805,9 @@ export default function AdminMonitorPage() {
                                                     {formatDateTime(item.timestamp)}
                                                 </TableCell>
                                                 <TableCell>{item.platform}</TableCell>
+                                                <TableCell className="max-w-[220px] truncate text-xs text-muted-foreground">
+                                                    {formatSourceDomain(item.sourceDomain)}
+                                                </TableCell>
                                                 <TableCell>
                                                     <Badge variant="outline">{item.errorCode}</Badge>
                                                 </TableCell>
@@ -729,7 +824,7 @@ export default function AdminMonitorPage() {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={includeUrl ? 6 : 5} className="h-20 text-center">
+                                            <TableCell colSpan={includeUrl ? 7 : 6} className="h-20 text-center">
                                                 暂无失败日志
                                             </TableCell>
                                         </TableRow>
