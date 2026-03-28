@@ -1,5 +1,3 @@
-export type MonitorStatsView = 'overview' | 'daily' | 'failures';
-
 export type MonitorPlatform =
     | 'bilibili'
     | 'bilibili_tv'
@@ -39,8 +37,8 @@ export interface PlatformTotal {
     count: number;
 }
 
-export interface SourceDomainTotal {
-    sourceDomain: string;
+export interface RequestSourceTotal {
+    requestSource: string;
     count: number;
 }
 
@@ -55,42 +53,57 @@ export interface OverviewStatsData {
     summary: OverviewSummary;
     platformTotals: PlatformTotal[];
     recentDailyStats: DailyStatPoint[];
-    sourceDomainTopN: SourceDomainTotal[];
+    requestSourceTopN: RequestSourceTotal[];
 }
 
-export interface FailureLogItem {
+export interface RequestLogItem {
     id: string;
     timestamp: string;
     platform: string;
-    sourceDomain: string;
-    errorCode: string;
-    message: string;
+    requestSource: string;
+    success: boolean;
+    errorCode?: string;
+    message?: string;
     requestId: string;
     url?: string;
     raw: Record<string, unknown>;
 }
 
-export interface FailurePagination {
+export interface RequestPagination {
     page: number;
     pageSize: number;
     total: number;
     totalPages: number;
 }
 
-export interface FailureStatsData {
-    items: FailureLogItem[];
-    pagination: FailurePagination;
-}
-
-export interface FailureQuery {
+export interface RequestFilters {
     platform?: MonitorPlatform;
-    sourceDomain?: string;
+    requestSource?: string;
+    success?: boolean;
+    errorCode?: string;
     startDate?: string;
     endDate?: string;
+}
+
+export interface RequestStatsData {
+    items: RequestLogItem[];
+    pagination: RequestPagination;
+    filters: RequestFilters;
+}
+
+export interface AggregateQuery {
+    platform?: MonitorPlatform;
+    requestSource?: string;
+    startDate?: string;
+    endDate?: string;
+    topN?: number;
+}
+
+export interface RequestQuery extends AggregateQuery {
+    success?: boolean;
     page?: number;
     pageSize?: number;
     errorCode?: string;
-    includeUrl?: boolean;
 }
 
 interface StatsEnvelope<TData = Record<string, unknown>> {
@@ -161,12 +174,17 @@ const toNumber = (value: unknown, fallback = 0): number => {
     return fallback;
 };
 
-const toBoolean = (value: unknown, fallback = false): boolean => {
+const toBoolean = (value: unknown, fallback?: boolean): boolean | undefined => {
     if (typeof value === 'boolean') {
         return value;
     }
     if (typeof value === 'string') {
-        return value.toLowerCase() === 'true';
+        if (value.toLowerCase() === 'true') {
+            return true;
+        }
+        if (value.toLowerCase() === 'false') {
+            return false;
+        }
     }
     return fallback;
 };
@@ -212,7 +230,7 @@ const appendQuery = (
 };
 
 const requestMonitorApi = async <T>(
-    target: 'health' | 'stats',
+    target: 'health' | 'aggregate' | 'requests',
     options?: {
         query?: Record<string, string | number | boolean | undefined>;
     },
@@ -247,26 +265,7 @@ export const fetchHealth = async (): Promise<HealthResponse> => {
     return requestMonitorApi<HealthResponse>('health');
 };
 
-export const fetchAdminStats = async <TData = Record<string, unknown>>(
-    query: {
-        view: MonitorStatsView;
-        platform?: MonitorPlatform;
-        sourceDomain?: string;
-        startDate?: string;
-        endDate?: string;
-        topN?: number;
-        page?: number;
-        pageSize?: number;
-        errorCode?: string;
-        includeUrl?: boolean;
-    },
-): Promise<StatsEnvelope<TData>> => {
-    return requestMonitorApi<StatsEnvelope<TData>>('stats', {
-        query,
-    });
-};
-
-export const normalizeOverviewData = (data: unknown): OverviewStatsData => {
+export const normalizeAggregateData = (data: unknown): OverviewStatsData => {
     const record = toRecord(data);
     const summary = toRecord(record.summary);
 
@@ -280,28 +279,40 @@ export const normalizeOverviewData = (data: unknown): OverviewStatsData => {
         })
         : [];
 
-    const recentDailySource = Array.isArray(record.recentDailyStats)
-        ? record.recentDailyStats
-        : [];
-
-    const recentDailyStats: DailyStatPoint[] = recentDailySource.map((item) => {
-        const row = toRecord(item);
-        return {
-            date: toString(row.date, '-'),
-            successCount: toNumber(row.successCount, 0),
-            failureCount: toNumber(row.failureCount, 0),
-        };
-    });
-
-    const sourceDomainTopN = Array.isArray(record.sourceDomainTopN)
-        ? record.sourceDomainTopN.map((item) => {
+    const recentDailyStats = Array.isArray(record.recentDailyStats)
+        ? record.recentDailyStats.map((item) => {
             const row = toRecord(item);
             return {
-                sourceDomain: toString(row.sourceDomain, 'unknown'),
-                count: toNumber(row.count, 0),
+                date: toString(row.date, '-'),
+                successCount: toNumber(row.successCount, 0),
+                failureCount: toNumber(row.failureCount, 0),
             };
         })
         : [];
+
+    const requestSourceTopN = Array.isArray(record.requestSourceTopN)
+        ? record.requestSourceTopN.map((item) => {
+            const row = toRecord(item);
+            return {
+                requestSource:
+                    toString(row.requestSource) ||
+                    toString(row.sourceDomain) ||
+                    'unknown',
+                count: toNumber(row.count, 0),
+            };
+        })
+        : Array.isArray(record.sourceDomainTopN)
+            ? record.sourceDomainTopN.map((item) => {
+                const row = toRecord(item);
+                return {
+                    requestSource:
+                        toString(row.requestSource) ||
+                        toString(row.sourceDomain) ||
+                        'unknown',
+                    count: toNumber(row.count, 0),
+                };
+            })
+            : [];
 
     return {
         summary: {
@@ -312,71 +323,18 @@ export const normalizeOverviewData = (data: unknown): OverviewStatsData => {
         },
         platformTotals,
         recentDailyStats,
-        sourceDomainTopN,
+        requestSourceTopN,
     };
 };
 
-export const normalizeDailyStats = (data: unknown): DailyStatPoint[] => {
-    const record = toRecord(data);
-    const source = Array.isArray(record.dailyStats)
-        ? record.dailyStats
-        : Array.isArray(record.recentDailyStats)
-            ? record.recentDailyStats
-            : [];
-
-    if (source.length > 0) {
-        return source.map((item) => {
-            const row = toRecord(item);
-            return {
-                date: toString(row.date, '-'),
-                successCount: toNumber(row.successCount, 0),
-                failureCount: toNumber(row.failureCount, 0),
-            };
-        });
-    }
-
-    const itemSource = Array.isArray(record.items) ? record.items : [];
-    const aggregated = new Map<string, DailyStatPoint>();
-
-    itemSource.forEach((item) => {
-        const row = toRecord(item);
-        const date = toString(row.date, '-');
-        const successCount =
-            'successCount' in row
-                ? toNumber(row.successCount, 0)
-                : toNumber(row.count, 0);
-        const failureCount = toNumber(row.failureCount, 0);
-        const current = aggregated.get(date) ?? {
-            date,
-            successCount: 0,
-            failureCount: 0,
-        };
-
-        current.successCount += successCount;
-        current.failureCount += failureCount;
-        aggregated.set(date, current);
-    });
-
-    return Array.from(aggregated.values()).sort((left, right) =>
-        left.date.localeCompare(right.date),
-    );
-};
-
-export const normalizeFailureStats = (
+export const normalizeRequestStats = (
     data: unknown,
     fallback: { page: number; pageSize: number },
-): FailureStatsData => {
+): RequestStatsData => {
     const record = toRecord(data);
+    const source = Array.isArray(record.items) ? record.items : [];
 
-    const source = Array.isArray(record.failures)
-        ? record.failures
-        : Array.isArray(record.items)
-            ? record.items
-            : Array.isArray(record.logs)
-                ? record.logs
-                : [];
-
-    const items: FailureLogItem[] = source.map((entry, index) => {
+    const items: RequestLogItem[] = source.map((entry, index) => {
         const row = toRecord(entry);
         const requestId =
             toString(row.requestId) ||
@@ -384,27 +342,23 @@ export const normalizeFailureStats = (
             toString(row.id) ||
             '-';
 
-        const timestamp =
-            toString(row.timestamp) ||
-            toString(row.createdAt) ||
-            toString(row.date) ||
-            '-';
-
         return {
             id: toString(row.id, `${fallback.page}-${index}`),
-            timestamp,
+            timestamp:
+                toString(row.timestamp) ||
+                toString(row.createdAt) ||
+                '-',
             platform: toString(row.platform, 'unknown'),
-            sourceDomain: toString(row.sourceDomain, 'unknown'),
-            errorCode:
-                toString(row.errorCode) ||
-                toString(row.code) ||
-                toString(row.error) ||
-                '-',
+            requestSource:
+                toString(row.requestSource) ||
+                toString(row.sourceDomain) ||
+                'unknown',
+            success: toBoolean(row.success, false) ?? false,
+            errorCode: toString(row.errorCode) || undefined,
             message:
-                toString(row.message) ||
                 toString(row.errorMessage) ||
-                toString(row.reason) ||
-                '-',
+                toString(row.message) ||
+                undefined,
             requestId,
             url:
                 toString(row.url) ||
@@ -429,6 +383,7 @@ export const normalizeFailureStats = (
             pageSize > 0 ? Math.ceil(total / pageSize) : 1,
         ),
     );
+    const filtersRecord = toRecord(record.filters);
 
     return {
         items,
@@ -438,57 +393,59 @@ export const normalizeFailureStats = (
             total,
             totalPages,
         },
+        filters: {
+            platform: (toString(filtersRecord.platform) || undefined) as
+                | MonitorPlatform
+                | undefined,
+            requestSource:
+                toString(filtersRecord.requestSource) ||
+                toString(filtersRecord.sourceDomain) ||
+                undefined,
+            success: toBoolean(filtersRecord.success),
+            errorCode: toString(filtersRecord.errorCode) || undefined,
+            startDate: toString(filtersRecord.startDate) || undefined,
+            endDate: toString(filtersRecord.endDate) || undefined,
+        },
     };
 };
 
-export const fetchAdminOverview = async (
-    query?: Pick<FailureQuery, 'platform' | 'sourceDomain' | 'startDate' | 'endDate'> & {
-        topN?: number;
-    },
+export const fetchAdminAggregate = async (
+    query?: AggregateQuery,
 ): Promise<OverviewStatsData> => {
-    const result = await fetchAdminStats({
-        view: 'overview',
-        platform: query?.platform,
-        sourceDomain: query?.sourceDomain,
-        startDate: query?.startDate,
-        endDate: query?.endDate,
-        topN: query?.topN,
+    const result = await requestMonitorApi<StatsEnvelope<Record<string, unknown>>>('aggregate', {
+        query: query
+            ? {
+                platform: query.platform,
+                requestSource: query.requestSource,
+                startDate: query.startDate,
+                endDate: query.endDate,
+                topN: query.topN,
+            }
+            : undefined,
     });
-    return normalizeOverviewData(result.data);
+    return normalizeAggregateData(result.data);
 };
 
-export const fetchAdminDaily = async (
-    query?: Pick<FailureQuery, 'platform' | 'sourceDomain' | 'startDate' | 'endDate'>,
-): Promise<DailyStatPoint[]> => {
-    const result = await fetchAdminStats({
-        view: 'daily',
-        platform: query?.platform,
-        sourceDomain: query?.sourceDomain,
-        startDate: query?.startDate,
-        endDate: query?.endDate,
-    });
-    return normalizeDailyStats(result.data);
-};
-
-export const fetchAdminFailures = async (
-    query: FailureQuery,
-): Promise<FailureStatsData> => {
+export const fetchAdminRequests = async (
+    query: RequestQuery,
+): Promise<RequestStatsData> => {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
 
-    const result = await fetchAdminStats({
-        view: 'failures',
-        platform: query.platform,
-        sourceDomain: query.sourceDomain,
-        startDate: query.startDate,
-        endDate: query.endDate,
-        page,
-        pageSize,
-        errorCode: query.errorCode,
-        includeUrl: toBoolean(query.includeUrl, false),
+    const result = await requestMonitorApi<StatsEnvelope<Record<string, unknown>>>('requests', {
+        query: {
+            platform: query.platform,
+            requestSource: query.requestSource,
+            startDate: query.startDate,
+            endDate: query.endDate,
+            success: query.success,
+            page,
+            pageSize,
+            errorCode: query.errorCode,
+        },
     });
 
-    return normalizeFailureStats(result.data, {
+    return normalizeRequestStats(result.data, {
         page,
         pageSize,
     });
@@ -497,7 +454,7 @@ export const fetchAdminFailures = async (
 export const normalizeHealthData = (data: unknown): HealthResponse => {
     const record = toRecord(data);
     return {
-        success: toBoolean(record.success, false),
+        success: toBoolean(record.success, false) ?? false,
         status: toString(record.status, 'unknown'),
         timestamp: toString(record.timestamp, ''),
         version: toString(record.version, '-'),
