@@ -250,8 +250,6 @@ export default function AdminMonitorPage() {
     const [errorCode, setErrorCode] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState<number>(20);
-    const [showUrl, setShowUrl] = useState(false);
-
     const normalizedSharedFilter = useMemo(() => {
         return {
             platform: platform === 'all' ? undefined : platform,
@@ -385,7 +383,6 @@ export default function AdminMonitorPage() {
         setErrorCode('');
         setPage(1);
         setPageSize(20);
-        setShowUrl(false);
     };
 
     const healthStatusText = health?.status || 'unknown';
@@ -801,16 +798,6 @@ export default function AdminMonitorPage() {
                             </div>
 
                             <div className="flex items-end gap-2 md:col-span-2 xl:col-span-2">
-                                <div className="flex items-center gap-2 rounded-md border px-3 py-2">
-                                    <Checkbox
-                                        id="show-url"
-                                        checked={showUrl}
-                                        onCheckedChange={(checked) => setShowUrl(checked === true)}
-                                    />
-                                    <Label htmlFor="show-url" className="cursor-pointer font-normal">
-                                        显示 URL
-                                    </Label>
-                                </div>
                                 <Button variant="outline" onClick={handleResetFilters}>
                                     重置筛选
                                 </Button>
@@ -821,26 +808,29 @@ export default function AdminMonitorPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead className="w-[280px]">URL</TableHead>
                                         <TableHead>时间</TableHead>
                                         <TableHead>平台</TableHead>
                                         <TableHead>请求来源</TableHead>
-                                        <TableHead>状态</TableHead>
+                                        <TableHead className="w-[120px]">状态</TableHead>
                                         <TableHead>错误码</TableHead>
                                         <TableHead>错误消息</TableHead>
                                         <TableHead>请求ID</TableHead>
-                                        {showUrl && <TableHead>URL</TableHead>}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {requestsLoading ? (
                                         <TableRow>
-                                            <TableCell colSpan={showUrl ? 8 : 7} className="h-20 text-center">
+                                            <TableCell colSpan={8} className="h-20 text-center">
                                                 请求明细加载中...
                                             </TableCell>
                                         </TableRow>
                                     ) : requests.items.length > 0 ? (
                                         requests.items.map((item) => (
                                             <TableRow key={item.id}>
+                                                <TableCell className="max-w-[280px] truncate text-xs">
+                                                    {item.url || '-'}
+                                                </TableCell>
                                                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                                                     {formatDateTime(item.timestamp)}
                                                 </TableCell>
@@ -848,7 +838,7 @@ export default function AdminMonitorPage() {
                                                 <TableCell className="max-w-[240px] truncate text-xs text-muted-foreground">
                                                     {formatRequestSource(item.requestSource)}
                                                 </TableCell>
-                                                <TableCell>
+                                                <TableCell className="w-[120px] min-w-[120px]">
                                                     <Badge variant={item.success ? 'default' : 'destructive'}>
                                                         {item.success ? '成功' : '失败'}
                                                     </Badge>
@@ -866,16 +856,11 @@ export default function AdminMonitorPage() {
                                                 <TableCell className="font-mono text-xs text-muted-foreground">
                                                     {item.requestId}
                                                 </TableCell>
-                                                {showUrl && (
-                                                    <TableCell className="max-w-[300px] truncate text-xs">
-                                                        {item.url || '-'}
-                                                    </TableCell>
-                                                )}
                                             </TableRow>
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={showUrl ? 8 : 7} className="h-20 text-center">
+                                            <TableCell colSpan={8} className="h-20 text-center">
                                                 暂无请求明细
                                             </TableCell>
                                         </TableRow>
