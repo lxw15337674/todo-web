@@ -152,6 +152,13 @@ const formatRequestDomain = (value?: string) => {
   return value;
 };
 
+const formatRequestHost = (value?: string) => {
+  if (!value || value.trim() === '') {
+    return 'unknown';
+  }
+  return value;
+};
+
 const formatPercent = (value: number | undefined) => {
   if (typeof value !== 'number' || Number.isNaN(value)) {
     return '-';
@@ -274,6 +281,7 @@ export default function AdminMonitorPage() {
 
   const [platform, setPlatform] = useState<'all' | MonitorPlatform>('all');
   const [requestDomain, setRequestDomain] = useState('');
+  const [requestHost, setRequestHost] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [requestStatus, setRequestStatus] =
@@ -282,21 +290,27 @@ export default function AdminMonitorPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(20);
 
-  const normalizedSharedFilter = useMemo(() => {
+  const normalizedBaseFilter = useMemo(() => {
     return {
       platform: platform === 'all' ? undefined : platform,
-      requestDomain: requestDomain.trim() || undefined,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
     };
-  }, [platform, requestDomain, startDate, endDate]);
+  }, [platform, startDate, endDate]);
+
+  const normalizedAggregateFilter = useMemo(() => {
+    return {
+      ...normalizedBaseFilter,
+      requestDomain: requestDomain.trim() || undefined,
+    };
+  }, [normalizedBaseFilter, requestDomain]);
 
   const aggregateQuery = useMemo<AggregateQuery>(() => {
     return {
-      ...normalizedSharedFilter,
+      ...normalizedAggregateFilter,
       topN: REQUEST_SOURCE_TOP_N,
     };
-  }, [normalizedSharedFilter]);
+  }, [normalizedAggregateFilter]);
 
   const requestsQuery = useMemo<RequestDomainQuery>(() => {
     const success =
@@ -307,17 +321,25 @@ export default function AdminMonitorPage() {
           : undefined;
 
     return {
-      ...normalizedSharedFilter,
+      ...normalizedBaseFilter,
+      requestSource: requestHost.trim() || undefined,
       success,
       page,
       pageSize,
-      groupBy: 'domain',
+      groupBy: 'host',
       sortBy: 'count',
       sortOrder: 'desc',
       errorCode:
         requestStatus === 'success' ? undefined : errorCode.trim() || undefined,
     };
-  }, [normalizedSharedFilter, requestStatus, page, pageSize, errorCode]);
+  }, [
+    normalizedBaseFilter,
+    requestHost,
+    requestStatus,
+    page,
+    pageSize,
+    errorCode,
+  ]);
 
   const loadHealth = useCallback(async () => {
     const startTime = getRequestStartTime();
@@ -419,6 +441,7 @@ export default function AdminMonitorPage() {
   const handleResetFilters = () => {
     setPlatform('all');
     setRequestDomain('');
+    setRequestHost('');
     setStartDate('');
     setEndDate('');
     setRequestStatus('failure');
@@ -662,13 +685,14 @@ export default function AdminMonitorPage() {
                       请求域名 Top {REQUEST_SOURCE_TOP_N}
                     </CardTitle>
                     <CardDescription>
-                      点击条目后，会同步筛选趋势图和域名聚合表。
+                      点击条目后，只会同步筛选上方域名趋势，不影响下方 Host
+                      聚合表。
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {(overview?.requestDomainTopN || []).map((item) => {
                       const active =
-                        normalizedSharedFilter.requestDomain ===
+                        normalizedAggregateFilter.requestDomain ===
                         item.requestDomain;
                       return (
                         <button
@@ -681,7 +705,6 @@ export default function AdminMonitorPage() {
                           key={item.requestDomain}
                           onClick={() => {
                             setRequestDomain(item.requestDomain);
-                            setPage(1);
                           }}
                         >
                           <span className="truncate font-medium">
@@ -710,7 +733,7 @@ export default function AdminMonitorPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2">
                 <ListFilter className="h-5 w-5" />
-                请求域名聚合
+                请求 Host 聚合
               </CardTitle>
               <RequestMetaBadges
                 statusCode={requestsStatusCode}
@@ -719,8 +742,10 @@ export default function AdminMonitorPage() {
               />
             </div>
             <CardDescription>
-              基于 `/api/admin/stats/aggregate?groupBy=domain` 返回的聚合结果，
-              支持按平台、域名、状态、错误码和日期范围筛选，用于定位失败最集中的来源域名。
+              基于 `/api/admin/stats/aggregate?groupBy=host` 返回的聚合结果，
+              支持按平台、Host、状态、错误码和日期范围筛选，用于定位失败最集中的请求来源。
+              上方域名筛选仅影响趋势与 Top N，下方 Host 聚合使用独立的 Host
+              输入框。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -754,13 +779,13 @@ export default function AdminMonitorPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="request-domain-filter">请求域名</Label>
+                <Label htmlFor="request-host-filter">请求 Host</Label>
                 <Input
-                  id="request-domain-filter"
-                  placeholder="如: weibo.cn"
-                  value={requestDomain}
+                  id="request-host-filter"
+                  placeholder="如: m.weibo.cn 或 unknown"
+                  value={requestHost}
                   onChange={(event) => {
-                    setRequestDomain(event.target.value);
+                    setRequestHost(event.target.value);
                     setPage(1);
                   }}
                 />
@@ -864,7 +889,7 @@ export default function AdminMonitorPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>请求域名</TableHead>
+                    <TableHead>请求 Host</TableHead>
                     <TableHead className="text-right">总请求</TableHead>
                     <TableHead className="text-right">成功</TableHead>
                     <TableHead className="text-right">失败</TableHead>
@@ -876,14 +901,16 @@ export default function AdminMonitorPage() {
                   {requestsLoading ? (
                     <TableRow>
                       <TableCell colSpan={6} className="h-20 text-center">
-                        请求域名聚合加载中...
+                        请求 Host 聚合加载中...
                       </TableCell>
                     </TableRow>
                   ) : requests.items.length > 0 ? (
                     requests.items.map((item) => (
                       <TableRow key={item.key}>
                         <TableCell className="max-w-[240px] truncate font-medium">
-                          {formatRequestDomain(item.requestDomain)}
+                          {formatRequestHost(
+                            item.requestHost || item.requestDomain,
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatMetric(item.total)}
@@ -917,7 +944,7 @@ export default function AdminMonitorPage() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={6} className="h-20 text-center">
-                        暂无域名聚合数据
+                        暂无 Host 聚合数据
                       </TableCell>
                     </TableRow>
                   )}
@@ -929,7 +956,7 @@ export default function AdminMonitorPage() {
               <div className="inline-flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4" />
                 当前第 {requests.pagination.page} 页，共 {totalPages} 页，合计{' '}
-                {formatMetric(requests.pagination.total)} 个域名
+                {formatMetric(requests.pagination.total)} 个 Host
               </div>
 
               <div className="flex items-center gap-2">

@@ -484,8 +484,11 @@ export const normalizeRequestDomainStats = (
     return {
       key: toString(row.key, `${fallback.page}-${index}`),
       requestDomain:
-        toString(row.requestDomain) || toString(row.key) || 'unknown',
-      requestHost: toString(row.requestHost) || undefined,
+        toString(row.requestDomain) ||
+        toString(row.requestHost) ||
+        toString(row.key) ||
+        'unknown',
+      requestHost: toString(row.requestHost) || toString(row.key) || undefined,
       total: toNumber(row.total, 0),
       successCount: toNumber(row.successCount, 0),
       failureCount: toNumber(row.failureCount, 0),

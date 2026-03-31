@@ -365,8 +365,11 @@ const normalizeRequestAggregatePage = (
     return {
       key: toString(row.key, `${fallback.page}-${index}`),
       requestDomain:
-        toString(row.requestDomain) || toString(row.key) || 'unknown',
-      requestHost: toString(row.requestHost) || undefined,
+        toString(row.requestDomain) ||
+        toString(row.requestHost) ||
+        toString(row.key) ||
+        'unknown',
+      requestHost: toString(row.requestHost) || toString(row.key) || undefined,
       total: toNumber(row.total, 0),
       successCount: toNumber(row.successCount, 0),
       failureCount: toNumber(row.failureCount, 0),
@@ -544,7 +547,11 @@ const handleRequestDomainsRequest = async (request: NextRequest) => {
     data?: UpstreamRequestAggregatePage;
   }>('statsAggregate', {
     ...requestQuery,
-    groupBy: 'domain',
+    groupBy:
+      typeof requestQuery.groupBy === 'string' &&
+      requestQuery.groupBy.length > 0
+        ? requestQuery.groupBy
+        : 'host',
   });
   const data = normalizeRequestAggregatePage(result.payload.data, {
     page: Number.isFinite(page) && page > 0 ? page : 1,

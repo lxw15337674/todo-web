@@ -175,4 +175,47 @@ describe('normalizeRequestDomainStats', () => {
       requestDomain: 'weibo.cn',
     });
   });
+
+  it('maps aggregate host rows when requestDomain is absent', () => {
+    const result = normalizeRequestDomainStats(
+      {
+        items: [
+          {
+            key: 'unknown',
+            requestHost: 'unknown',
+            total: 22,
+            successCount: 4,
+            failureCount: 18,
+            latestCreatedAt: '2026-03-31T14:24:49.657Z',
+          },
+        ],
+        pagination: {
+          page: 1,
+          pageSize: 20,
+          total: 1,
+          totalPages: 1,
+        },
+        filters: {
+          groupBy: 'host',
+          sortBy: 'count',
+          sortOrder: 'desc',
+          requestSource: 'unknown',
+        },
+      },
+      { page: 1, pageSize: 20 },
+    );
+
+    expect(result.items[0]).toMatchObject({
+      key: 'unknown',
+      requestHost: 'unknown',
+      requestDomain: 'unknown',
+      total: 22,
+      successCount: 4,
+      failureCount: 18,
+    });
+    expect(result.filters).toMatchObject({
+      groupBy: 'host',
+      requestSource: 'unknown',
+    });
+  });
 });
