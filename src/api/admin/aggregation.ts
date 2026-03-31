@@ -1,37 +1,37 @@
 export type AggregationInputItem = {
-    timestamp: string;
-    platform: string;
-    requestSource: string;
-    success: boolean;
+  timestamp: string;
+  platform: string;
+  requestDomain: string;
+  success: boolean;
 };
 
 export type AggregatedOverviewData = {
-    summary: {
-        totalSuccessCount: number;
-        todaySuccessCount: number;
-        totalFailureCount: number;
-        recentFailureCount: number;
-    };
-    platformTotals: Array<{
-        platform: string;
-        count: number;
-    }>;
-    recentDailyStats: Array<{
-        date: string;
-        successCount: number;
-        failureCount: number;
-    }>;
-    requestSourceTopN: Array<{
-        requestSource: string;
-        count: number;
-    }>;
+  summary: {
+    totalSuccessCount: number;
+    todaySuccessCount: number;
+    totalFailureCount: number;
+    recentFailureCount: number;
+  };
+  platformTotals: Array<{
+    platform: string;
+    count: number;
+  }>;
+  recentDailyStats: Array<{
+    date: string;
+    successCount: number;
+    failureCount: number;
+  }>;
+  requestDomainTopN: Array<{
+    requestDomain: string;
+    count: number;
+  }>;
 };
 
 type AggregateAdminRequestsOptions = {
-    startDate?: string;
-    endDate?: string;
-    topN?: number;
-    now?: Date;
+  startDate?: string;
+  endDate?: string;
+  topN?: number;
+  now?: Date;
 };
 
 const DEFAULT_TOP_N = 10;
@@ -42,131 +42,138 @@ const toDateKey = (value: string) => value.slice(0, 10);
 const getDateKey = (now = new Date()) => now.toISOString().slice(0, 10);
 
 const getDateKeyDaysAgo = (daysAgo: number, now = new Date()) => {
-    const date = new Date(now);
-    date.setUTCDate(date.getUTCDate() - daysAgo);
-    return getDateKey(date);
+  const date = new Date(now);
+  date.setUTCDate(date.getUTCDate() - daysAgo);
+  return getDateKey(date);
 };
 
 const buildDateRange = (startDate: string, endDate: string) => {
-    const dates: string[] = [];
-    const current = new Date(`${startDate}T00:00:00.000Z`);
-    const end = new Date(`${endDate}T00:00:00.000Z`);
+  const dates: string[] = [];
+  const current = new Date(`${startDate}T00:00:00.000Z`);
+  const end = new Date(`${endDate}T00:00:00.000Z`);
 
-    while (current <= end) {
-        dates.push(current.toISOString().slice(0, 10));
-        current.setUTCDate(current.getUTCDate() + 1);
-    }
+  while (current <= end) {
+    dates.push(current.toISOString().slice(0, 10));
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
 
-    return dates;
+  return dates;
 };
 
 const resolveSeriesDates = (
-    items: AggregationInputItem[],
-    options: AggregateAdminRequestsOptions,
+  items: AggregationInputItem[],
+  options: AggregateAdminRequestsOptions,
 ) => {
-    if (options.startDate && options.endDate) {
-        return buildDateRange(options.startDate, options.endDate);
-    }
+  if (options.startDate && options.endDate) {
+    return buildDateRange(options.startDate, options.endDate);
+  }
 
-    if (options.startDate) {
-        return buildDateRange(options.startDate, getDateKey(options.now));
-    }
+  if (options.startDate) {
+    return buildDateRange(options.startDate, getDateKey(options.now));
+  }
 
-    if (options.endDate) {
-        const end = new Date(`${options.endDate}T00:00:00.000Z`);
-        end.setUTCDate(end.getUTCDate() - (DEFAULT_RECENT_DAYS - 1));
-        return buildDateRange(end.toISOString().slice(0, 10), options.endDate);
-    }
-
-    if (items.length === 0) {
-        const now = options.now ?? new Date();
-        return Array.from({ length: DEFAULT_RECENT_DAYS }, (_, index) =>
-            getDateKeyDaysAgo(DEFAULT_RECENT_DAYS - index - 1, now),
-        );
-    }
-
-    const itemDates = items
-        .map((item) => toDateKey(item.timestamp))
-        .filter((value) => value.length === 10)
-        .sort((left, right) => left.localeCompare(right));
-
-    const latestDate = itemDates[itemDates.length - 1] ?? getDateKey(options.now);
-    const end = new Date(`${latestDate}T00:00:00.000Z`);
+  if (options.endDate) {
+    const end = new Date(`${options.endDate}T00:00:00.000Z`);
     end.setUTCDate(end.getUTCDate() - (DEFAULT_RECENT_DAYS - 1));
+    return buildDateRange(end.toISOString().slice(0, 10), options.endDate);
+  }
 
-    return buildDateRange(end.toISOString().slice(0, 10), latestDate);
+  if (items.length === 0) {
+    const now = options.now ?? new Date();
+    return Array.from({ length: DEFAULT_RECENT_DAYS }, (_, index) =>
+      getDateKeyDaysAgo(DEFAULT_RECENT_DAYS - index - 1, now),
+    );
+  }
+
+  const itemDates = items
+    .map((item) => toDateKey(item.timestamp))
+    .filter((value) => value.length === 10)
+    .sort((left, right) => left.localeCompare(right));
+
+  const latestDate = itemDates[itemDates.length - 1] ?? getDateKey(options.now);
+  const end = new Date(`${latestDate}T00:00:00.000Z`);
+  end.setUTCDate(end.getUTCDate() - (DEFAULT_RECENT_DAYS - 1));
+
+  return buildDateRange(end.toISOString().slice(0, 10), latestDate);
 };
 
 export const aggregateAdminRequests = (
-    items: AggregationInputItem[],
-    options: AggregateAdminRequestsOptions = {},
+  items: AggregationInputItem[],
+  options: AggregateAdminRequestsOptions = {},
 ): AggregatedOverviewData => {
-    const now = options.now ?? new Date();
-    const today = getDateKey(now);
-    const recentFailureStart = getDateKeyDaysAgo(DEFAULT_RECENT_DAYS - 1, now);
-    const topN = Math.max(1, options.topN ?? DEFAULT_TOP_N);
+  const now = options.now ?? new Date();
+  const today = getDateKey(now);
+  const recentFailureStart = getDateKeyDaysAgo(DEFAULT_RECENT_DAYS - 1, now);
+  const topN = Math.max(1, options.topN ?? DEFAULT_TOP_N);
 
-    const platformCounts = new Map<string, number>();
-    const requestSourceCounts = new Map<string, number>();
-    const successByDate = new Map<string, number>();
-    const failureByDate = new Map<string, number>();
+  const platformCounts = new Map<string, number>();
+  const requestDomainCounts = new Map<string, number>();
+  const successByDate = new Map<string, number>();
+  const failureByDate = new Map<string, number>();
 
-    let totalSuccessCount = 0;
-    let todaySuccessCount = 0;
-    let totalFailureCount = 0;
-    let recentFailureCount = 0;
+  let totalSuccessCount = 0;
+  let todaySuccessCount = 0;
+  let totalFailureCount = 0;
+  let recentFailureCount = 0;
 
-    items.forEach((item) => {
-        const dateKey = toDateKey(item.timestamp);
+  items.forEach((item) => {
+    const dateKey = toDateKey(item.timestamp);
 
-        platformCounts.set(item.platform, (platformCounts.get(item.platform) ?? 0) + 1);
-        requestSourceCounts.set(
-            item.requestSource,
-            (requestSourceCounts.get(item.requestSource) ?? 0) + 1,
-        );
+    platformCounts.set(
+      item.platform,
+      (platformCounts.get(item.platform) ?? 0) + 1,
+    );
+    requestDomainCounts.set(
+      item.requestDomain,
+      (requestDomainCounts.get(item.requestDomain) ?? 0) + 1,
+    );
 
-        if (item.success) {
-            totalSuccessCount += 1;
-            successByDate.set(dateKey, (successByDate.get(dateKey) ?? 0) + 1);
+    if (item.success) {
+      totalSuccessCount += 1;
+      successByDate.set(dateKey, (successByDate.get(dateKey) ?? 0) + 1);
 
-            if (dateKey === today) {
-                todaySuccessCount += 1;
-            }
-            return;
-        }
+      if (dateKey === today) {
+        todaySuccessCount += 1;
+      }
+      return;
+    }
 
-        totalFailureCount += 1;
-        failureByDate.set(dateKey, (failureByDate.get(dateKey) ?? 0) + 1);
+    totalFailureCount += 1;
+    failureByDate.set(dateKey, (failureByDate.get(dateKey) ?? 0) + 1);
 
-        if (dateKey >= recentFailureStart) {
-            recentFailureCount += 1;
-        }
-    });
+    if (dateKey >= recentFailureStart) {
+      recentFailureCount += 1;
+    }
+  });
 
-    const seriesDates = resolveSeriesDates(items, { ...options, now });
+  const seriesDates = resolveSeriesDates(items, { ...options, now });
 
-    return {
-        summary: {
-            totalSuccessCount,
-            todaySuccessCount,
-            totalFailureCount,
-            recentFailureCount,
-        },
-        platformTotals: Array.from(platformCounts.entries())
-            .map(([platform, count]) => ({ platform, count }))
-            .sort((left, right) =>
-                right.count - left.count || left.platform.localeCompare(right.platform),
-            ),
-        recentDailyStats: seriesDates.map((date) => ({
-            date,
-            successCount: successByDate.get(date) ?? 0,
-            failureCount: failureByDate.get(date) ?? 0,
-        })),
-        requestSourceTopN: Array.from(requestSourceCounts.entries())
-            .map(([requestSource, count]) => ({ requestSource, count }))
-            .sort((left, right) =>
-                right.count - left.count || left.requestSource.localeCompare(right.requestSource),
-            )
-            .slice(0, topN),
-    };
+  return {
+    summary: {
+      totalSuccessCount,
+      todaySuccessCount,
+      totalFailureCount,
+      recentFailureCount,
+    },
+    platformTotals: Array.from(platformCounts.entries())
+      .map(([platform, count]) => ({ platform, count }))
+      .sort(
+        (left, right) =>
+          right.count - left.count ||
+          left.platform.localeCompare(right.platform),
+      ),
+    recentDailyStats: seriesDates.map((date) => ({
+      date,
+      successCount: successByDate.get(date) ?? 0,
+      failureCount: failureByDate.get(date) ?? 0,
+    })),
+    requestDomainTopN: Array.from(requestDomainCounts.entries())
+      .map(([requestDomain, count]) => ({ requestDomain, count }))
+      .sort(
+        (left, right) =>
+          right.count - left.count ||
+          left.requestDomain.localeCompare(right.requestDomain),
+      )
+      .slice(0, topN),
+  };
 };

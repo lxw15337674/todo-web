@@ -1,28 +1,32 @@
 import { describe, expect, it } from 'vitest';
 
 import { aggregateAdminRequests } from './aggregation';
-import { normalizeAggregateData, normalizeRequestStats } from './index';
+import {
+  normalizeAggregateData,
+  normalizeRequestDomainStats,
+  normalizeRequestStats,
+} from './index';
 
 describe('aggregateAdminRequests', () => {
-  it('builds summary, platform totals, daily stats and request source rankings', () => {
+  it('builds summary, platform totals, daily stats and request domain rankings', () => {
     const result = aggregateAdminRequests(
       [
         {
           timestamp: '2026-03-28T10:00:00.000Z',
           platform: 'douyin',
-          requestSource: 'todo.bhwa233.com',
+          requestDomain: 'bhwa233.com',
           success: true,
         },
         {
           timestamp: '2026-03-28T11:00:00.000Z',
           platform: 'douyin',
-          requestSource: 'todo.bhwa233.com',
+          requestDomain: 'bhwa233.com',
           success: false,
         },
         {
           timestamp: '2026-03-27T08:00:00.000Z',
           platform: 'bilibili',
-          requestSource: 'chat.bhwa233.com',
+          requestDomain: 'example.com',
           success: true,
         },
       ],
@@ -48,15 +52,15 @@ describe('aggregateAdminRequests', () => {
       { date: '2026-03-27', successCount: 1, failureCount: 0 },
       { date: '2026-03-28', successCount: 1, failureCount: 1 },
     ]);
-    expect(result.requestSourceTopN).toEqual([
-      { requestSource: 'todo.bhwa233.com', count: 2 },
-      { requestSource: 'chat.bhwa233.com', count: 1 },
+    expect(result.requestDomainTopN).toEqual([
+      { requestDomain: 'bhwa233.com', count: 2 },
+      { requestDomain: 'example.com', count: 1 },
     ]);
   });
 });
 
 describe('normalizeAggregateData', () => {
-  it('maps request source rankings from aggregate payload', () => {
+  it('maps request domain rankings from aggregate payload', () => {
     const result = normalizeAggregateData({
       summary: {
         totalSuccessCount: 1200,
@@ -65,13 +69,15 @@ describe('normalizeAggregateData', () => {
         recentFailureCount: 5,
       },
       platformTotals: [{ platform: 'bilibili', count: 560 }],
-      recentDailyStats: [{ date: '2026-03-22', successCount: 95, failureCount: 2 }],
-      requestSourceTopN: [{ requestSource: 'todo.bhwa233.com', count: 120 }],
+      recentDailyStats: [
+        { date: '2026-03-22', successCount: 95, failureCount: 2 },
+      ],
+      requestDomainTopN: [{ requestDomain: 'bhwa233.com', count: 120 }],
     });
 
-    expect(result.requestSourceTopN).toEqual([
+    expect(result.requestDomainTopN).toEqual([
       {
-        requestSource: 'todo.bhwa233.com',
+        requestDomain: 'bhwa233.com',
         count: 120,
       },
     ]);
@@ -120,6 +126,53 @@ describe('normalizeRequestStats', () => {
     expect(result.filters).toMatchObject({
       requestSource: 'todo.bhwa233.com',
       success: false,
+    });
+  });
+});
+
+describe('normalizeRequestDomainStats', () => {
+  it('maps aggregate domain rows and pagination from request payload', () => {
+    const result = normalizeRequestDomainStats(
+      {
+        items: [
+          {
+            key: 'weibo.cn',
+            requestDomain: 'weibo.cn',
+            total: 8,
+            successCount: 6,
+            failureCount: 2,
+            latestCreatedAt: '2026-03-28T10:00:00.000Z',
+          },
+        ],
+        pagination: {
+          page: 1,
+          pageSize: 20,
+          total: 1,
+          totalPages: 1,
+        },
+        filters: {
+          groupBy: 'domain',
+          sortBy: 'count',
+          sortOrder: 'desc',
+          requestDomain: 'weibo.cn',
+        },
+      },
+      { page: 1, pageSize: 20 },
+    );
+
+    expect(result.items[0]).toMatchObject({
+      key: 'weibo.cn',
+      requestDomain: 'weibo.cn',
+      total: 8,
+      successCount: 6,
+      failureCount: 2,
+      latestCreatedAt: '2026-03-28T10:00:00.000Z',
+    });
+    expect(result.filters).toMatchObject({
+      groupBy: 'domain',
+      sortBy: 'count',
+      sortOrder: 'desc',
+      requestDomain: 'weibo.cn',
     });
   });
 });
