@@ -12,6 +12,7 @@ const REQUEST_PAGE_SIZE = 100;
 const DEFAULT_TOP_N = 10;
 const REQUEST_QUERY_KEYS = [
     'platform',
+    'url',
     'requestSource',
     'success',
     'errorCode',
@@ -20,6 +21,7 @@ const REQUEST_QUERY_KEYS = [
     'page',
     'pageSize',
 ];
+const UPSTREAM_REQUEST_QUERY_KEYS = REQUEST_QUERY_KEYS.filter((key) => key !== 'url');
 
 type MonitorTarget = 'health' | 'aggregate' | 'requests';
 
@@ -299,6 +301,10 @@ const normalizeRequestPage = (
         },
         filters: {
             platform: toString(filters.platform) || undefined,
+            url:
+                toString(filters.url) ||
+                toString(filters.sourceUrl) ||
+                undefined,
             requestSource:
                 toString(filters.requestSource) ||
                 toString(filters.sourceDomain) ||
@@ -345,8 +351,58 @@ const getRequestQuery = (request: NextRequest) => {
     return query;
 };
 
-const fetchAllAggregateItems = async (request: NextRequest) => {
-    const baseQuery = getRequestQuery(request);
+const getUpstreamRequestQuery = (
+    query: Record<string, string | number | boolean | undefined>,
+) => {
+    const upstreamQuery: Record<string, string | number | boolean | undefined> = {};
+
+    UPSTREAM_REQUEST_QUERY_KEYS.forEach((key) => {
+        if (query[key] === undefined) {
+            return;
+        }
+        upstreamQuery[key] = query[key];
+    });
+
+    return upstreamQuery;
+};
+
+const filterItemsByUrl = <TItem extends { url?: string }>(
+    items: TItem[],
+    url?: string,
+) => {
+    const normalizedUrl = url?.trim();
+    if (!normalizedUrl) {
+        return items;
+    }
+
+    return items.filter((item) => item.url === normalizedUrl);
+};
+
+const paginateItems = <TItem,>(
+    items: TItem[],
+    page: number,
+    pageSize: number,
+) => {
+    const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+    const safePageSize = Number.isFinite(pageSize) && pageSize > 0 ? Math.floor(pageSize) : 20;
+    const total = items.length;
+    const totalPages = Math.max(1, Math.ceil(total / safePageSize));
+    const currentPage = Math.min(safePage, totalPages);
+    const startIndex = (currentPage - 1) * safePageSize;
+
+    return {
+        items: items.slice(startIndex, startIndex + safePageSize),
+        pagination: {
+            page: currentPage,
+            pageSize: safePageSize,
+            total,
+            totalPages,
+        },
+    };
+};
+
+const fetchAllRequestItems = async (query: Record<string, string | number | boolean | undefined>) => {
+    const baseQuery = getUpstreamRequestQuery(query);
     delete baseQuery.page;
     delete baseQuery.pageSize;
 
@@ -394,8 +450,10 @@ const fetchAllAggregateItems = async (request: NextRequest) => {
 };
 
 const handleAggregateRequest = async (request: NextRequest) => {
-    const { items, requestId } = await fetchAllAggregateItems(request);
-    const data = aggregateAdminRequests(items, {
+    const requestQuery = getRequestQuery(request);
+    const { items, requestId } = await fetchAllRequestItems(requestQuery);
+    const filteredItems = filterItemsByUrl(items, request.nextUrl.searchParams.get('url') || undefined);
+    const data = aggregateAdminRequests(filteredItems, {
         startDate: request.nextUrl.searchParams.get('startDate') || undefined,
         endDate: request.nextUrl.searchParams.get('endDate') || undefined,
         topN: getAggregateTopN(request),
@@ -408,8 +466,38 @@ const handleRequestsRequest = async (request: NextRequest) => {
     const requestQuery = getRequestQuery(request);
     const page = Number(request.nextUrl.searchParams.get('page') || '1');
     const pageSize = Number(request.nextUrl.searchParams.get('pageSize') || '20');
+    const url = request.nextUrl.searchParams.get('url')?.trim() || undefined;
 
-    const result = await requestUpstreamJson<{ data?: UpstreamRequestPage }>(requestQuery);
+    if (url) {
+        const { items, requestId } = await fetchAllRequestItems(requestQuery);
+        const filteredItems = filterItemsByUrl(items, url);
+        const data = paginateItems(filteredItems, page, pageSize);
+
+        return createJsonResponse(
+            {
+                success: true,
+                data: {
+                    items: data.items,
+                    pagination: data.pagination,
+                    filters: {
+                        platform: requestQuery.platform,
+                        url,
+                        requestSource: requestQuery.requestSource,
+                        success: requestQuery.success,
+                        errorCode: requestQuery.errorCode,
+                        startDate: requestQuery.startDate,
+                        endDate: requestQuery.endDate,
+                    },
+                },
+            },
+            200,
+            requestId,
+        );
+    }
+
+    const result = await requestUpstreamJson<{ data?: UpstreamRequestPage }>(
+        getUpstreamRequestQuery(requestQuery),
+    );
     const data = normalizeRequestPage(result.payload.data, {
         page: Number.isFinite(page) && page > 0 ? page : 1,
         pageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 20,

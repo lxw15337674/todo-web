@@ -2,8 +2,11 @@ export type AggregationInputItem = {
     timestamp: string;
     platform: string;
     requestSource: string;
+    url?: string;
     success: boolean;
 };
+
+export type UrlAggregateStatus = 'ok' | 'degraded' | 'down';
 
 export type AggregatedOverviewData = {
     summary: {
@@ -21,9 +24,13 @@ export type AggregatedOverviewData = {
         successCount: number;
         failureCount: number;
     }>;
-    requestSourceTopN: Array<{
-        requestSource: string;
+    urlTopN: Array<{
+        url: string;
         count: number;
+        successCount: number;
+        failureCount: number;
+        lastSeenAt: string;
+        status: UrlAggregateStatus;
     }>;
 };
 
@@ -36,6 +43,22 @@ type AggregateAdminRequestsOptions = {
 
 const DEFAULT_TOP_N = 10;
 const DEFAULT_RECENT_DAYS = 7;
+const DOWN_FAILURE_THRESHOLD = 3;
+
+const resolveUrlAggregateStatus = (
+    successCount: number,
+    failureCount: number,
+): UrlAggregateStatus => {
+    if (failureCount === 0) {
+        return 'ok';
+    }
+
+    if (successCount === 0 && failureCount >= DOWN_FAILURE_THRESHOLD) {
+        return 'down';
+    }
+
+    return 'degraded';
+};
 
 const toDateKey = (value: string) => value.slice(0, 10);
 
@@ -107,7 +130,16 @@ export const aggregateAdminRequests = (
     const topN = Math.max(1, options.topN ?? DEFAULT_TOP_N);
 
     const platformCounts = new Map<string, number>();
-    const requestSourceCounts = new Map<string, number>();
+    const urlAggregateMap = new Map<
+        string,
+        {
+            url: string;
+            count: number;
+            successCount: number;
+            failureCount: number;
+            lastSeenAt: string;
+        }
+    >();
     const successByDate = new Map<string, number>();
     const failureByDate = new Map<string, number>();
 
@@ -120,10 +152,28 @@ export const aggregateAdminRequests = (
         const dateKey = toDateKey(item.timestamp);
 
         platformCounts.set(item.platform, (platformCounts.get(item.platform) ?? 0) + 1);
-        requestSourceCounts.set(
-            item.requestSource,
-            (requestSourceCounts.get(item.requestSource) ?? 0) + 1,
-        );
+        const normalizedUrl = item.url?.trim();
+        if (normalizedUrl) {
+            const urlAggregate = urlAggregateMap.get(normalizedUrl) ?? {
+                url: normalizedUrl,
+                count: 0,
+                successCount: 0,
+                failureCount: 0,
+                lastSeenAt: item.timestamp,
+            };
+
+            urlAggregate.count += 1;
+            if (item.success) {
+                urlAggregate.successCount += 1;
+            } else {
+                urlAggregate.failureCount += 1;
+            }
+            if (item.timestamp > urlAggregate.lastSeenAt) {
+                urlAggregate.lastSeenAt = item.timestamp;
+            }
+
+            urlAggregateMap.set(normalizedUrl, urlAggregate);
+        }
 
         if (item.success) {
             totalSuccessCount += 1;
@@ -162,10 +212,15 @@ export const aggregateAdminRequests = (
             successCount: successByDate.get(date) ?? 0,
             failureCount: failureByDate.get(date) ?? 0,
         })),
-        requestSourceTopN: Array.from(requestSourceCounts.entries())
-            .map(([requestSource, count]) => ({ requestSource, count }))
+        urlTopN: Array.from(urlAggregateMap.values())
+            .map((item) => ({
+                ...item,
+                status: resolveUrlAggregateStatus(item.successCount, item.failureCount),
+            }))
             .sort((left, right) =>
-                right.count - left.count || left.requestSource.localeCompare(right.requestSource),
+                right.count - left.count ||
+                right.lastSeenAt.localeCompare(left.lastSeenAt) ||
+                left.url.localeCompare(right.url),
             )
             .slice(0, topN),
     };

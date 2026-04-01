@@ -33,6 +33,7 @@ import {
     type OverviewStatsData,
     type RequestQuery,
     type RequestStatsData,
+    type UrlAggregateStatus,
 } from '@/api/admin';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -70,7 +71,7 @@ import {
 
 const AUTO_REFRESH_INTERVAL_MS = 30_000;
 const SLOW_REQUEST_MS = 1_500;
-const REQUEST_SOURCE_TOP_N = 10;
+const URL_TOP_N = 10;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 const REQUEST_STATUS_OPTIONS = [
     { label: '全部状态', value: 'all' },
@@ -154,6 +155,35 @@ const formatRequestSource = (value?: string) => {
         return 'unknown';
     }
     return value;
+};
+
+const formatUrlValue = (value?: string) => {
+    if (!value || value.trim() === '') {
+        return 'unknown';
+    }
+    return value;
+};
+
+const getUrlStatusLabel = (status: UrlAggregateStatus) => {
+    switch (status) {
+        case 'ok':
+            return '正常';
+        case 'down':
+            return '失败集中';
+        default:
+            return '部分失败';
+    }
+};
+
+const getUrlStatusVariant = (status: UrlAggregateStatus): 'default' | 'secondary' | 'destructive' => {
+    switch (status) {
+        case 'ok':
+            return 'default';
+        case 'down':
+            return 'destructive';
+        default:
+            return 'secondary';
+    }
 };
 
 const getRequestStartTime = () => {
@@ -243,7 +273,7 @@ export default function AdminMonitorPage() {
     const [requestsDurationMs, setRequestsDurationMs] = useState<number | null>(null);
 
     const [platform, setPlatform] = useState<'all' | MonitorPlatform>('all');
-    const [requestSource, setRequestSource] = useState('');
+    const [urlFilter, setUrlFilter] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [requestStatus, setRequestStatus] = useState<RequestStatusFilter>('failure');
@@ -253,16 +283,16 @@ export default function AdminMonitorPage() {
     const normalizedSharedFilter = useMemo(() => {
         return {
             platform: platform === 'all' ? undefined : platform,
-            requestSource: requestSource.trim() || undefined,
+            url: urlFilter.trim() || undefined,
             startDate: startDate || undefined,
             endDate: endDate || undefined,
         };
-    }, [platform, requestSource, startDate, endDate]);
+    }, [platform, urlFilter, startDate, endDate]);
 
     const aggregateQuery = useMemo<AggregateQuery>(() => {
         return {
             ...normalizedSharedFilter,
-            topN: REQUEST_SOURCE_TOP_N,
+            topN: URL_TOP_N,
         };
     }, [normalizedSharedFilter]);
 
@@ -376,7 +406,7 @@ export default function AdminMonitorPage() {
 
     const handleResetFilters = () => {
         setPlatform('all');
-        setRequestSource('');
+        setUrlFilter('');
         setStartDate('');
         setEndDate('');
         setRequestStatus('failure');
@@ -399,7 +429,7 @@ export default function AdminMonitorPage() {
                             系统状态监控
                         </CardTitle>
                         <CardDescription>
-                            同时接入 `/api/health` 与新版 `/api/admin/stats`，管理统计由请求明细接口在代理层聚合后展示。
+                            同时接入 `/api/health` 与新版 `/api/admin/stats`，管理统计在代理层按 URL 聚合，并显示每个 URL 的状态。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -490,7 +520,7 @@ export default function AdminMonitorPage() {
                             />
                         </div>
                         <CardDescription>
-                            保留当前概览卡片、按日趋势和 Top N 展示，底层改为基于请求明细接口聚合，并随共享筛选条件刷新。
+                            保留概览卡片、按日趋势和 Top N 展示，底层改为基于请求明细按 URL 聚合，并随共享筛选条件刷新。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -528,7 +558,7 @@ export default function AdminMonitorPage() {
                                 <CardHeader>
                                     <CardTitle className="text-base">按日趋势</CardTitle>
                                     <CardDescription>
-                                        支持按请求来源筛选后查看该入口近 7 天请求走势。
+                                        支持按 URL 筛选后查看该地址近 7 天请求走势。
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -607,14 +637,14 @@ export default function AdminMonitorPage() {
 
                                 <Card className="shadow-none">
                                     <CardHeader>
-                                        <CardTitle className="text-base">请求来源 Top {REQUEST_SOURCE_TOP_N}</CardTitle>
+                                        <CardTitle className="text-base">URL Top {URL_TOP_N}</CardTitle>
                                         <CardDescription>
-                                            点击条目后，会同步筛选趋势图和请求明细。
+                                            点击条目后，会同步筛选趋势图和请求明细，并显示 URL 聚合状态。
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-2">
-                                        {(overview?.requestSourceTopN || []).map((item) => {
-                                            const active = normalizedSharedFilter.requestSource === item.requestSource;
+                                        {(overview?.urlTopN || []).map((item) => {
+                                            const active = normalizedSharedFilter.url === item.url;
                                             return (
                                                 <button
                                                     type="button"
@@ -623,24 +653,34 @@ export default function AdminMonitorPage() {
                                                             ? 'border-primary bg-primary/5'
                                                             : 'hover:border-primary/40'
                                                     }`}
-                                                    key={item.requestSource}
+                                                    key={item.url}
                                                     onClick={() => {
-                                                        setRequestSource(item.requestSource);
+                                                        setUrlFilter(item.url);
                                                         setPage(1);
                                                     }}
                                                 >
-                                                    <span className="truncate font-medium">
-                                                        {formatRequestSource(item.requestSource)}
-                                                    </span>
-                                                    <span className="ml-3 shrink-0 text-muted-foreground">
-                                                        {formatMetric(item.count)}
-                                                    </span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="truncate font-medium">
+                                                            {formatUrlValue(item.url)}
+                                                        </div>
+                                                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                                            <Badge variant={getUrlStatusVariant(item.status)}>
+                                                                {getUrlStatusLabel(item.status)}
+                                                            </Badge>
+                                                            <span>成功 {formatMetric(item.successCount)}</span>
+                                                            <span>失败 {formatMetric(item.failureCount)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="ml-3 shrink-0 text-right text-xs text-muted-foreground">
+                                                        <div>{formatMetric(item.count)}</div>
+                                                        <div>{formatDateTime(item.lastSeenAt)}</div>
+                                                    </div>
                                                 </button>
                                             );
                                         })}
-                                        {(overview?.requestSourceTopN || []).length === 0 && (
+                                        {(overview?.urlTopN || []).length === 0 && (
                                             <div className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
-                                                暂无请求来源数据
+                                                暂无 URL 聚合数据
                                             </div>
                                         )}
                                     </CardContent>
@@ -664,7 +704,7 @@ export default function AdminMonitorPage() {
                             />
                         </div>
                         <CardDescription>
-                            支持平台、请求来源、状态、错误码、日期范围筛选，用于判断哪个入口最容易触发失败。
+                            支持平台、URL、状态、错误码、日期范围筛选，用于判断哪个具体解析地址最容易触发失败。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -698,13 +738,13 @@ export default function AdminMonitorPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="request-source-filter">请求来源</Label>
+                                <Label htmlFor="url-filter">URL</Label>
                                 <Input
-                                    id="request-source-filter"
-                                    placeholder="如: https://todo.bhwa233.com/share"
-                                    value={requestSource}
+                                    id="url-filter"
+                                    placeholder="如: https://www.bilibili.tv/en/video/4798982132210688"
+                                    value={urlFilter}
                                     onChange={(event) => {
-                                        setRequestSource(event.target.value);
+                                        setUrlFilter(event.target.value);
                                         setPage(1);
                                     }}
                                 />

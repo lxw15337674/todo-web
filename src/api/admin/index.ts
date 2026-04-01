@@ -42,6 +42,17 @@ export interface RequestSourceTotal {
     count: number;
 }
 
+export type UrlAggregateStatus = 'ok' | 'degraded' | 'down';
+
+export interface UrlAggregateItem {
+    url: string;
+    count: number;
+    successCount: number;
+    failureCount: number;
+    lastSeenAt: string;
+    status: UrlAggregateStatus;
+}
+
 export interface OverviewSummary {
     totalSuccessCount: number;
     todaySuccessCount: number;
@@ -53,7 +64,7 @@ export interface OverviewStatsData {
     summary: OverviewSummary;
     platformTotals: PlatformTotal[];
     recentDailyStats: DailyStatPoint[];
-    requestSourceTopN: RequestSourceTotal[];
+    urlTopN: UrlAggregateItem[];
 }
 
 export interface RequestLogItem {
@@ -78,6 +89,7 @@ export interface RequestPagination {
 
 export interface RequestFilters {
     platform?: MonitorPlatform;
+    url?: string;
     requestSource?: string;
     success?: boolean;
     errorCode?: string;
@@ -93,6 +105,7 @@ export interface RequestStatsData {
 
 export interface AggregateQuery {
     platform?: MonitorPlatform;
+    url?: string;
     requestSource?: string;
     startDate?: string;
     endDate?: string;
@@ -290,26 +303,52 @@ export const normalizeAggregateData = (data: unknown): OverviewStatsData => {
         })
         : [];
 
-    const requestSourceTopN = Array.isArray(record.requestSourceTopN)
-        ? record.requestSourceTopN.map((item) => {
+    const urlTopN = Array.isArray(record.urlTopN)
+        ? record.urlTopN.map((item) => {
             const row = toRecord(item);
             return {
-                requestSource:
-                    toString(row.requestSource) ||
-                    toString(row.sourceDomain) ||
+                url:
+                    toString(row.url) ||
+                    toString(row.sourceUrl) ||
+                    toString(row.rawUrl) ||
                     'unknown',
                 count: toNumber(row.count, 0),
+                successCount: toNumber(row.successCount, 0),
+                failureCount: toNumber(row.failureCount, 0),
+                lastSeenAt:
+                    toString(row.lastSeenAt) ||
+                    toString(row.lastSeen) ||
+                    '',
+                status:
+                    toString(row.status) === 'ok' ||
+                    toString(row.status) === 'degraded' ||
+                    toString(row.status) === 'down'
+                        ? (toString(row.status) as UrlAggregateStatus)
+                        : 'degraded',
             };
         })
-        : Array.isArray(record.sourceDomainTopN)
-            ? record.sourceDomainTopN.map((item) => {
+        : Array.isArray(record.requestSourceTopN)
+            ? record.requestSourceTopN.map((item) => {
                 const row = toRecord(item);
                 return {
-                    requestSource:
+                    url:
+                        toString(row.url) ||
                         toString(row.requestSource) ||
                         toString(row.sourceDomain) ||
                         'unknown',
                     count: toNumber(row.count, 0),
+                    successCount: toNumber(row.successCount, 0),
+                    failureCount: toNumber(row.failureCount, 0),
+                    lastSeenAt:
+                        toString(row.lastSeenAt) ||
+                        toString(row.lastSeen) ||
+                        '',
+                    status:
+                        toString(row.status) === 'ok' ||
+                        toString(row.status) === 'degraded' ||
+                        toString(row.status) === 'down'
+                            ? (toString(row.status) as UrlAggregateStatus)
+                            : 'degraded',
                 };
             })
             : [];
@@ -323,7 +362,7 @@ export const normalizeAggregateData = (data: unknown): OverviewStatsData => {
         },
         platformTotals,
         recentDailyStats,
-        requestSourceTopN,
+        urlTopN,
     };
 };
 
@@ -397,6 +436,10 @@ export const normalizeRequestStats = (
             platform: (toString(filtersRecord.platform) || undefined) as
                 | MonitorPlatform
                 | undefined,
+            url:
+                toString(filtersRecord.url) ||
+                toString(filtersRecord.sourceUrl) ||
+                undefined,
             requestSource:
                 toString(filtersRecord.requestSource) ||
                 toString(filtersRecord.sourceDomain) ||
@@ -416,6 +459,7 @@ export const fetchAdminAggregate = async (
         query: query
             ? {
                 platform: query.platform,
+                url: query.url,
                 requestSource: query.requestSource,
                 startDate: query.startDate,
                 endDate: query.endDate,
@@ -435,6 +479,7 @@ export const fetchAdminRequests = async (
     const result = await requestMonitorApi<StatsEnvelope<Record<string, unknown>>>('requests', {
         query: {
             platform: query.platform,
+            url: query.url,
             requestSource: query.requestSource,
             startDate: query.startDate,
             endDate: query.endDate,

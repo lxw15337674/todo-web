@@ -4,25 +4,49 @@ import { aggregateAdminRequests } from './aggregation';
 import { normalizeAggregateData, normalizeRequestStats } from './index';
 
 describe('aggregateAdminRequests', () => {
-  it('builds summary, platform totals, daily stats and request source rankings', () => {
+  it('builds summary, platform totals, daily stats and url rankings', () => {
     const result = aggregateAdminRequests(
       [
         {
           timestamp: '2026-03-28T10:00:00.000Z',
           platform: 'douyin',
           requestSource: 'todo.bhwa233.com',
+          url: 'https://www.douyin.com/video/1',
           success: true,
         },
         {
           timestamp: '2026-03-28T11:00:00.000Z',
           platform: 'douyin',
           requestSource: 'todo.bhwa233.com',
+          url: 'https://www.douyin.com/video/1',
           success: false,
         },
         {
           timestamp: '2026-03-27T08:00:00.000Z',
           platform: 'bilibili',
           requestSource: 'chat.bhwa233.com',
+          url: 'https://www.bilibili.tv/en/video/2',
+          success: true,
+        },
+        {
+          timestamp: '2026-03-28T09:00:00.000Z',
+          platform: 'bilibili_tv',
+          requestSource: 'chat.bhwa233.com',
+          url: 'https://www.bilibili.tv/en/video/3',
+          success: false,
+        },
+        {
+          timestamp: '2026-03-28T09:30:00.000Z',
+          platform: 'bilibili_tv',
+          requestSource: 'chat.bhwa233.com',
+          url: 'https://www.bilibili.tv/en/video/3',
+          success: false,
+        },
+        {
+          timestamp: '2026-03-28T09:50:00.000Z',
+          platform: 'bilibili_tv',
+          requestSource: 'chat.bhwa233.com',
+          url: 'https://www.bilibili.tv/en/video/3',
           success: true,
         },
       ],
@@ -35,28 +59,93 @@ describe('aggregateAdminRequests', () => {
     );
 
     expect(result.summary).toEqual({
-      totalSuccessCount: 2,
-      todaySuccessCount: 1,
-      totalFailureCount: 1,
-      recentFailureCount: 1,
+      totalSuccessCount: 3,
+      todaySuccessCount: 2,
+      totalFailureCount: 3,
+      recentFailureCount: 3,
     });
     expect(result.platformTotals).toEqual([
+      { platform: 'bilibili_tv', count: 3 },
       { platform: 'douyin', count: 2 },
       { platform: 'bilibili', count: 1 },
     ]);
     expect(result.recentDailyStats).toEqual([
       { date: '2026-03-27', successCount: 1, failureCount: 0 },
-      { date: '2026-03-28', successCount: 1, failureCount: 1 },
+      { date: '2026-03-28', successCount: 2, failureCount: 3 },
     ]);
-    expect(result.requestSourceTopN).toEqual([
-      { requestSource: 'todo.bhwa233.com', count: 2 },
-      { requestSource: 'chat.bhwa233.com', count: 1 },
+    expect(result.urlTopN).toEqual([
+      {
+        url: 'https://www.bilibili.tv/en/video/3',
+        count: 3,
+        successCount: 1,
+        failureCount: 2,
+        lastSeenAt: '2026-03-28T09:50:00.000Z',
+        status: 'degraded',
+      },
+      {
+        url: 'https://www.douyin.com/video/1',
+        count: 2,
+        successCount: 1,
+        failureCount: 1,
+        lastSeenAt: '2026-03-28T11:00:00.000Z',
+        status: 'degraded',
+      },
+      {
+        url: 'https://www.bilibili.tv/en/video/2',
+        count: 1,
+        successCount: 1,
+        failureCount: 0,
+        lastSeenAt: '2026-03-27T08:00:00.000Z',
+        status: 'ok',
+      },
+    ]);
+  });
+
+  it('marks urls with repeated failures as down', () => {
+    const result = aggregateAdminRequests(
+      [
+        {
+          timestamp: '2026-03-28T08:00:00.000Z',
+          platform: 'bilibili_tv',
+          requestSource: 'todo.bhwa233.com',
+          url: 'https://www.bilibili.tv/en/video/9',
+          success: false,
+        },
+        {
+          timestamp: '2026-03-28T08:10:00.000Z',
+          platform: 'bilibili_tv',
+          requestSource: 'todo.bhwa233.com',
+          url: 'https://www.bilibili.tv/en/video/9',
+          success: false,
+        },
+        {
+          timestamp: '2026-03-28T08:20:00.000Z',
+          platform: 'bilibili_tv',
+          requestSource: 'todo.bhwa233.com',
+          url: 'https://www.bilibili.tv/en/video/9',
+          success: false,
+        },
+      ],
+      {
+        now: new Date('2026-03-28T12:00:00.000Z'),
+      },
+    );
+
+    expect(result.urlTopN).toEqual([
+      {
+        url: 'https://www.bilibili.tv/en/video/9',
+        count: 3,
+        successCount: 0,
+        failureCount: 3,
+        lastSeenAt: '2026-03-28T08:20:00.000Z',
+        status: 'down',
+      },
     ]);
   });
 });
 
 describe('normalizeAggregateData', () => {
-  it('maps request source rankings from aggregate payload', () => {
+  it('maps url rankings from aggregate payload', () => {
     const result = normalizeAggregateData({
       summary: {
         totalSuccessCount: 1200,
@@ -66,13 +155,26 @@ describe('normalizeAggregateData', () => {
       },
       platformTotals: [{ platform: 'bilibili', count: 560 }],
       recentDailyStats: [{ date: '2026-03-22', successCount: 95, failureCount: 2 }],
-      requestSourceTopN: [{ requestSource: 'todo.bhwa233.com', count: 120 }],
+      urlTopN: [
+        {
+          url: 'https://www.bilibili.tv/en/video/4798982132210688',
+          count: 120,
+          successCount: 110,
+          failureCount: 10,
+          lastSeenAt: '2026-03-28T12:00:00.000Z',
+          status: 'degraded',
+        },
+      ],
     });
 
-    expect(result.requestSourceTopN).toEqual([
+    expect(result.urlTopN).toEqual([
       {
-        requestSource: 'todo.bhwa233.com',
+        url: 'https://www.bilibili.tv/en/video/4798982132210688',
         count: 120,
+        successCount: 110,
+        failureCount: 10,
+        lastSeenAt: '2026-03-28T12:00:00.000Z',
+        status: 'degraded',
       },
     ]);
   });
@@ -102,6 +204,7 @@ describe('normalizeRequestStats', () => {
           totalPages: 1,
         },
         filters: {
+          url: 'https://www.douyin.com/video/1',
           requestSource: 'todo.bhwa233.com',
           success: false,
         },
@@ -118,6 +221,7 @@ describe('normalizeRequestStats', () => {
       url: 'https://www.douyin.com/video/1',
     });
     expect(result.filters).toMatchObject({
+      url: 'https://www.douyin.com/video/1',
       requestSource: 'todo.bhwa233.com',
       success: false,
     });
