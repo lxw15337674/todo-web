@@ -11,12 +11,19 @@ import {
   RefreshCw,
   Server,
 } from 'lucide-react';
-import { CartesianGrid, Legend, Line, LineChart, XAxis, YAxis } from 'recharts';
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import { usePermission } from '@/hooks/usePermission';
 import {
   fetchAdminAggregate,
-  fetchAdminRequestDomains,
+  fetchAdminRequests,
   fetchHealth,
   type AggregateQuery,
   type HealthResponse,
@@ -24,9 +31,8 @@ import {
   MonitorApiError,
   normalizeHealthData,
   type OverviewStatsData,
-  type RequestDomainQuery,
-  type RequestDomainStatsData,
-  type UrlAggregateStatus,
+  type RequestQuery,
+  type RequestStatsData,
 } from '@/api/admin';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -64,7 +70,6 @@ import {
 
 const AUTO_REFRESH_INTERVAL_MS = 30_000;
 const SLOW_REQUEST_MS = 1_500;
-const URL_TOP_N = 10;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 const REQUEST_STATUS_OPTIONS = [
   { label: '全部状态', value: 'all' },
@@ -81,10 +86,7 @@ const DAILY_STATS_CHART_CONFIG = {
     color: '#dc2626',
   },
 } satisfies ChartConfig;
-const PLATFORM_OPTIONS: Array<{
-  label: string;
-  value: 'all' | MonitorPlatform;
-}> = [
+const PLATFORM_OPTIONS: Array<{ label: string; value: 'all' | MonitorPlatform }> = [
   { label: '全部平台', value: 'all' },
   { label: 'Bilibili', value: 'bilibili' },
   { label: 'Bilibili TV', value: 'bilibili_tv' },
@@ -100,7 +102,7 @@ type RequestStatusFilter = (typeof REQUEST_STATUS_OPTIONS)[number]['value'];
 
 const numberFormatter = new Intl.NumberFormat('zh-CN');
 
-const emptyRequests: RequestDomainStatsData = {
+const emptyRequests: RequestStatsData = {
   items: [],
   pagination: {
     page: 1,
@@ -146,66 +148,15 @@ const formatMetric = (value: number | undefined) => {
   return numberFormatter.format(value);
 };
 
-const formatRequestHost = (value?: string) => {
-  if (!value || value.trim() === '') {
-    return 'unknown';
-  }
-  return value;
-};
-
-const formatPercent = (value: number | undefined) => {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    return '-';
-  }
-  return `${value.toFixed(1)}%`;
-};
-
-const formatUrlValue = (value?: string) => {
-  if (!value || value.trim() === '') {
-    return 'unknown';
-  }
-  return value;
-};
-
-const getUrlStatusLabel = (status: UrlAggregateStatus) => {
-  switch (status) {
-    case 'ok':
-      return '正常';
-    case 'down':
-      return '失败集中';
-    default:
-      return '部分失败';
-  }
-};
-
-const getUrlStatusVariant = (
-  status: UrlAggregateStatus,
-): 'default' | 'secondary' | 'destructive' => {
-  switch (status) {
-    case 'ok':
-      return 'default';
-    case 'down':
-      return 'destructive';
-    default:
-      return 'secondary';
-  }
-};
-
 const getRequestStartTime = () => {
-  if (
-    typeof performance !== 'undefined' &&
-    typeof performance.now === 'function'
-  ) {
+  if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
     return performance.now();
   }
   return Date.now();
 };
 
 const getRequestDuration = (startTime: number) => {
-  if (
-    typeof performance !== 'undefined' &&
-    typeof performance.now === 'function'
-  ) {
+  if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
     return Math.max(0, performance.now() - startTime);
   }
   return Math.max(0, Date.now() - startTime);
@@ -220,24 +171,14 @@ function RequestMetaBadges({
   durationMs: number | null;
   loading: boolean;
 }) {
-  const isSlow =
-    typeof durationMs === 'number' && durationMs >= SLOW_REQUEST_MS;
-  const statusVariant = loading
-    ? 'secondary'
-    : statusCode && statusCode >= 400
-      ? 'destructive'
-      : 'outline';
-  const durationVariant = loading
-    ? 'secondary'
-    : isSlow
-      ? 'destructive'
-      : 'outline';
+  const isSlow = typeof durationMs === 'number' && durationMs >= SLOW_REQUEST_MS;
+  const statusVariant =
+    loading ? 'secondary' : statusCode && statusCode >= 400 ? 'destructive' : 'outline';
+  const durationVariant = loading ? 'secondary' : isSlow ? 'destructive' : 'outline';
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Badge variant={statusVariant}>
-        {loading ? '请求中' : `HTTP ${statusCode ?? '-'}`}
-      </Badge>
+      <Badge variant={statusVariant}>{loading ? '请求中' : `HTTP ${statusCode ?? '-'}`}</Badge>
       <Badge variant={durationVariant}>
         {loading ? '耗时计算中' : `${Math.round(durationMs ?? 0)}ms`}
       </Badge>
@@ -261,9 +202,7 @@ function MetricCard({
         <CardDescription>{title}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-semibold tracking-tight">
-          {formatMetric(value)}
-        </div>
+        <div className="text-3xl font-semibold tracking-tight">{formatMetric(value)}</div>
         <p className="mt-2 text-xs text-muted-foreground">{subtitle}</p>
       </CardContent>
     </Card>
@@ -279,8 +218,7 @@ export default function AdminMonitorPage() {
 
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [overview, setOverview] = useState<OverviewStatsData | null>(null);
-  const [requests, setRequests] =
-    useState<RequestDomainStatsData>(emptyRequests);
+  const [requests, setRequests] = useState<RequestStatsData>(emptyRequests);
 
   const [healthLoading, setHealthLoading] = useState(false);
   const [aggregateLoading, setAggregateLoading] = useState(false);
@@ -290,48 +228,37 @@ export default function AdminMonitorPage() {
   const [aggregateError, setAggregateError] = useState<string | null>(null);
   const [requestsError, setRequestsError] = useState<string | null>(null);
   const [healthStatusCode, setHealthStatusCode] = useState<number | null>(null);
-  const [aggregateStatusCode, setAggregateStatusCode] = useState<number | null>(
-    null,
-  );
-  const [requestsStatusCode, setRequestsStatusCode] = useState<number | null>(
-    null,
-  );
+  const [aggregateStatusCode, setAggregateStatusCode] = useState<number | null>(null);
+  const [requestsStatusCode, setRequestsStatusCode] = useState<number | null>(null);
   const [healthDurationMs, setHealthDurationMs] = useState<number | null>(null);
-  const [aggregateDurationMs, setAggregateDurationMs] = useState<number | null>(
-    null,
-  );
-  const [requestsDurationMs, setRequestsDurationMs] = useState<number | null>(
-    null,
-  );
+  const [aggregateDurationMs, setAggregateDurationMs] = useState<number | null>(null);
+  const [requestsDurationMs, setRequestsDurationMs] = useState<number | null>(null);
 
   const [platform, setPlatform] = useState<'all' | MonitorPlatform>('all');
   const [urlFilter, setUrlFilter] = useState('');
-  const [requestHost, setRequestHost] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [requestStatus, setRequestStatus] =
-    useState<RequestStatusFilter>('failure');
+  const [requestStatus, setRequestStatus] = useState<RequestStatusFilter>('failure');
   const [errorCode, setErrorCode] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(20);
 
-  const normalizedBaseFilter = useMemo(() => {
+  const normalizedSharedFilter = useMemo(() => {
     return {
       platform: platform === 'all' ? undefined : platform,
+      url: urlFilter.trim() || undefined,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
     };
-  }, [platform, startDate, endDate]);
+  }, [platform, urlFilter, startDate, endDate]);
 
   const aggregateQuery = useMemo<AggregateQuery>(() => {
     return {
-      ...normalizedBaseFilter,
-      url: urlFilter.trim() || undefined,
-      topN: URL_TOP_N,
+      ...normalizedSharedFilter,
     };
-  }, [normalizedBaseFilter, urlFilter]);
+  }, [normalizedSharedFilter]);
 
-  const requestsQuery = useMemo<RequestDomainQuery>(() => {
+  const requestsQuery = useMemo<RequestQuery>(() => {
     const success =
       requestStatus === 'success'
         ? true
@@ -340,25 +267,13 @@ export default function AdminMonitorPage() {
           : undefined;
 
     return {
-      ...normalizedBaseFilter,
-      requestSource: requestHost.trim() || undefined,
+      ...normalizedSharedFilter,
       success,
       page,
       pageSize,
-      groupBy: 'host',
-      sortBy: 'count',
-      sortOrder: 'desc',
-      errorCode:
-        requestStatus === 'success' ? undefined : errorCode.trim() || undefined,
+      errorCode: requestStatus === 'success' ? undefined : errorCode.trim() || undefined,
     };
-  }, [
-    normalizedBaseFilter,
-    requestHost,
-    requestStatus,
-    page,
-    pageSize,
-    errorCode,
-  ]);
+  }, [normalizedSharedFilter, requestStatus, page, pageSize, errorCode]);
 
   const loadHealth = useCallback(async () => {
     const startTime = getRequestStartTime();
@@ -372,9 +287,7 @@ export default function AdminMonitorPage() {
       setLastUpdatedAt(new Date().toISOString());
     } catch (error) {
       setHealth(null);
-      setHealthStatusCode(
-        error instanceof MonitorApiError ? error.status : null,
-      );
+      setHealthStatusCode(error instanceof MonitorApiError ? error.status : null);
       setHealthError(formatErrorMessage(error));
     } finally {
       setHealthLoading(false);
@@ -394,9 +307,7 @@ export default function AdminMonitorPage() {
       setLastUpdatedAt(new Date().toISOString());
     } catch (error) {
       setOverview(null);
-      setAggregateStatusCode(
-        error instanceof MonitorApiError ? error.status : null,
-      );
+      setAggregateStatusCode(error instanceof MonitorApiError ? error.status : null);
       setAggregateError(formatErrorMessage(error));
     } finally {
       setAggregateLoading(false);
@@ -404,21 +315,19 @@ export default function AdminMonitorPage() {
     }
   }, []);
 
-  const loadRequests = useCallback(async (query: RequestDomainQuery) => {
+  const loadRequests = useCallback(async (query: RequestQuery) => {
     const startTime = getRequestStartTime();
     setRequestsLoading(true);
     setRequestsError(null);
 
     try {
-      const result = await fetchAdminRequestDomains(query);
+      const result = await fetchAdminRequests(query);
       setRequests(result);
       setRequestsStatusCode(200);
       setLastUpdatedAt(new Date().toISOString());
     } catch (error) {
       setRequests(emptyRequests);
-      setRequestsStatusCode(
-        error instanceof MonitorApiError ? error.status : null,
-      );
+      setRequestsStatusCode(error instanceof MonitorApiError ? error.status : null);
       setRequestsError(formatErrorMessage(error));
     } finally {
       setRequestsLoading(false);
@@ -460,7 +369,6 @@ export default function AdminMonitorPage() {
   const handleResetFilters = () => {
     setPlatform('all');
     setUrlFilter('');
-    setRequestHost('');
     setStartDate('');
     setEndDate('');
     setRequestStatus('failure');
@@ -483,9 +391,7 @@ export default function AdminMonitorPage() {
               系统状态监控
             </CardTitle>
             <CardDescription>
-              同时接入 `/api/health`、`/api/admin/stats` 与
-              `/api/admin/stats/aggregate`，上方总览按 URL
-              聚合状态展示，下方保留 Host 聚合视图。
+              同时接入 `/api/health` 与新版 `/api/admin/stats`，管理统计由请求明细接口在代理层聚合后展示。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -502,14 +408,9 @@ export default function AdminMonitorPage() {
                 <Checkbox
                   id="auto-refresh"
                   checked={autoRefresh}
-                  onCheckedChange={(checked) =>
-                    setAutoRefresh(checked === true)
-                  }
+                  onCheckedChange={(checked) => setAutoRefresh(checked === true)}
                 />
-                <Label
-                  htmlFor="auto-refresh"
-                  className="cursor-pointer text-sm font-normal"
-                >
+                <Label htmlFor="auto-refresh" className="cursor-pointer text-sm font-normal">
                   自动刷新（30 秒）
                 </Label>
               </div>
@@ -561,9 +462,7 @@ export default function AdminMonitorPage() {
                 </Badge>
               ))}
               {(health?.supportedPlatforms || []).length === 0 && (
-                <span className="text-sm text-muted-foreground">
-                  暂无平台信息
-                </span>
+                <span className="text-sm text-muted-foreground">暂无平台信息</span>
               )}
             </div>
           </CardContent>
@@ -583,8 +482,7 @@ export default function AdminMonitorPage() {
               />
             </div>
             <CardDescription>
-              保留概览卡片和按日趋势，Top N 改为 URL
-              聚合状态；点击 URL 会同步刷新上方趋势。
+              保留当前概览卡片和按日趋势，底层改为基于请求明细接口聚合，并随共享筛选条件刷新。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -622,7 +520,7 @@ export default function AdminMonitorPage() {
                 <CardHeader>
                   <CardTitle className="text-base">按日趋势</CardTitle>
                   <CardDescription>
-                    支持按 URL 筛选后查看该地址近 7 天请求走势。
+                    支持按解析 URL 筛选后查看该地址近 7 天请求走势。
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -641,7 +539,9 @@ export default function AdminMonitorPage() {
                           <XAxis dataKey="date" />
                           <YAxis allowDecimals={false} />
                           <ChartTooltip
-                            content={<ChartTooltipContent indicator="line" />}
+                              content={
+                                <ChartTooltipContent indicator="line" />
+                              }
                           />
                           <Legend />
                           <Line
@@ -671,85 +571,30 @@ export default function AdminMonitorPage() {
                 </CardContent>
               </Card>
 
-              <div className="grid gap-4">
-                <Card className="shadow-none">
-                  <CardHeader>
-                    <CardTitle className="text-base">平台分布</CardTitle>
-                    <CardDescription>
-                      按请求总量统计，不区分成功或失败。
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {(overview?.platformTotals || []).map((item) => (
-                      <div
-                        className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
-                        key={item.platform}
-                      >
-                        <span className="font-medium">{item.platform}</span>
-                        <span className="text-muted-foreground">
-                          {formatMetric(item.count)}
-                        </span>
-                      </div>
-                    ))}
-                    {(overview?.platformTotals || []).length === 0 && (
-                      <div className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
-                        暂无平台统计数据
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-none">
-                  <CardHeader>
-                    <CardTitle className="text-base">URL Top {URL_TOP_N}</CardTitle>
-                    <CardDescription>
-                      点击条目后，只同步刷新上方 URL 趋势；下方 Host
-                      聚合保持独立筛选。
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {(overview?.urlTopN || []).map((item) => {
-                      const active = aggregateQuery.url === item.url;
-                      return (
-                        <button
-                          type="button"
-                          className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm transition-colors ${
-                            active
-                              ? 'border-primary bg-primary/5'
-                              : 'hover:border-primary/40'
-                          }`}
-                          key={item.url}
-                          onClick={() => {
-                            setUrlFilter(item.url);
-                          }}
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate font-medium">
-                              {formatUrlValue(item.url)}
-                            </div>
-                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                              <Badge variant={getUrlStatusVariant(item.status)}>
-                                {getUrlStatusLabel(item.status)}
-                              </Badge>
-                              <span>成功 {formatMetric(item.successCount)}</span>
-                              <span>失败 {formatMetric(item.failureCount)}</span>
-                            </div>
-                          </div>
-                          <div className="ml-3 shrink-0 text-right text-xs text-muted-foreground">
-                            <div>{formatMetric(item.count)}</div>
-                            <div>{formatDateTime(item.lastSeenAt)}</div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                    {(overview?.urlTopN || []).length === 0 && (
-                      <div className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
-                        暂无 URL 聚合数据
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+              <Card className="shadow-none">
+                <CardHeader>
+                  <CardTitle className="text-base">平台分布</CardTitle>
+                  <CardDescription>
+                    按请求总量统计，不区分成功或失败。
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {(overview?.platformTotals || []).map((item) => (
+                    <div
+                      className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
+                      key={item.platform}
+                    >
+                      <span className="font-medium">{item.platform}</span>
+                      <span className="text-muted-foreground">{formatMetric(item.count)}</span>
+                    </div>
+                  ))}
+                  {(overview?.platformTotals || []).length === 0 && (
+                    <div className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
+                      暂无平台统计数据
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </CardContent>
         </Card>
@@ -759,7 +604,7 @@ export default function AdminMonitorPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2">
                 <ListFilter className="h-5 w-5" />
-                请求 Host 聚合
+                请求明细
               </CardTitle>
               <RequestMetaBadges
                 statusCode={requestsStatusCode}
@@ -768,10 +613,7 @@ export default function AdminMonitorPage() {
               />
             </div>
             <CardDescription>
-              基于 `/api/admin/stats/aggregate?groupBy=host` 返回的聚合结果，
-              支持按平台、Host、状态、错误码和日期范围筛选，用于定位失败最集中的请求来源。
-              上方 URL 筛选仅影响趋势与 Top N，下方 Host 聚合使用独立的 Host
-              输入框。
+              支持平台、解析 URL、状态、错误码、日期范围筛选，用于定位哪条解析目标最容易触发失败。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -805,25 +647,13 @@ export default function AdminMonitorPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="url-filter">URL</Label>
+                <Label htmlFor="request-source-filter">解析 URL</Label>
                 <Input
-                  id="url-filter"
+                  id="request-source-filter"
                   placeholder="如: https://www.bilibili.tv/en/video/4798982132210688"
                   value={urlFilter}
                   onChange={(event) => {
                     setUrlFilter(event.target.value);
-                  }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="request-host-filter">请求 Host</Label>
-                <Input
-                  id="request-host-filter"
-                  placeholder="如: m.weibo.cn 或 unknown"
-                  value={requestHost}
-                  onChange={(event) => {
-                    setRequestHost(event.target.value);
                     setPage(1);
                   }}
                 />
@@ -927,62 +757,52 @@ export default function AdminMonitorPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>请求 Host</TableHead>
-                    <TableHead className="text-right">总请求</TableHead>
-                    <TableHead className="text-right">成功</TableHead>
-                    <TableHead className="text-right">失败</TableHead>
-                    <TableHead className="text-right">失败率</TableHead>
-                    <TableHead>最近请求时间</TableHead>
+                    <TableHead>URL</TableHead>
+                    <TableHead>时间</TableHead>
+                    <TableHead>平台</TableHead>
+                    <TableHead>状态</TableHead>
+                    <TableHead>错误码</TableHead>
+                    <TableHead>请求ID</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {requestsLoading ? (
                     <TableRow>
                       <TableCell colSpan={6} className="h-20 text-center">
-                        请求 Host 聚合加载中...
+                        请求明细加载中...
                       </TableCell>
                     </TableRow>
                   ) : requests.items.length > 0 ? (
                     requests.items.map((item) => (
-                      <TableRow key={item.key}>
-                        <TableCell className="max-w-[240px] truncate font-medium">
-                          {formatRequestHost(
-                            item.requestHost || item.requestDomain,
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatMetric(item.total)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatMetric(item.successCount)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span
-                            className={
-                              item.failureCount > 0
-                                ? 'text-destructive'
-                                : undefined
-                            }
-                          >
-                            {formatMetric(item.failureCount)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatPercent(
-                            item.total > 0
-                              ? (item.failureCount / item.total) * 100
-                              : 0,
-                          )}
+                      <TableRow key={item.id}>
+                        <TableCell className="max-w-[300px] truncate text-xs">
+                          {item.url || '-'}
                         </TableCell>
                         <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                          {formatDateTime(item.latestCreatedAt)}
+                          {formatDateTime(item.timestamp)}
+                        </TableCell>
+                        <TableCell>{item.platform}</TableCell>
+                        <TableCell>
+                          <Badge variant={item.success ? 'default' : 'destructive'}>
+                            {item.success ? '成功' : '失败'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {item.errorCode ? (
+                            <Badge variant="outline">{item.errorCode}</Badge>
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          {item.requestId}
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
                       <TableCell colSpan={6} className="h-20 text-center">
-                        暂无 Host 聚合数据
+                        暂无请求明细
                       </TableCell>
                     </TableRow>
                   )}
@@ -994,7 +814,7 @@ export default function AdminMonitorPage() {
               <div className="inline-flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4" />
                 当前第 {requests.pagination.page} 页，共 {totalPages} 页，合计{' '}
-                {formatMetric(requests.pagination.total)} 个 Host
+                {formatMetric(requests.pagination.total)} 条
               </div>
 
               <div className="flex items-center gap-2">
@@ -1010,9 +830,7 @@ export default function AdminMonitorPage() {
                   variant="outline"
                   size="sm"
                   disabled={requestsLoading || page >= totalPages}
-                  onClick={() =>
-                    setPage((prev) => Math.min(totalPages, prev + 1))
-                  }
+                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                 >
                   下一页
                 </Button>
