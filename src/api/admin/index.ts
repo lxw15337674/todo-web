@@ -40,6 +40,10 @@ export interface PlatformTotal {
 export interface RequestDomainTotal {
   requestDomain: string;
   count: number;
+  successCount: number;
+  failureCount: number;
+  lastSeenAt: string;
+  status: UrlAggregateStatus;
 }
 
 export type UrlAggregateStatus = 'ok' | 'degraded' | 'down';
@@ -140,6 +144,7 @@ export interface RequestDomainAggregateFilters extends RequestFilters {
   groupBy?: 'domain' | 'host';
   sortBy?: 'count' | 'latestCreatedAt';
   sortOrder?: 'asc' | 'desc';
+  q?: string;
 }
 
 export interface RequestDomainStatsData {
@@ -156,6 +161,7 @@ export interface RequestDomainQuery extends AggregateQuery {
   groupBy?: 'domain' | 'host';
   sortBy?: 'count' | 'latestCreatedAt';
   sortOrder?: 'asc' | 'desc';
+  q?: string;
 }
 
 interface StatsEnvelope<TData = Record<string, unknown>> {
@@ -393,37 +399,58 @@ export const normalizeAggregateData = (data: unknown): OverviewStatsData => {
   const requestDomainTopN = Array.isArray(record.requestDomainTopN)
     ? record.requestDomainTopN.map((item) => {
         const row = toRecord(item);
+        const status = toString(row.status);
         return {
           requestDomain:
             toString(row.requestDomain) ||
-            toString(row.requestSource) ||
             toString(row.sourceDomain) ||
             'unknown',
           count: toNumber(row.count, 0),
+          successCount: toNumber(row.successCount, 0),
+          failureCount: toNumber(row.failureCount, 0),
+          lastSeenAt: toString(row.lastSeenAt) || toString(row.lastSeen) || '',
+          status:
+            status === 'ok' || status === 'degraded' || status === 'down'
+              ? (status as UrlAggregateStatus)
+              : 'degraded',
         };
       })
     : Array.isArray(record.requestSourceTopN)
       ? record.requestSourceTopN.map((item) => {
           const row = toRecord(item);
+          const status = toString(row.status);
           return {
             requestDomain:
               toString(row.requestDomain) ||
-              toString(row.requestSource) ||
               toString(row.sourceDomain) ||
               'unknown',
             count: toNumber(row.count, 0),
+            successCount: toNumber(row.successCount, 0),
+            failureCount: toNumber(row.failureCount, 0),
+            lastSeenAt: toString(row.lastSeenAt) || toString(row.lastSeen) || '',
+            status:
+              status === 'ok' || status === 'degraded' || status === 'down'
+                ? (status as UrlAggregateStatus)
+                : 'degraded',
           };
         })
       : Array.isArray(record.sourceDomainTopN)
         ? record.sourceDomainTopN.map((item) => {
             const row = toRecord(item);
+            const status = toString(row.status);
             return {
               requestDomain:
                 toString(row.requestDomain) ||
-                toString(row.requestSource) ||
                 toString(row.sourceDomain) ||
                 'unknown',
               count: toNumber(row.count, 0),
+              successCount: toNumber(row.successCount, 0),
+              failureCount: toNumber(row.failureCount, 0),
+              lastSeenAt: toString(row.lastSeenAt) || toString(row.lastSeen) || '',
+              status:
+                status === 'ok' || status === 'degraded' || status === 'down'
+                  ? (status as UrlAggregateStatus)
+                  : 'degraded',
             };
           })
         : [];
@@ -470,7 +497,6 @@ export const normalizeRequestStats = (
       requestHost: toString(row.requestHost) || undefined,
       requestDomain:
         toString(row.requestDomain) ||
-        toString(row.requestSource) ||
         toString(row.sourceDomain) ||
         undefined,
       success: toBoolean(row.success, false) ?? false,
@@ -610,6 +636,7 @@ export const normalizeRequestDomainStats = (
       errorCode: toString(filtersRecord.errorCode) || undefined,
       startDate: toString(filtersRecord.startDate) || undefined,
       endDate: toString(filtersRecord.endDate) || undefined,
+      q: toString(filtersRecord.q) || undefined,
     },
   };
 };
@@ -675,6 +702,7 @@ export const fetchAdminRequestDomains = async (
   >('requestDomains', {
     query: {
       platform: query.platform,
+      url: query.url,
       requestSource: query.requestSource,
       requestDomain: query.requestDomain,
       startDate: query.startDate,
@@ -686,6 +714,7 @@ export const fetchAdminRequestDomains = async (
       groupBy: query.groupBy,
       sortBy: query.sortBy,
       sortOrder: query.sortOrder,
+      q: query.q,
     },
   });
 

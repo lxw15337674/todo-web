@@ -110,8 +110,22 @@ describe('aggregateAdminRequests', () => {
       },
     ]);
     expect(result.requestDomainTopN).toEqual([
-      { requestDomain: 'example.com', count: 4 },
-      { requestDomain: 'bhwa233.com', count: 2 },
+      {
+        requestDomain: 'www.bilibili.tv',
+        count: 4,
+        successCount: 2,
+        failureCount: 2,
+        lastSeenAt: '2026-03-28T09:50:00.000Z',
+        status: 'degraded',
+      },
+      {
+        requestDomain: 'www.douyin.com',
+        count: 2,
+        successCount: 1,
+        failureCount: 1,
+        lastSeenAt: '2026-03-28T11:00:00.000Z',
+        status: 'degraded',
+      },
     ]);
   });
 
@@ -201,6 +215,10 @@ describe('normalizeAggregateData', () => {
       {
         requestDomain: 'bhwa233.com',
         count: 120,
+        successCount: 0,
+        failureCount: 0,
+        lastSeenAt: '',
+        status: 'degraded',
       },
     ]);
   });
@@ -287,6 +305,7 @@ describe('normalizeRequestDomainStats', () => {
           sortBy: 'count',
           sortOrder: 'desc',
           requestDomain: 'weibo.cn',
+          q: 'wei',
         },
       },
       { page: 1, pageSize: 20 },
@@ -305,6 +324,7 @@ describe('normalizeRequestDomainStats', () => {
       sortBy: 'count',
       sortOrder: 'desc',
       requestDomain: 'weibo.cn',
+      q: 'wei',
     });
   });
 

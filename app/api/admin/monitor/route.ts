@@ -1,38 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { aggregateAdminRequests } from '@/api/admin/aggregation';
-
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const DEFAULT_MONITOR_BASE_URL = 'http://127.0.0.1:8787';
 const MONITOR_API_ENV = 'MONITOR_API';
 const MONITOR_API_KEY_ENV = 'MONITOR_API_KEY';
-const REQUEST_PAGE_SIZE = 100;
-const DEFAULT_TOP_N = 10;
-const REQUEST_FILTER_QUERY_KEYS = [
-  'platform',
-  'url',
-  'requestSource',
-  'requestHost',
-  'requestDomain',
-  'requestSourceType',
-  'success',
-  'errorCode',
-  'startDate',
-  'endDate',
-  'page',
-  'pageSize',
-];
-const UPSTREAM_REQUEST_QUERY_KEYS = REQUEST_FILTER_QUERY_KEYS.filter(
-  (key) => key !== 'url',
-);
-const REQUEST_AGGREGATE_QUERY_KEYS = [
-  ...UPSTREAM_REQUEST_QUERY_KEYS,
-  'groupBy',
-  'sortBy',
-  'sortOrder',
-];
 
 type MonitorTarget = 'health' | 'aggregate' | 'requests' | 'requestDomains';
 
@@ -50,6 +23,7 @@ type UpstreamRequestItem = {
   createdAt?: unknown;
   timestamp?: unknown;
   platform?: unknown;
+  parsedHost?: unknown;
   requestSource?: unknown;
   requestHost?: unknown;
   requestDomain?: unknown;
@@ -181,15 +155,17 @@ const getBaseUrl = () => {
 };
 
 const buildUpstreamUrl = (
-  target: 'health' | 'stats' | 'statsAggregate',
+  target: 'health' | 'stats' | 'statsAggregate' | 'statsOverview',
   query?: Record<string, string | number | boolean | undefined>,
 ) => {
   const upstreamPath =
     target === 'health'
       ? '/api/health'
-      : target === 'statsAggregate'
-        ? '/api/admin/stats/aggregate'
-        : '/api/admin/stats';
+      : target === 'statsOverview'
+        ? '/api/admin/stats/overview'
+        : target === 'statsAggregate'
+          ? '/api/admin/stats/aggregate'
+          : '/api/admin/stats';
   const url = new URL(upstreamPath, getBaseUrl());
 
   if (query) {
@@ -246,7 +222,7 @@ const proxyHealth = async () => {
 };
 
 const requestUpstreamJson = async <TPayload>(
-  target: 'stats' | 'statsAggregate',
+  target: 'stats' | 'statsAggregate' | 'statsOverview',
   query: Record<string, string | number | boolean | undefined>,
 ) => {
   const headers = new Headers({
@@ -273,6 +249,13 @@ const requestUpstreamJson = async <TPayload>(
   };
 };
 
+const normalizeParsedHost = (value?: string) => {
+  if (!value || value.trim() === '') {
+    return undefined;
+  }
+  return value.trim().toLowerCase();
+};
+
 const normalizeRequestPage = (
   data: unknown,
   fallback: { page: number; pageSize: number },
@@ -292,23 +275,24 @@ const normalizeRequestPage = (
       id: toString(row.id, `${fallback.page}-${index}`),
       timestamp: toString(row.createdAt) || toString(row.timestamp) || '-',
       platform: toString(row.platform, 'unknown'),
+      url: toString(row.url) || undefined,
       requestSource:
         toString(row.requestSource) ||
+        toString(row.parsedHost) ||
         toString(row.requestHost) ||
         toString(row.requestDomain) ||
         toString(row.sourceDomain) ||
         'unknown',
       requestHost: toString(row.requestHost) || undefined,
       requestDomain:
-        toString(row.requestDomain) ||
-        toString(row.sourceDomain) ||
-        toString(row.requestSource) ||
-        'unknown',
+        normalizeParsedHost(toString(row.parsedHost)) ||
+        normalizeParsedHost(toString(row.requestDomain)) ||
+        normalizeParsedHost(toString(row.sourceDomain)) ||
+        undefined,
       success: toBoolean(row.success) ?? false,
       errorCode: toString(row.errorCode),
       message: toString(row.errorMessage) || toString(row.message) || '',
       requestId,
-      url: toString(row.url) || undefined,
       raw: row,
     };
   });
@@ -342,13 +326,14 @@ const normalizeRequestPage = (
       url: toString(filters.url) || toString(filters.sourceUrl) || undefined,
       requestSource:
         toString(filters.requestSource) ||
+        toString(filters.parsedHost) ||
         toString(filters.requestHost) ||
-        toString(filters.sourceDomain) ||
         undefined,
       requestHost: toString(filters.requestHost) || undefined,
       requestDomain:
-        toString(filters.requestDomain) ||
-        toString(filters.sourceDomain) ||
+        normalizeParsedHost(toString(filters.parsedHost)) ||
+        normalizeParsedHost(toString(filters.requestDomain)) ||
+        normalizeParsedHost(toString(filters.sourceDomain)) ||
         undefined,
       success: toBoolean(filters.success),
       errorCode: toString(filters.errorCode) || undefined,
@@ -367,15 +352,16 @@ const normalizeRequestAggregatePage = (
 
   const items = source.map((entry, index) => {
     const row = toRecord(entry);
+    const parsedHost =
+      normalizeParsedHost(toString(row.parsedHost)) ||
+      normalizeParsedHost(toString(row.requestDomain)) ||
+      normalizeParsedHost(toString(row.key)) ||
+      'unknown';
 
     return {
       key: toString(row.key, `${fallback.page}-${index}`),
-      requestDomain:
-        toString(row.requestDomain) ||
-        toString(row.requestHost) ||
-        toString(row.key) ||
-        'unknown',
-      requestHost: toString(row.requestHost) || toString(row.key) || undefined,
+      requestDomain: parsedHost,
+      requestHost: parsedHost,
       total: toNumber(row.total, 0),
       successCount: toNumber(row.successCount, 0),
       failureCount: toNumber(row.failureCount, 0),
@@ -409,16 +395,17 @@ const normalizeRequestAggregatePage = (
       totalPages,
     },
     filters: {
-      groupBy: toString(filters.groupBy) || undefined,
+      groupBy: 'domain' as const,
       sortBy: toString(filters.sortBy) || undefined,
       sortOrder: toString(filters.sortOrder) || undefined,
+      q: toString(filters.q) || undefined,
       platform: toString(filters.platform) || undefined,
-      requestSource:
-        toString(filters.requestSource) ||
-        toString(filters.requestHost) ||
+      requestSource: toString(filters.parsedHost) || undefined,
+      requestHost: toString(filters.parsedHost) || undefined,
+      requestDomain:
+        normalizeParsedHost(toString(filters.parsedHost)) ||
+        normalizeParsedHost(toString(filters.requestDomain)) ||
         undefined,
-      requestHost: toString(filters.requestHost) || undefined,
-      requestDomain: toString(filters.requestDomain) || undefined,
       success: toBoolean(filters.success),
       errorCode: toString(filters.errorCode) || undefined,
       startDate: toString(filters.startDate) || undefined,
@@ -427,201 +414,63 @@ const normalizeRequestAggregatePage = (
   };
 };
 
-const getAggregateTopN = (request: NextRequest) => {
-  const raw = request.nextUrl.searchParams.get('topN');
-  if (!raw) {
-    return DEFAULT_TOP_N;
+const getTarget = (request: NextRequest): MonitorTarget | null => {
+  const targetValue = request.nextUrl.searchParams.get('target');
+  if (targetValue === 'aggregate') {
+    return 'aggregate';
   }
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed < 1) {
-    return DEFAULT_TOP_N;
+  if (targetValue === 'requests') {
+    return 'requests';
   }
-  return Math.floor(parsed);
-};
-
-const getRequestQuery = (
-  request: NextRequest,
-  allowedKeys: string[] = REQUEST_FILTER_QUERY_KEYS,
-) => {
-  const query: Record<string, string | number | boolean | undefined> = {};
-
-  allowedKeys.forEach((key) => {
-    const value = request.nextUrl.searchParams.get(key);
-    if (!value || value.trim() === '') {
-      return;
-    }
-    if (key === 'success') {
-      query[key] = value.toLowerCase() === 'true';
-      return;
-    }
-    if (key === 'page' || key === 'pageSize') {
-      query[key] = value;
-      return;
-    }
-    query[key] = value;
-  });
-
-  return query;
-};
-
-const getUpstreamRequestQuery = (
-  query: Record<string, string | number | boolean | undefined>,
-) => {
-  const upstreamQuery: Record<string, string | number | boolean | undefined> =
-    {};
-
-  UPSTREAM_REQUEST_QUERY_KEYS.forEach((key) => {
-    if (query[key] === undefined) {
-      return;
-    }
-    upstreamQuery[key] = query[key];
-  });
-
-  return upstreamQuery;
-};
-
-const filterItemsByUrl = <TItem extends { url?: string }>(
-  items: TItem[],
-  url?: string,
-) => {
-  const normalizedUrl = url?.trim();
-  if (!normalizedUrl) {
-    return items;
+  if (targetValue === 'requestDomains') {
+    return 'requestDomains';
   }
-
-  return items.filter((item) => item.url === normalizedUrl);
-};
-
-const paginateItems = <TItem,>(items: TItem[], page: number, pageSize: number) => {
-  const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-  const safePageSize =
-    Number.isFinite(pageSize) && pageSize > 0 ? Math.floor(pageSize) : 20;
-  const total = items.length;
-  const totalPages = Math.max(1, Math.ceil(total / safePageSize));
-  const currentPage = Math.min(safePage, totalPages);
-  const startIndex = (currentPage - 1) * safePageSize;
-
-  return {
-    items: items.slice(startIndex, startIndex + safePageSize),
-    pagination: {
-      page: currentPage,
-      pageSize: safePageSize,
-      total,
-      totalPages,
-    },
-  };
-};
-
-const fetchAllRequestItems = async (
-  query: Record<string, string | number | boolean | undefined>,
-) => {
-  const baseQuery = getUpstreamRequestQuery(query);
-  delete baseQuery.page;
-  delete baseQuery.pageSize;
-
-  const firstPage = await requestUpstreamJson<{ data?: UpstreamRequestPage }>(
-    'stats',
-    {
-      ...baseQuery,
-      page: 1,
-      pageSize: REQUEST_PAGE_SIZE,
-    },
-  );
-
-  const firstPageData = normalizeRequestPage(firstPage.payload.data, {
-    page: 1,
-    pageSize: REQUEST_PAGE_SIZE,
-  });
-  const allItems = [...firstPageData.items];
-  const totalPages = firstPageData.pagination.totalPages;
-
-  for (let pageStart = 2; pageStart <= totalPages; pageStart += 5) {
-    const pages = Array.from(
-      { length: Math.min(5, totalPages - pageStart + 1) },
-      (_, index) => pageStart + index,
-    );
-
-    const batch = await Promise.all(
-      pages.map(async (page) => {
-        const result = await requestUpstreamJson<{
-          data?: UpstreamRequestPage;
-        }>('stats', {
-          ...baseQuery,
-          page,
-          pageSize: REQUEST_PAGE_SIZE,
-        });
-
-        return normalizeRequestPage(result.payload.data, {
-          page,
-          pageSize: REQUEST_PAGE_SIZE,
-        }).items;
-      }),
-    );
-
-    batch.forEach((items) => allItems.push(...items));
+  if (targetValue === 'health') {
+    return 'health';
   }
-
-  return {
-    items: allItems,
-    requestId: firstPage.requestId,
-  };
+  return null;
 };
+
+const buildUpstreamFilterQuery = (request: NextRequest) => ({
+  platform: request.nextUrl.searchParams.get('platform') || undefined,
+  url: request.nextUrl.searchParams.get('url') || undefined,
+  q: request.nextUrl.searchParams.get('q') || undefined,
+  parsedHost:
+    normalizeParsedHost(
+      request.nextUrl.searchParams.get('requestDomain') || undefined,
+    ) || undefined,
+  success: request.nextUrl.searchParams.get('success') || undefined,
+  errorCode: request.nextUrl.searchParams.get('errorCode') || undefined,
+  startDate: request.nextUrl.searchParams.get('startDate') || undefined,
+  endDate: request.nextUrl.searchParams.get('endDate') || undefined,
+});
 
 const handleAggregateRequest = async (request: NextRequest) => {
-  const requestQuery = getRequestQuery(request);
-  const { items, requestId } = await fetchAllRequestItems(requestQuery);
-  const filteredItems = filterItemsByUrl(
-    items,
-    request.nextUrl.searchParams.get('url') || undefined,
+  const topN = request.nextUrl.searchParams.get('topN') || undefined;
+  const result = await requestUpstreamJson<Record<string, unknown>>(
+    'statsOverview',
+    {
+      ...buildUpstreamFilterQuery(request),
+      topN,
+    },
   );
-  const data = aggregateAdminRequests(filteredItems, {
-    startDate: request.nextUrl.searchParams.get('startDate') || undefined,
-    endDate: request.nextUrl.searchParams.get('endDate') || undefined,
-    topN: getAggregateTopN(request),
-  });
 
-  return createJsonResponse({ success: true, data }, 200, requestId);
+  return createJsonResponse(result.payload, 200, result.requestId);
 };
 
 const handleRequestsRequest = async (request: NextRequest) => {
-  const requestQuery = getRequestQuery(request);
   const page = Number(request.nextUrl.searchParams.get('page') || '1');
   const pageSize = Number(request.nextUrl.searchParams.get('pageSize') || '20');
-  const url = request.nextUrl.searchParams.get('url')?.trim() || undefined;
-
-  if (url) {
-    const { items, requestId } = await fetchAllRequestItems(requestQuery);
-    const filteredItems = filterItemsByUrl(items, url);
-    const data = paginateItems(filteredItems, page, pageSize);
-
-    return createJsonResponse(
-      {
-        success: true,
-        data: {
-          items: data.items,
-          pagination: data.pagination,
-          filters: {
-            platform: requestQuery.platform,
-            url,
-            requestSource: requestQuery.requestSource,
-            requestHost: requestQuery.requestHost,
-            requestDomain: requestQuery.requestDomain,
-            success: requestQuery.success,
-            errorCode: requestQuery.errorCode,
-            startDate: requestQuery.startDate,
-            endDate: requestQuery.endDate,
-          },
-        },
-      },
-      200,
-      requestId,
-    );
-  }
 
   const result = await requestUpstreamJson<{ data?: UpstreamRequestPage }>(
     'stats',
-    getUpstreamRequestQuery(requestQuery),
+    {
+      ...buildUpstreamFilterQuery(request),
+      page,
+      pageSize,
+    },
   );
+
   const data = normalizeRequestPage(result.payload.data, {
     page: Number.isFinite(page) && page > 0 ? page : 1,
     pageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 20,
@@ -631,20 +480,21 @@ const handleRequestsRequest = async (request: NextRequest) => {
 };
 
 const handleRequestDomainsRequest = async (request: NextRequest) => {
-  const requestQuery = getRequestQuery(request, REQUEST_AGGREGATE_QUERY_KEYS);
   const page = Number(request.nextUrl.searchParams.get('page') || '1');
   const pageSize = Number(request.nextUrl.searchParams.get('pageSize') || '20');
+  const sortBy = request.nextUrl.searchParams.get('sortBy') || undefined;
+  const sortOrder = request.nextUrl.searchParams.get('sortOrder') || undefined;
 
   const result = await requestUpstreamJson<{
     data?: UpstreamRequestAggregatePage;
   }>('statsAggregate', {
-    ...requestQuery,
-    groupBy:
-      typeof requestQuery.groupBy === 'string' &&
-      requestQuery.groupBy.length > 0
-        ? requestQuery.groupBy
-        : 'host',
+    ...buildUpstreamFilterQuery(request),
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
   });
+
   const data = normalizeRequestAggregatePage(result.payload.data, {
     page: Number.isFinite(page) && page > 0 ? page : 1,
     pageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 20,
@@ -654,17 +504,7 @@ const handleRequestDomainsRequest = async (request: NextRequest) => {
 };
 
 export async function GET(request: NextRequest) {
-  const targetValue = request.nextUrl.searchParams.get('target');
-  const target: MonitorTarget | null =
-    targetValue === 'aggregate'
-      ? 'aggregate'
-      : targetValue === 'requests'
-        ? 'requests'
-        : targetValue === 'requestDomains'
-          ? 'requestDomains'
-          : targetValue === 'health'
-            ? 'health'
-            : null;
+  const target = getTarget(request);
 
   if (!target) {
     return NextResponse.json(

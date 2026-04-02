@@ -23,6 +23,7 @@ import {
 import { usePermission } from '@/hooks/usePermission';
 import {
   fetchAdminAggregate,
+  fetchAdminRequestDomains,
   fetchAdminRequests,
   fetchHealth,
   type AggregateQuery,
@@ -31,6 +32,8 @@ import {
   MonitorApiError,
   normalizeHealthData,
   type OverviewStatsData,
+  type RequestDomainQuery,
+  type RequestDomainStatsData,
   type RequestQuery,
   type RequestStatsData,
 } from '@/api/admin';
@@ -71,6 +74,7 @@ import {
 const AUTO_REFRESH_INTERVAL_MS = 30_000;
 const SLOW_REQUEST_MS = 1_500;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
+const REQUEST_DOMAIN_PAGE_SIZE = 12;
 const REQUEST_STATUS_OPTIONS = [
   { label: '全部状态', value: 'all' },
   { label: '仅成功', value: 'success' },
@@ -113,6 +117,17 @@ const emptyRequests: RequestStatsData = {
   filters: {},
 };
 
+const emptyRequestDomains: RequestDomainStatsData = {
+  items: [],
+  pagination: {
+    page: 1,
+    pageSize: REQUEST_DOMAIN_PAGE_SIZE,
+    total: 0,
+    totalPages: 1,
+  },
+  filters: {},
+};
+
 const formatErrorMessage = (error: unknown) => {
   if (error instanceof MonitorApiError) {
     const parts = [error.message];
@@ -146,6 +161,48 @@ const formatMetric = (value: number | undefined) => {
     return '-';
   }
   return numberFormatter.format(value);
+};
+
+const formatRequestDomain = (value?: string) => {
+  if (!value || value.trim() === '') {
+    return 'unknown';
+  }
+  return value;
+};
+
+const getAggregateStatusLabel = (status?: 'ok' | 'degraded' | 'down') => {
+  if (status === 'ok') {
+    return '正常';
+  }
+  if (status === 'down') {
+    return '异常';
+  }
+  return '波动';
+};
+
+const getAggregateStatusVariant = (status?: 'ok' | 'degraded' | 'down') => {
+  if (status === 'ok') {
+    return 'default' as const;
+  }
+  if (status === 'down') {
+    return 'destructive' as const;
+  }
+  return 'secondary' as const;
+};
+
+const resolveRequestDomainStatus = (
+  successCount: number,
+  failureCount: number,
+) => {
+  if (failureCount === 0) {
+    return 'ok' as const;
+  }
+
+  if (successCount === 0 && failureCount >= 3) {
+    return 'down' as const;
+  }
+
+  return 'degraded' as const;
 };
 
 const getRequestStartTime = () => {
@@ -219,44 +276,81 @@ export default function AdminMonitorPage() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [overview, setOverview] = useState<OverviewStatsData | null>(null);
   const [requests, setRequests] = useState<RequestStatsData>(emptyRequests);
+  const [requestDomains, setRequestDomains] =
+    useState<RequestDomainStatsData>(emptyRequestDomains);
 
   const [healthLoading, setHealthLoading] = useState(false);
   const [aggregateLoading, setAggregateLoading] = useState(false);
   const [requestsLoading, setRequestsLoading] = useState(false);
+  const [requestDomainsLoading, setRequestDomainsLoading] = useState(false);
 
   const [healthError, setHealthError] = useState<string | null>(null);
   const [aggregateError, setAggregateError] = useState<string | null>(null);
   const [requestsError, setRequestsError] = useState<string | null>(null);
+  const [requestDomainsError, setRequestDomainsError] = useState<string | null>(
+    null,
+  );
   const [healthStatusCode, setHealthStatusCode] = useState<number | null>(null);
   const [aggregateStatusCode, setAggregateStatusCode] = useState<number | null>(null);
   const [requestsStatusCode, setRequestsStatusCode] = useState<number | null>(null);
+  const [requestDomainsStatusCode, setRequestDomainsStatusCode] = useState<
+    number | null
+  >(null);
   const [healthDurationMs, setHealthDurationMs] = useState<number | null>(null);
   const [aggregateDurationMs, setAggregateDurationMs] = useState<number | null>(null);
   const [requestsDurationMs, setRequestsDurationMs] = useState<number | null>(null);
+  const [requestDomainsDurationMs, setRequestDomainsDurationMs] = useState<
+    number | null
+  >(null);
 
   const [platform, setPlatform] = useState<'all' | MonitorPlatform>('all');
   const [urlFilter, setUrlFilter] = useState('');
+  const [requestDomainFilter, setRequestDomainFilter] = useState('');
+  const [requestDomainSearch, setRequestDomainSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [requestStatus, setRequestStatus] = useState<RequestStatusFilter>('failure');
   const [errorCode, setErrorCode] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(20);
+  const [requestDomainPage, setRequestDomainPage] = useState(1);
 
   const normalizedSharedFilter = useMemo(() => {
     return {
       platform: platform === 'all' ? undefined : platform,
       url: urlFilter.trim() || undefined,
+      requestDomain: requestDomainFilter.trim().toLowerCase() || undefined,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
     };
-  }, [platform, urlFilter, startDate, endDate]);
+  }, [platform, urlFilter, requestDomainFilter, startDate, endDate]);
 
   const aggregateQuery = useMemo<AggregateQuery>(() => {
     return {
       ...normalizedSharedFilter,
     };
   }, [normalizedSharedFilter]);
+
+  const requestDomainsQuery = useMemo<RequestDomainQuery>(() => {
+    return {
+      platform: normalizedSharedFilter.platform,
+      url: normalizedSharedFilter.url,
+      startDate: normalizedSharedFilter.startDate,
+      endDate: normalizedSharedFilter.endDate,
+      page: requestDomainPage,
+      pageSize: REQUEST_DOMAIN_PAGE_SIZE,
+      sortBy: 'count',
+      sortOrder: 'desc',
+      q: requestDomainSearch.trim().toLowerCase() || undefined,
+    };
+  }, [
+    normalizedSharedFilter.endDate,
+    normalizedSharedFilter.platform,
+    normalizedSharedFilter.startDate,
+    normalizedSharedFilter.url,
+    requestDomainPage,
+    requestDomainSearch,
+  ]);
 
   const requestsQuery = useMemo<RequestQuery>(() => {
     const success =
@@ -335,6 +429,28 @@ export default function AdminMonitorPage() {
     }
   }, []);
 
+  const loadRequestDomains = useCallback(async (query: RequestDomainQuery) => {
+    const startTime = getRequestStartTime();
+    setRequestDomainsLoading(true);
+    setRequestDomainsError(null);
+
+    try {
+      const result = await fetchAdminRequestDomains(query);
+      setRequestDomains(result);
+      setRequestDomainsStatusCode(200);
+      setLastUpdatedAt(new Date().toISOString());
+    } catch (error) {
+      setRequestDomains(emptyRequestDomains);
+      setRequestDomainsStatusCode(
+        error instanceof MonitorApiError ? error.status : null,
+      );
+      setRequestDomainsError(formatErrorMessage(error));
+    } finally {
+      setRequestDomainsLoading(false);
+      setRequestDomainsDurationMs(getRequestDuration(startTime));
+    }
+  }, []);
+
   useEffect(() => {
     void loadHealth();
   }, [loadHealth, refreshTick]);
@@ -346,6 +462,10 @@ export default function AdminMonitorPage() {
   useEffect(() => {
     void loadRequests(requestsQuery);
   }, [loadRequests, refreshTick, requestsQuery]);
+
+  useEffect(() => {
+    void loadRequestDomains(requestDomainsQuery);
+  }, [loadRequestDomains, refreshTick, requestDomainsQuery]);
 
   useEffect(() => {
     if (!autoRefresh) {
@@ -361,6 +481,10 @@ export default function AdminMonitorPage() {
   }, [autoRefresh]);
 
   const totalPages = Math.max(1, requests.pagination.totalPages || 1);
+  const requestDomainTotalPages = Math.max(
+    1,
+    requestDomains.pagination.totalPages || 1,
+  );
 
   const handleRefreshAll = () => {
     setRefreshTick((prev) => prev + 1);
@@ -369,12 +493,15 @@ export default function AdminMonitorPage() {
   const handleResetFilters = () => {
     setPlatform('all');
     setUrlFilter('');
+    setRequestDomainFilter('');
+    setRequestDomainSearch('');
     setStartDate('');
     setEndDate('');
     setRequestStatus('failure');
     setErrorCode('');
     setPage(1);
     setPageSize(20);
+    setRequestDomainPage(1);
   };
 
   const healthStatusText = health?.status || 'unknown';
@@ -520,7 +647,7 @@ export default function AdminMonitorPage() {
                 <CardHeader>
                   <CardTitle className="text-base">按日趋势</CardTitle>
                   <CardDescription>
-                    支持按解析 URL 筛选后查看该地址近 7 天请求走势。
+                    支持按解析 URL 或解析域名筛选后查看近 7 天请求走势。
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -596,6 +723,7 @@ export default function AdminMonitorPage() {
                 </CardContent>
               </Card>
             </div>
+
           </CardContent>
         </Card>
 
@@ -613,7 +741,7 @@ export default function AdminMonitorPage() {
               />
             </div>
             <CardDescription>
-              支持平台、解析 URL、状态、错误码、日期范围筛选，用于定位哪条解析目标最容易触发失败。
+              支持平台、解析 URL、解析域名、状态、错误码、日期范围筛选，用于定位哪条解析目标最容易触发失败。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -631,6 +759,7 @@ export default function AdminMonitorPage() {
                   onValueChange={(value: 'all' | MonitorPlatform) => {
                     setPlatform(value);
                     setPage(1);
+                    setRequestDomainPage(1);
                   }}
                 >
                   <SelectTrigger id="platform-filter">
@@ -655,6 +784,20 @@ export default function AdminMonitorPage() {
                   onChange={(event) => {
                     setUrlFilter(event.target.value);
                     setPage(1);
+                    setRequestDomainPage(1);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="request-domain-filter">搜索解析域名</Label>
+                <Input
+                  id="request-domain-filter"
+                  placeholder="输入关键字，如: bili、douyin"
+                  value={requestDomainSearch}
+                  onChange={(event) => {
+                    setRequestDomainSearch(event.target.value);
+                    setRequestDomainPage(1);
                   }}
                 />
               </div>
@@ -693,6 +836,7 @@ export default function AdminMonitorPage() {
                   onChange={(event) => {
                     setStartDate(event.target.value);
                     setPage(1);
+                    setRequestDomainPage(1);
                   }}
                 />
               </div>
@@ -706,6 +850,7 @@ export default function AdminMonitorPage() {
                   onChange={(event) => {
                     setEndDate(event.target.value);
                     setPage(1);
+                    setRequestDomainPage(1);
                   }}
                 />
               </div>
@@ -750,6 +895,125 @@ export default function AdminMonitorPage() {
                 <Button variant="outline" onClick={handleResetFilters}>
                   重置筛选
                 </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <Label className="text-sm">解析域名候选</Label>
+                <RequestMetaBadges
+                  statusCode={requestDomainsStatusCode}
+                  durationMs={requestDomainsDurationMs}
+                  loading={requestDomainsLoading}
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span>基于当前平台、解析 URL、日期范围分页查询。</span>
+                {requestDomainFilter && (
+                  <Badge variant="outline">
+                    已选: {formatRequestDomain(requestDomainFilter)}
+                  </Badge>
+                )}
+                {requestDomainFilter && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => {
+                      setRequestDomainFilter('');
+                      setPage(1);
+                    }}
+                  >
+                    清除解析域名筛选
+                  </Button>
+                )}
+              </div>
+              {requestDomainsError && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {requestDomainsError}
+                </div>
+              )}
+              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                {requestDomains.items.map((item) => {
+                  const active =
+                    normalizedSharedFilter.requestDomain === item.requestDomain;
+                  const domainStatus = resolveRequestDomainStatus(
+                    item.successCount,
+                    item.failureCount,
+                  );
+                  return (
+                    <button
+                      type="button"
+                      className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                        active
+                          ? 'border-primary bg-primary/5'
+                          : 'hover:border-primary/40'
+                      }`}
+                      key={item.requestDomain}
+                      onClick={() => {
+                        setRequestDomainFilter(
+                          active ? '' : item.requestDomain,
+                        );
+                        setPage(1);
+                      }}
+                    >
+                      <div className="min-w-0 space-y-1">
+                        <div className="truncate font-medium">
+                          {formatRequestDomain(item.requestDomain)}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <span>成功 {formatMetric(item.successCount)}</span>
+                          <span>失败 {formatMetric(item.failureCount)}</span>
+                          <span>总计 {formatMetric(item.total)}</span>
+                        </div>
+                      </div>
+                      <span className="ml-3 shrink-0">
+                        <Badge variant={getAggregateStatusVariant(domainStatus)}>
+                          {getAggregateStatusLabel(domainStatus)}
+                        </Badge>
+                      </span>
+                    </button>
+                  );
+                })}
+                {requestDomains.items.length === 0 && (
+                  <div className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground md:col-span-2 xl:col-span-3">
+                    {requestDomainsLoading ? '解析域名候选加载中...' : '暂无匹配的解析域名'}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+                <div>
+                  当前第 {requestDomains.pagination.page} 页，共{' '}
+                  {requestDomainTotalPages} 页，合计{' '}
+                  {formatMetric(requestDomains.pagination.total)} 个解析域名
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={requestDomainsLoading || requestDomainPage <= 1}
+                    onClick={() =>
+                      setRequestDomainPage((prev) => Math.max(1, prev - 1))
+                    }
+                  >
+                    上一页
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={
+                      requestDomainsLoading ||
+                      requestDomainPage >= requestDomainTotalPages
+                    }
+                    onClick={() =>
+                      setRequestDomainPage((prev) =>
+                        Math.min(requestDomainTotalPages, prev + 1),
+                      )
+                    }
+                  >
+                    下一页
+                  </Button>
+                </div>
               </div>
             </div>
 

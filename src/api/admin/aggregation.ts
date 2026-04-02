@@ -36,6 +36,10 @@ export type AggregatedOverviewData = {
   requestDomainTopN: Array<{
     requestDomain: string;
     count: number;
+    successCount: number;
+    failureCount: number;
+    lastSeenAt: string;
+    status: UrlAggregateStatus;
   }>;
 };
 
@@ -63,6 +67,33 @@ const resolveUrlAggregateStatus = (
   }
 
   return 'degraded';
+};
+
+const extractHostname = (value?: string) => {
+  if (!value) {
+    return undefined;
+  }
+
+  try {
+    const hostname = new URL(value).hostname.trim().toLowerCase();
+    return hostname || undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const normalizeParsedDomain = (item: Pick<AggregationInputItem, 'url' | 'requestDomain'>) => {
+  const parsedFromUrl = extractHostname(item.url);
+  if (parsedFromUrl) {
+    return parsedFromUrl;
+  }
+
+  const normalizedDomain = item.requestDomain?.trim().toLowerCase();
+  if (!normalizedDomain || normalizedDomain === 'unknown') {
+    return undefined;
+  }
+
+  return normalizedDomain;
 };
 
 const toDateKey = (value: string) => value.slice(0, 10);
@@ -135,7 +166,16 @@ export const aggregateAdminRequests = (
   const topN = Math.max(1, options.topN ?? DEFAULT_TOP_N);
 
   const platformCounts = new Map<string, number>();
-  const requestDomainCounts = new Map<string, number>();
+  const requestDomainAggregateMap = new Map<
+    string,
+    {
+      requestDomain: string;
+      count: number;
+      successCount: number;
+      failureCount: number;
+      lastSeenAt: string;
+    }
+  >();
   const urlAggregateMap = new Map<
     string,
     {
@@ -162,12 +202,27 @@ export const aggregateAdminRequests = (
       (platformCounts.get(item.platform) ?? 0) + 1,
     );
 
-    const normalizedDomain = item.requestDomain?.trim() || item.requestSource.trim();
+    const normalizedDomain = normalizeParsedDomain(item);
     if (normalizedDomain) {
-      requestDomainCounts.set(
-        normalizedDomain,
-        (requestDomainCounts.get(normalizedDomain) ?? 0) + 1,
-      );
+      const requestDomainAggregate = requestDomainAggregateMap.get(normalizedDomain) ?? {
+        requestDomain: normalizedDomain,
+        count: 0,
+        successCount: 0,
+        failureCount: 0,
+        lastSeenAt: item.timestamp,
+      };
+
+      requestDomainAggregate.count += 1;
+      if (item.success) {
+        requestDomainAggregate.successCount += 1;
+      } else {
+        requestDomainAggregate.failureCount += 1;
+      }
+      if (item.timestamp > requestDomainAggregate.lastSeenAt) {
+        requestDomainAggregate.lastSeenAt = item.timestamp;
+      }
+
+      requestDomainAggregateMap.set(normalizedDomain, requestDomainAggregate);
     }
 
     const normalizedUrl = item.url?.trim();
@@ -244,11 +299,15 @@ export const aggregateAdminRequests = (
           left.url.localeCompare(right.url),
       )
       .slice(0, topN),
-    requestDomainTopN: Array.from(requestDomainCounts.entries())
-      .map(([requestDomain, count]) => ({ requestDomain, count }))
+    requestDomainTopN: Array.from(requestDomainAggregateMap.values())
+      .map((item) => ({
+        ...item,
+        status: resolveUrlAggregateStatus(item.successCount, item.failureCount),
+      }))
       .sort(
         (left, right) =>
           right.count - left.count ||
+          right.lastSeenAt.localeCompare(left.lastSeenAt) ||
           left.requestDomain.localeCompare(right.requestDomain),
       )
       .slice(0, topN),
