@@ -50,6 +50,7 @@ export type UrlAggregateStatus = 'ok' | 'degraded' | 'down';
 
 export interface UrlAggregateItem {
   url: string;
+  rawUrl?: string;
   count: number;
   successCount: number;
   failureCount: number;
@@ -84,6 +85,7 @@ export interface RequestLogItem {
   message?: string;
   requestId: string;
   url?: string;
+  rawUrl?: string;
   raw: Record<string, unknown>;
 }
 
@@ -363,6 +365,7 @@ export const normalizeAggregateData = (data: unknown): OverviewStatsData => {
             toString(row.sourceUrl) ||
             toString(row.rawUrl) ||
             'unknown',
+          rawUrl: toString(row.rawUrl) || undefined,
           count: toNumber(row.count, 0),
           successCount: toNumber(row.successCount, 0),
           failureCount: toNumber(row.failureCount, 0),
@@ -505,9 +508,9 @@ export const normalizeRequestStats = (
       requestId,
       url:
         toString(row.url) ||
-        toString(row.rawUrl) ||
         toString(row.sourceUrl) ||
         undefined,
+      rawUrl: toString(row.rawUrl) || undefined,
       raw: row,
     };
   });

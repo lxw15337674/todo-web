@@ -34,6 +34,7 @@ type UpstreamRequestItem = {
   message?: unknown;
   requestId?: unknown;
   url?: unknown;
+  rawUrl?: unknown;
 };
 
 type UpstreamRequestPage = {
@@ -276,6 +277,7 @@ const normalizeRequestPage = (
       timestamp: toString(row.createdAt) || toString(row.timestamp) || '-',
       platform: toString(row.platform, 'unknown'),
       url: toString(row.url) || undefined,
+      rawUrl: toString(row.rawUrl) || undefined,
       requestSource:
         toString(row.requestSource) ||
         toString(row.parsedHost) ||

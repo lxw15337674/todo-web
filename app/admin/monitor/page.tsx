@@ -332,15 +332,24 @@ export default function AdminMonitorPage() {
   }, [normalizedSharedFilter]);
 
   const requestDomainsQuery = useMemo<RequestDomainQuery>(() => {
+    const success =
+      requestStatus === 'success'
+        ? true
+        : requestStatus === 'failure'
+          ? false
+          : undefined;
+
     return {
       platform: normalizedSharedFilter.platform,
       url: normalizedSharedFilter.url,
       startDate: normalizedSharedFilter.startDate,
       endDate: normalizedSharedFilter.endDate,
+      success,
       page: requestDomainPage,
       pageSize: REQUEST_DOMAIN_PAGE_SIZE,
       sortBy: 'count',
       sortOrder: 'desc',
+      errorCode: requestStatus === 'success' ? undefined : errorCode.trim() || undefined,
       q: requestDomainSearch.trim().toLowerCase() || undefined,
     };
   }, [
@@ -348,8 +357,10 @@ export default function AdminMonitorPage() {
     normalizedSharedFilter.platform,
     normalizedSharedFilter.startDate,
     normalizedSharedFilter.url,
+    requestStatus,
     requestDomainPage,
     requestDomainSearch,
+    errorCode,
   ]);
 
   const requestsQuery = useMemo<RequestQuery>(() => {
@@ -741,7 +752,7 @@ export default function AdminMonitorPage() {
               />
             </div>
             <CardDescription>
-              支持平台、解析 URL、解析域名、状态、错误码、日期范围筛选，用于定位哪条解析目标最容易触发失败。
+              支持平台、规范 URL、解析域名、状态、错误码、日期范围筛选；明细优先显示规范 URL，并保留原始输入便于排查短链和分享文案。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -776,10 +787,10 @@ export default function AdminMonitorPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="request-source-filter">解析 URL</Label>
+                <Label htmlFor="request-source-filter">规范 URL</Label>
                 <Input
                   id="request-source-filter"
-                  placeholder="如: https://www.bilibili.tv/en/video/4798982132210688"
+                  placeholder="如: https://www.bilibili.com/video/BV15f4y1A7Hi/"
                   value={urlFilter}
                   onChange={(event) => {
                     setUrlFilter(event.target.value);
@@ -812,6 +823,7 @@ export default function AdminMonitorPage() {
                       setErrorCode('');
                     }
                     setPage(1);
+                    setRequestDomainPage(1);
                   }}
                 >
                   <SelectTrigger id="request-status-filter">
@@ -865,6 +877,7 @@ export default function AdminMonitorPage() {
                   onChange={(event) => {
                     setErrorCode(event.target.value);
                     setPage(1);
+                    setRequestDomainPage(1);
                   }}
                 />
               </div>
@@ -908,7 +921,7 @@ export default function AdminMonitorPage() {
                 />
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span>基于当前平台、解析 URL、日期范围分页查询。</span>
+                <span>基于当前平台、解析 URL、日期范围、状态和错误码分页查询。</span>
                 {requestDomainFilter && (
                   <Badge variant="outline">
                     已选: {formatRequestDomain(requestDomainFilter)}
@@ -1021,7 +1034,7 @@ export default function AdminMonitorPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>URL</TableHead>
+                    <TableHead>规范 URL</TableHead>
                     <TableHead>时间</TableHead>
                     <TableHead>平台</TableHead>
                     <TableHead>状态</TableHead>
@@ -1039,8 +1052,17 @@ export default function AdminMonitorPage() {
                   ) : requests.items.length > 0 ? (
                     requests.items.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="max-w-[300px] truncate text-xs">
-                          {item.url || '-'}
+                        <TableCell className="max-w-[320px] text-xs">
+                          <div className="space-y-1">
+                            <div className="truncate font-medium">
+                              {item.url || '-'}
+                            </div>
+                            {item.rawUrl && item.rawUrl !== item.url && (
+                              <div className="truncate text-[11px] text-muted-foreground">
+                                原始输入: {item.rawUrl}
+                              </div>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                           {formatDateTime(item.timestamp)}

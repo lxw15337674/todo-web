@@ -191,6 +191,7 @@ describe('normalizeAggregateData', () => {
       urlTopN: [
         {
           url: 'https://www.bilibili.tv/en/video/4798982132210688',
+          rawUrl: 'https://b23.tv/mock-short-link',
           count: 120,
           successCount: 110,
           failureCount: 10,
@@ -204,6 +205,7 @@ describe('normalizeAggregateData', () => {
     expect(result.urlTopN).toEqual([
       {
         url: 'https://www.bilibili.tv/en/video/4798982132210688',
+        rawUrl: 'https://b23.tv/mock-short-link',
         count: 120,
         successCount: 110,
         failureCount: 10,
@@ -241,6 +243,7 @@ describe('normalizeRequestStats', () => {
             errorMessage: '解析失败',
             requestId: 'req_123',
             url: 'https://www.douyin.com/video/1',
+            rawUrl: 'https://v.douyin.com/mock-short-link/',
           },
         ],
         pagination: {
@@ -269,6 +272,7 @@ describe('normalizeRequestStats', () => {
       message: '解析失败',
       requestId: 'req_123',
       url: 'https://www.douyin.com/video/1',
+      rawUrl: 'https://v.douyin.com/mock-short-link/',
     });
     expect(result.filters).toMatchObject({
       url: 'https://www.douyin.com/video/1',
