@@ -1,12 +1,4 @@
-export type MonitorPlatform =
-  | 'bilibili'
-  | 'bilibili_tv'
-  | 'douyin'
-  | 'instagram'
-  | 'xiaohongshu'
-  | 'tiktok'
-  | 'x'
-  | 'unknown';
+export type MonitorPlatform = string;
 
 interface MonitorErrorEnvelope {
   success?: boolean;

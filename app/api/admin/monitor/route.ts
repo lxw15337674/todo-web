@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { aggregateAdminRequests } from '@/api/admin/aggregation';
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const DEFAULT_MONITOR_BASE_URL = 'http://127.0.0.1:8787';
 const MONITOR_API_ENV = 'MONITOR_API';
 const MONITOR_API_KEY_ENV = 'MONITOR_API_KEY';
+const MAX_UPSTREAM_PAGE_SIZE = 500;
 
 type MonitorTarget = 'health' | 'aggregate' | 'requests' | 'requestDomains';
 
@@ -250,11 +253,65 @@ const requestUpstreamJson = async <TPayload>(
   };
 };
 
+type NormalizedRequestItem = {
+  id: string;
+  timestamp: string;
+  platform: string;
+  url?: string;
+  rawUrl?: string;
+  requestSource: string;
+  requestHost?: string;
+  requestDomain?: string;
+  success: boolean;
+  errorCode: string;
+  message: string;
+  requestId: string;
+  raw: Record<string, unknown>;
+};
+
 const normalizeParsedHost = (value?: string) => {
   if (!value || value.trim() === '') {
     return undefined;
   }
   return value.trim().toLowerCase();
+};
+
+const normalizeRequestItem = (
+  entry: unknown,
+  fallback: { page: number; pageSize: number; index: number },
+): NormalizedRequestItem => {
+  const row = toRecord(entry);
+  const requestId =
+    toString(row.requestId) ||
+    toString(row.traceId) ||
+    toString(row.id) ||
+    '-';
+
+  return {
+    id: toString(row.id, `${fallback.page}-${fallback.index}`),
+    timestamp: toString(row.createdAt) || toString(row.timestamp) || '-',
+    platform: toString(row.platform, 'unknown'),
+    url: toString(row.url) || undefined,
+    rawUrl: toString(row.rawUrl) || undefined,
+    requestSource:
+      toString(row.requestSource) ||
+      toString(row.parsedHost) ||
+      toString(row.requestHost) ||
+      toString(row.requestDomain) ||
+      toString(row.sourceDomain) ||
+      'unknown',
+    requestHost: toString(row.requestHost) || undefined,
+    requestDomain:
+      normalizeParsedHost(toString(row.parsedHost)) ||
+      normalizeParsedHost(toString(row.requestDomain)) ||
+      normalizeParsedHost(toString(row.sourceDomain)) ||
+      undefined,
+    success: toBoolean(row.success) ?? false,
+    errorCode: toString(row.errorCode),
+    message: toString(row.errorMessage) || toString(row.message) || '',
+    requestId,
+    raw: row,
+  };
 };
 
 const normalizeRequestPage = (
@@ -264,40 +321,13 @@ const normalizeRequestPage = (
   const record = toRecord(data);
   const source = Array.isArray(record.items) ? record.items : [];
 
-  const items = source.map((entry, index) => {
-    const row = toRecord(entry);
-    const requestId =
-      toString(row.requestId) ||
-      toString(row.traceId) ||
-      toString(row.id) ||
-      '-';
-
-    return {
-      id: toString(row.id, `${fallback.page}-${index}`),
-      timestamp: toString(row.createdAt) || toString(row.timestamp) || '-',
-      platform: toString(row.platform, 'unknown'),
-      url: toString(row.url) || undefined,
-      rawUrl: toString(row.rawUrl) || undefined,
-      requestSource:
-        toString(row.requestSource) ||
-        toString(row.parsedHost) ||
-        toString(row.requestHost) ||
-        toString(row.requestDomain) ||
-        toString(row.sourceDomain) ||
-        'unknown',
-      requestHost: toString(row.requestHost) || undefined,
-      requestDomain:
-        normalizeParsedHost(toString(row.parsedHost)) ||
-        normalizeParsedHost(toString(row.requestDomain)) ||
-        normalizeParsedHost(toString(row.sourceDomain)) ||
-        undefined,
-      success: toBoolean(row.success) ?? false,
-      errorCode: toString(row.errorCode),
-      message: toString(row.errorMessage) || toString(row.message) || '',
-      requestId,
-      raw: row,
-    };
-  });
+  const items = source.map((entry, index) =>
+    normalizeRequestItem(entry, {
+      page: fallback.page,
+      pageSize: fallback.pageSize,
+      index,
+    }),
+  );
 
   const paginationRecord = toRecord(record.pagination);
   const page = toNumber(paginationRecord.page, fallback.page);
@@ -341,6 +371,47 @@ const normalizeRequestPage = (
       errorCode: toString(filters.errorCode) || undefined,
       startDate: toString(filters.startDate) || undefined,
       endDate: toString(filters.endDate) || undefined,
+    },
+  };
+};
+
+const getUrlSearch = (request: NextRequest) => {
+  const value = request.nextUrl.searchParams.get('url') || '';
+  const normalized = value.trim().toLowerCase();
+  return normalized || undefined;
+};
+
+const matchesUrlSearch = (item: Pick<NormalizedRequestItem, 'url' | 'rawUrl'>, urlSearch?: string) => {
+  if (!urlSearch) {
+    return true;
+  }
+
+  const fields = [item.url, item.rawUrl]
+    .filter((value): value is string => Boolean(value))
+    .map((value) => value.toLowerCase());
+
+  return fields.some((value) => value.includes(urlSearch));
+};
+
+const paginateItems = <TItem>(
+  items: TItem[],
+  page: number,
+  pageSize: number,
+) => {
+  const safePage = Number.isFinite(page) && page > 0 ? page : 1;
+  const safePageSize =
+    Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 20;
+  const total = items.length;
+  const totalPages = Math.max(1, Math.ceil(total / safePageSize));
+  const start = (safePage - 1) * safePageSize;
+
+  return {
+    items: items.slice(start, start + safePageSize),
+    pagination: {
+      page: safePage,
+      pageSize: safePageSize,
+      total,
+      totalPages,
     },
   };
 };
@@ -433,10 +504,19 @@ const getTarget = (request: NextRequest): MonitorTarget | null => {
   return null;
 };
 
-const buildUpstreamFilterQuery = (request: NextRequest) => ({
+const buildUpstreamFilterQuery = (
+  request: NextRequest,
+  options?: { includeUrl?: boolean; includeQ?: boolean },
+) => ({
   platform: request.nextUrl.searchParams.get('platform') || undefined,
-  url: request.nextUrl.searchParams.get('url') || undefined,
-  q: request.nextUrl.searchParams.get('q') || undefined,
+  url:
+    options?.includeUrl === false
+      ? undefined
+      : request.nextUrl.searchParams.get('url') || undefined,
+  q:
+    options?.includeQ === false
+      ? undefined
+      : request.nextUrl.searchParams.get('q') || undefined,
   parsedHost:
     normalizeParsedHost(
       request.nextUrl.searchParams.get('requestDomain') || undefined,
@@ -447,8 +527,173 @@ const buildUpstreamFilterQuery = (request: NextRequest) => ({
   endDate: request.nextUrl.searchParams.get('endDate') || undefined,
 });
 
+const fetchAllNormalizedRequests = async (
+  request: NextRequest,
+  options?: { includeUrl?: boolean; includeQ?: boolean },
+) => {
+  const query = buildUpstreamFilterQuery(request, options);
+  const items: NormalizedRequestItem[] = [];
+  let page = 1;
+  let totalPages = 1;
+  let requestId: string | undefined;
+
+  do {
+    const result = await requestUpstreamJson<{ data?: UpstreamRequestPage }>(
+      'stats',
+      {
+        ...query,
+        page,
+        pageSize: MAX_UPSTREAM_PAGE_SIZE,
+      },
+    );
+
+    const data = normalizeRequestPage(result.payload.data, {
+      page,
+      pageSize: MAX_UPSTREAM_PAGE_SIZE,
+    });
+
+    items.push(...data.items);
+    totalPages = data.pagination.totalPages;
+    requestId = result.requestId || requestId;
+    page += 1;
+  } while (page <= totalPages);
+
+  return {
+    items,
+    requestId,
+  };
+};
+
+const buildLocalRequestDomainPage = (
+  items: NormalizedRequestItem[],
+  options: {
+    page: number;
+    pageSize: number;
+    sortBy?: string;
+    sortOrder?: string;
+    q?: string;
+    filters: Record<string, string | boolean | undefined>;
+  },
+) => {
+  const q = options.q?.trim().toLowerCase();
+  const grouped = new Map<
+    string,
+    {
+      key: string;
+      requestDomain: string;
+      requestHost: string;
+      total: number;
+      successCount: number;
+      failureCount: number;
+      latestCreatedAt: string;
+      raw: Record<string, unknown>;
+    }
+  >();
+
+  items.forEach((item) => {
+    const requestDomain =
+      normalizeParsedHost(item.requestDomain) ||
+      normalizeParsedHost(item.requestHost) ||
+      'unknown';
+    const current = grouped.get(requestDomain) ?? {
+      key: requestDomain,
+      requestDomain,
+      requestHost: requestDomain,
+      total: 0,
+      successCount: 0,
+      failureCount: 0,
+      latestCreatedAt: item.timestamp,
+      raw: {},
+    };
+
+    current.total += 1;
+    if (item.success) {
+      current.successCount += 1;
+    } else {
+      current.failureCount += 1;
+    }
+    if (item.timestamp > current.latestCreatedAt) {
+      current.latestCreatedAt = item.timestamp;
+    }
+
+    grouped.set(requestDomain, current);
+  });
+
+  const rows = Array.from(grouped.values())
+    .filter((item) => !q || item.requestDomain.includes(q))
+    .sort((left, right) => {
+      const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+      if (options.sortBy === 'latestCreatedAt') {
+        return (
+          left.latestCreatedAt.localeCompare(right.latestCreatedAt) * sortOrder ||
+          left.requestDomain.localeCompare(right.requestDomain)
+        );
+      }
+
+      return (
+        (left.total - right.total) * sortOrder ||
+        right.latestCreatedAt.localeCompare(left.latestCreatedAt) ||
+        left.requestDomain.localeCompare(right.requestDomain)
+      );
+    });
+
+  const paginated = paginateItems(rows, options.page, options.pageSize);
+
+  return {
+    items: paginated.items,
+    pagination: paginated.pagination,
+    filters: {
+      ...options.filters,
+      groupBy: 'domain',
+      sortBy: options.sortBy || 'count',
+      sortOrder: options.sortOrder || 'desc',
+      q,
+    },
+  };
+};
+
 const handleAggregateRequest = async (request: NextRequest) => {
   const topN = request.nextUrl.searchParams.get('topN') || undefined;
+  const urlSearch = getUrlSearch(request);
+  const parsedTopN = topN ? Number(topN) : undefined;
+  const topNValue =
+    typeof parsedTopN === 'number' && Number.isFinite(parsedTopN)
+      ? parsedTopN
+      : undefined;
+
+  if (urlSearch) {
+    const result = await fetchAllNormalizedRequests(request, {
+      includeUrl: false,
+    });
+    const filteredItems = result.items.filter((item) =>
+      matchesUrlSearch(item, urlSearch),
+    );
+    const data = aggregateAdminRequests(
+      filteredItems.map((item) => ({
+        timestamp: item.timestamp,
+        platform: item.platform,
+        requestSource: item.requestSource,
+        requestDomain: item.requestDomain,
+        url: item.url,
+        success: item.success,
+      })),
+      {
+        startDate: request.nextUrl.searchParams.get('startDate') || undefined,
+        endDate: request.nextUrl.searchParams.get('endDate') || undefined,
+        topN: topNValue,
+      },
+    );
+
+    return createJsonResponse(
+      {
+        success: true,
+        data,
+      },
+      200,
+      result.requestId,
+    );
+  }
+
   const result = await requestUpstreamJson<Record<string, unknown>>(
     'statsOverview',
     {
@@ -463,6 +708,41 @@ const handleAggregateRequest = async (request: NextRequest) => {
 const handleRequestsRequest = async (request: NextRequest) => {
   const page = Number(request.nextUrl.searchParams.get('page') || '1');
   const pageSize = Number(request.nextUrl.searchParams.get('pageSize') || '20');
+  const urlSearch = getUrlSearch(request);
+
+  if (urlSearch) {
+    const result = await fetchAllNormalizedRequests(request, {
+      includeUrl: false,
+    });
+    const filteredItems = result.items.filter((item) =>
+      matchesUrlSearch(item, urlSearch),
+    );
+    const paginated = paginateItems(filteredItems, page, pageSize);
+
+    return createJsonResponse(
+      {
+        success: true,
+        data: {
+          items: paginated.items,
+          pagination: paginated.pagination,
+          filters: {
+            platform: request.nextUrl.searchParams.get('platform') || undefined,
+            url: request.nextUrl.searchParams.get('url') || undefined,
+            requestDomain:
+              normalizeParsedHost(
+                request.nextUrl.searchParams.get('requestDomain') || undefined,
+              ) || undefined,
+            success: toBoolean(request.nextUrl.searchParams.get('success')),
+            errorCode: request.nextUrl.searchParams.get('errorCode') || undefined,
+            startDate: request.nextUrl.searchParams.get('startDate') || undefined,
+            endDate: request.nextUrl.searchParams.get('endDate') || undefined,
+          },
+        },
+      },
+      200,
+      result.requestId,
+    );
+  }
 
   const result = await requestUpstreamJson<{ data?: UpstreamRequestPage }>(
     'stats',
@@ -486,6 +766,46 @@ const handleRequestDomainsRequest = async (request: NextRequest) => {
   const pageSize = Number(request.nextUrl.searchParams.get('pageSize') || '20');
   const sortBy = request.nextUrl.searchParams.get('sortBy') || undefined;
   const sortOrder = request.nextUrl.searchParams.get('sortOrder') || undefined;
+  const urlSearch = getUrlSearch(request);
+  const q = request.nextUrl.searchParams.get('q') || undefined;
+
+  if (urlSearch) {
+    const result = await fetchAllNormalizedRequests(request, {
+      includeUrl: false,
+      includeQ: false,
+    });
+    const filteredItems = result.items.filter((item) =>
+      matchesUrlSearch(item, urlSearch),
+    );
+    const data = buildLocalRequestDomainPage(filteredItems, {
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+      q,
+      filters: {
+        platform: request.nextUrl.searchParams.get('platform') || undefined,
+        url: request.nextUrl.searchParams.get('url') || undefined,
+        requestDomain:
+          normalizeParsedHost(
+            request.nextUrl.searchParams.get('requestDomain') || undefined,
+          ) || undefined,
+        success: toBoolean(request.nextUrl.searchParams.get('success')),
+        errorCode: request.nextUrl.searchParams.get('errorCode') || undefined,
+        startDate: request.nextUrl.searchParams.get('startDate') || undefined,
+        endDate: request.nextUrl.searchParams.get('endDate') || undefined,
+      },
+    });
+
+    return createJsonResponse(
+      {
+        success: true,
+        data,
+      },
+      200,
+      result.requestId,
+    );
+  }
 
   const result = await requestUpstreamJson<{
     data?: UpstreamRequestAggregatePage;

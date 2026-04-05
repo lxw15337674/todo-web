@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -22,6 +22,7 @@ import {
 
 import { usePermission } from '@/hooks/usePermission';
 import {
+  type DailyStatPoint,
   fetchAdminAggregate,
   fetchAdminRequestDomains,
   fetchAdminRequests,
@@ -90,17 +91,16 @@ const DAILY_STATS_CHART_CONFIG = {
     color: '#dc2626',
   },
 } satisfies ChartConfig;
-const PLATFORM_OPTIONS: Array<{ label: string; value: 'all' | MonitorPlatform }> = [
-  { label: '全部平台', value: 'all' },
-  { label: 'Bilibili', value: 'bilibili' },
-  { label: 'Bilibili TV', value: 'bilibili_tv' },
-  { label: '抖音', value: 'douyin' },
-  { label: 'Instagram', value: 'instagram' },
-  { label: '小红书', value: 'xiaohongshu' },
-  { label: 'TikTok', value: 'tiktok' },
-  { label: 'X / Twitter', value: 'x' },
-  { label: '未知平台', value: 'unknown' },
-];
+const PLATFORM_LABELS: Record<string, string> = {
+  bilibili: 'Bilibili',
+  bilibili_tv: 'Bilibili TV',
+  douyin: '抖音',
+  instagram: 'Instagram',
+  xiaohongshu: '小红书',
+  tiktok: 'TikTok',
+  x: 'X / Twitter',
+  unknown: '未知平台',
+};
 
 type RequestStatusFilter = (typeof REQUEST_STATUS_OPTIONS)[number]['value'];
 
@@ -168,6 +168,18 @@ const formatRequestDomain = (value?: string) => {
     return 'unknown';
   }
   return value;
+};
+
+const formatPlatformLabel = (platform: string) => {
+  return PLATFORM_LABELS[platform] || platform;
+};
+
+const getTodayDateValue = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = `${now.getMonth() + 1}`.padStart(2, '0');
+  const day = `${now.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 const getAggregateStatusLabel = (status?: 'ok' | 'degraded' | 'down') => {
@@ -269,35 +281,50 @@ function MetricCard({
 export default function AdminMonitorPage() {
   usePermission();
 
+  const requestDomainMetricsLoadIdRef = useRef(0);
+
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string>('');
 
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [overview, setOverview] = useState<OverviewStatsData | null>(null);
+  const [trendData, setTrendData] = useState<DailyStatPoint[]>([]);
   const [requests, setRequests] = useState<RequestStatsData>(emptyRequests);
   const [requestDomains, setRequestDomains] =
     useState<RequestDomainStatsData>(emptyRequestDomains);
+  const [requestDomainMetrics, setRequestDomainMetrics] = useState<
+    Record<string, RequestDomainStatsData['items'][number]>
+  >({});
 
   const [healthLoading, setHealthLoading] = useState(false);
   const [aggregateLoading, setAggregateLoading] = useState(false);
+  const [trendLoading, setTrendLoading] = useState(false);
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [requestDomainsLoading, setRequestDomainsLoading] = useState(false);
+  const [requestDomainMetricsLoading, setRequestDomainMetricsLoading] =
+    useState(false);
 
   const [healthError, setHealthError] = useState<string | null>(null);
   const [aggregateError, setAggregateError] = useState<string | null>(null);
+  const [trendError, setTrendError] = useState<string | null>(null);
   const [requestsError, setRequestsError] = useState<string | null>(null);
   const [requestDomainsError, setRequestDomainsError] = useState<string | null>(
     null,
   );
+  const [requestDomainMetricsError, setRequestDomainMetricsError] = useState<
+    string | null
+  >(null);
   const [healthStatusCode, setHealthStatusCode] = useState<number | null>(null);
   const [aggregateStatusCode, setAggregateStatusCode] = useState<number | null>(null);
+  const [trendStatusCode, setTrendStatusCode] = useState<number | null>(null);
   const [requestsStatusCode, setRequestsStatusCode] = useState<number | null>(null);
   const [requestDomainsStatusCode, setRequestDomainsStatusCode] = useState<
     number | null
   >(null);
   const [healthDurationMs, setHealthDurationMs] = useState<number | null>(null);
   const [aggregateDurationMs, setAggregateDurationMs] = useState<number | null>(null);
+  const [trendDurationMs, setTrendDurationMs] = useState<number | null>(null);
   const [requestsDurationMs, setRequestsDurationMs] = useState<number | null>(null);
   const [requestDomainsDurationMs, setRequestDomainsDurationMs] = useState<
     number | null
@@ -307,7 +334,7 @@ export default function AdminMonitorPage() {
   const [urlFilter, setUrlFilter] = useState('');
   const [requestDomainFilter, setRequestDomainFilter] = useState('');
   const [requestDomainSearch, setRequestDomainSearch] = useState('');
-  const [startDate, setStartDate] = useState('');
+  const [startDate, setStartDate] = useState(() => getTodayDateValue());
   const [endDate, setEndDate] = useState('');
   const [requestStatus, setRequestStatus] = useState<RequestStatusFilter>('failure');
   const [errorCode, setErrorCode] = useState('');
@@ -330,6 +357,24 @@ export default function AdminMonitorPage() {
       ...normalizedSharedFilter,
     };
   }, [normalizedSharedFilter]);
+
+  const requestDomainMetricQuery = useMemo<RequestDomainQuery>(() => {
+    return {
+      platform: normalizedSharedFilter.platform,
+      url: normalizedSharedFilter.url,
+      startDate: normalizedSharedFilter.startDate,
+      endDate: normalizedSharedFilter.endDate,
+      page: 1,
+      pageSize: 1,
+      sortBy: 'count',
+      sortOrder: 'desc',
+    };
+  }, [
+    normalizedSharedFilter.endDate,
+    normalizedSharedFilter.platform,
+    normalizedSharedFilter.startDate,
+    normalizedSharedFilter.url,
+  ]);
 
   const requestDomainsQuery = useMemo<RequestDomainQuery>(() => {
     const success =
@@ -380,6 +425,39 @@ export default function AdminMonitorPage() {
     };
   }, [normalizedSharedFilter, requestStatus, page, pageSize, errorCode]);
 
+  const shouldLoadRequestDomainMetrics =
+    requestStatus !== 'all' || errorCode.trim() !== '';
+
+  const platformOptions = useMemo<
+    Array<{ label: string; value: 'all' | MonitorPlatform }>
+  >(() => {
+    const seen = new Set<string>();
+    const options: Array<{ label: string; value: 'all' | MonitorPlatform }> = [
+      { label: '全部平台', value: 'all' },
+    ];
+
+    (health?.supportedPlatforms || []).forEach((item) => {
+      const value = item.trim();
+      if (!value || seen.has(value)) {
+        return;
+      }
+      seen.add(value);
+      options.push({
+        label: formatPlatformLabel(value),
+        value,
+      });
+    });
+
+    if (platform !== 'all' && !seen.has(platform)) {
+      options.push({
+        label: formatPlatformLabel(platform),
+        value: platform,
+      });
+    }
+
+    return options;
+  }, [health?.supportedPlatforms, platform]);
+
   const loadHealth = useCallback(async () => {
     const startTime = getRequestStartTime();
     setHealthLoading(true);
@@ -420,6 +498,26 @@ export default function AdminMonitorPage() {
     }
   }, []);
 
+  const loadTrend = useCallback(async () => {
+    const startTime = getRequestStartTime();
+    setTrendLoading(true);
+    setTrendError(null);
+
+    try {
+      const result = await fetchAdminAggregate();
+      setTrendData(result.recentDailyStats || []);
+      setTrendStatusCode(200);
+      setLastUpdatedAt(new Date().toISOString());
+    } catch (error) {
+      setTrendData([]);
+      setTrendStatusCode(error instanceof MonitorApiError ? error.status : null);
+      setTrendError(formatErrorMessage(error));
+    } finally {
+      setTrendLoading(false);
+      setTrendDurationMs(getRequestDuration(startTime));
+    }
+  }, []);
+
   const loadRequests = useCallback(async (query: RequestQuery) => {
     const startTime = getRequestStartTime();
     setRequestsLoading(true);
@@ -444,6 +542,10 @@ export default function AdminMonitorPage() {
     const startTime = getRequestStartTime();
     setRequestDomainsLoading(true);
     setRequestDomainsError(null);
+    requestDomainMetricsLoadIdRef.current += 1;
+    setRequestDomainMetrics({});
+    setRequestDomainMetricsError(null);
+    setRequestDomainMetricsLoading(false);
 
     try {
       const result = await fetchAdminRequestDomains(query);
@@ -462,6 +564,74 @@ export default function AdminMonitorPage() {
     }
   }, []);
 
+  const loadRequestDomainMetrics = useCallback(
+    async (domains: string[], baseQuery: RequestDomainQuery) => {
+      const currentLoadId = requestDomainMetricsLoadIdRef.current + 1;
+      requestDomainMetricsLoadIdRef.current = currentLoadId;
+      const uniqueDomains = Array.from(
+        new Set(
+          domains
+            .map((item) => item.trim().toLowerCase())
+            .filter((item) => item.length > 0),
+        ),
+      );
+
+      if (uniqueDomains.length === 0) {
+        if (requestDomainMetricsLoadIdRef.current === currentLoadId) {
+          setRequestDomainMetrics({});
+          setRequestDomainMetricsError(null);
+          setRequestDomainMetricsLoading(false);
+        }
+        return;
+      }
+
+      setRequestDomainMetricsLoading(true);
+      setRequestDomainMetricsError(null);
+
+      const settled = await Promise.allSettled(
+        uniqueDomains.map(async (requestDomain) => {
+          const result = await fetchAdminRequestDomains({
+            ...baseQuery,
+            requestDomain,
+          });
+
+          return {
+            requestDomain,
+            item: result.items[0],
+          };
+        }),
+      );
+
+      const nextMetrics: Record<
+        string,
+        RequestDomainStatsData['items'][number]
+      > = {};
+      const failures: string[] = [];
+
+      settled.forEach((entry, index) => {
+        if (entry.status === 'fulfilled') {
+          if (entry.value.item) {
+            nextMetrics[entry.value.requestDomain] = entry.value.item;
+          }
+          return;
+        }
+
+        failures.push(
+          `${uniqueDomains[index]}: ${formatErrorMessage(entry.reason)}`,
+        );
+      });
+
+      if (requestDomainMetricsLoadIdRef.current === currentLoadId) {
+        setRequestDomainMetrics(nextMetrics);
+        setRequestDomainMetricsError(
+          failures.length > 0 ? failures[0] : null,
+        );
+        setRequestDomainMetricsLoading(false);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     void loadHealth();
   }, [loadHealth, refreshTick]);
@@ -471,12 +641,39 @@ export default function AdminMonitorPage() {
   }, [loadAggregate, aggregateQuery, refreshTick]);
 
   useEffect(() => {
+    void loadTrend();
+  }, [loadTrend, refreshTick]);
+
+  useEffect(() => {
     void loadRequests(requestsQuery);
   }, [loadRequests, refreshTick, requestsQuery]);
 
   useEffect(() => {
     void loadRequestDomains(requestDomainsQuery);
   }, [loadRequestDomains, refreshTick, requestDomainsQuery]);
+
+  useEffect(() => {
+    if (!shouldLoadRequestDomainMetrics || requestDomainsLoading) {
+      if (!shouldLoadRequestDomainMetrics) {
+        requestDomainMetricsLoadIdRef.current += 1;
+        setRequestDomainMetrics({});
+        setRequestDomainMetricsError(null);
+        setRequestDomainMetricsLoading(false);
+      }
+      return;
+    }
+
+    void loadRequestDomainMetrics(
+      requestDomains.items.map((item) => item.requestDomain),
+      requestDomainMetricQuery,
+    );
+  }, [
+    loadRequestDomainMetrics,
+    requestDomainMetricQuery,
+    requestDomains.items,
+    requestDomainsLoading,
+    shouldLoadRequestDomainMetrics,
+  ]);
 
   useEffect(() => {
     if (!autoRefresh) {
@@ -506,7 +703,7 @@ export default function AdminMonitorPage() {
     setUrlFilter('');
     setRequestDomainFilter('');
     setRequestDomainSearch('');
-    setStartDate('');
+    setStartDate(getTodayDateValue());
     setEndDate('');
     setRequestStatus('failure');
     setErrorCode('');
@@ -517,7 +714,6 @@ export default function AdminMonitorPage() {
 
   const healthStatusText = health?.status || 'unknown';
   const isHealthy = healthStatusText.toLowerCase().includes('healthy');
-  const trendData = overview?.recentDailyStats || [];
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-gradient-to-b from-background via-background to-muted/20">
@@ -537,7 +733,14 @@ export default function AdminMonitorPage() {
               <Button
                 variant="outline"
                 onClick={handleRefreshAll}
-                disabled={healthLoading || aggregateLoading || requestsLoading}
+                disabled={
+                  healthLoading ||
+                  aggregateLoading ||
+                  trendLoading ||
+                  requestsLoading ||
+                  requestDomainsLoading ||
+                  requestDomainMetricsLoading
+                }
               >
                 <RefreshCw className="h-4 w-4" />
                 手动刷新
@@ -596,7 +799,7 @@ export default function AdminMonitorPage() {
             <div className="flex flex-wrap gap-2">
               {(health?.supportedPlatforms || []).map((item) => (
                 <Badge variant="outline" key={item}>
-                  {item}
+                  {formatPlatformLabel(item)}
                 </Badge>
               ))}
               {(health?.supportedPlatforms || []).length === 0 && (
@@ -620,7 +823,7 @@ export default function AdminMonitorPage() {
               />
             </div>
             <CardDescription>
-              保留当前概览卡片和按日趋势，底层改为基于请求明细接口聚合，并随共享筛选条件刷新。
+              概览卡片和平台分布随筛选刷新，按日趋势固定展示全局近 7 天请求走势。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -656,14 +859,26 @@ export default function AdminMonitorPage() {
             <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
               <Card className="shadow-none">
                 <CardHeader>
-                  <CardTitle className="text-base">按日趋势</CardTitle>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <CardTitle className="text-base">按日趋势</CardTitle>
+                    <RequestMetaBadges
+                      statusCode={trendStatusCode}
+                      durationMs={trendDurationMs}
+                      loading={trendLoading}
+                    />
+                  </div>
                   <CardDescription>
-                    支持按解析 URL 或解析域名筛选后查看近 7 天请求走势。
+                    展示全局近 7 天请求走势，不跟随下方筛选条件。
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {trendError && (
+                    <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                      {trendError}
+                    </div>
+                  )}
                   <div className="h-[280px] w-full">
-                    {aggregateLoading ? (
+                    {trendLoading ? (
                       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                         趋势数据加载中...
                       </div>
@@ -722,7 +937,9 @@ export default function AdminMonitorPage() {
                       className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
                       key={item.platform}
                     >
-                      <span className="font-medium">{item.platform}</span>
+                      <span className="font-medium">
+                        {formatPlatformLabel(item.platform)}
+                      </span>
                       <span className="text-muted-foreground">{formatMetric(item.count)}</span>
                     </div>
                   ))}
@@ -752,7 +969,7 @@ export default function AdminMonitorPage() {
               />
             </div>
             <CardDescription>
-              支持平台、规范 URL、解析域名、状态、错误码、日期范围筛选；明细优先显示规范 URL，并保留原始输入便于排查短链和分享文案。
+              支持平台、规范 URL 模糊搜索、解析域名候选筛选、状态、错误码、日期范围筛选；明细优先显示规范 URL，并保留原始输入便于排查短链和分享文案。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -777,7 +994,7 @@ export default function AdminMonitorPage() {
                     <SelectValue placeholder="选择平台" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PLATFORM_OPTIONS.map((item) => (
+                    {platformOptions.map((item) => (
                       <SelectItem key={item.value} value={item.value}>
                         {item.label}
                       </SelectItem>
@@ -790,7 +1007,7 @@ export default function AdminMonitorPage() {
                 <Label htmlFor="request-source-filter">规范 URL</Label>
                 <Input
                   id="request-source-filter"
-                  placeholder="如: https://www.bilibili.com/video/BV15f4y1A7Hi/"
+                  placeholder="模糊搜索规范 URL，如: bilibili.com/video"
                   value={urlFilter}
                   onChange={(event) => {
                     setUrlFilter(event.target.value);
@@ -804,7 +1021,7 @@ export default function AdminMonitorPage() {
                 <Label htmlFor="request-domain-filter">搜索解析域名</Label>
                 <Input
                   id="request-domain-filter"
-                  placeholder="输入关键字，如: bili、douyin"
+                  placeholder="模糊搜索解析域名，如: bili、douyin"
                   value={requestDomainSearch}
                   onChange={(event) => {
                     setRequestDomainSearch(event.target.value);
@@ -917,11 +1134,13 @@ export default function AdminMonitorPage() {
                 <RequestMetaBadges
                   statusCode={requestDomainsStatusCode}
                   durationMs={requestDomainsDurationMs}
-                  loading={requestDomainsLoading}
+                  loading={requestDomainsLoading || requestDomainMetricsLoading}
                 />
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span>基于当前平台、解析 URL、日期范围、状态和错误码分页查询。</span>
+                <span>
+                  候选列表按当前平台、规范 URL、日期范围、状态和错误码分页查询；卡片指标展示域名全量数据。
+                </span>
                 {requestDomainFilter && (
                   <Badge variant="outline">
                     已选: {formatRequestDomain(requestDomainFilter)}
@@ -946,13 +1165,21 @@ export default function AdminMonitorPage() {
                   {requestDomainsError}
                 </div>
               )}
+              {requestDomainMetricsError && (
+                <div className="rounded-md border border-amber-300/60 bg-amber-100/40 px-3 py-2 text-sm text-amber-900 dark:border-amber-600/30 dark:bg-amber-900/20 dark:text-amber-200">
+                  域名全量指标存在部分加载失败: {requestDomainMetricsError}
+                </div>
+              )}
               <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
                 {requestDomains.items.map((item) => {
                   const active =
                     normalizedSharedFilter.requestDomain === item.requestDomain;
+                  const metricItem = shouldLoadRequestDomainMetrics
+                    ? requestDomainMetrics[item.requestDomain]
+                    : item;
                   const domainStatus = resolveRequestDomainStatus(
-                    item.successCount,
-                    item.failureCount,
+                    metricItem?.successCount ?? item.successCount,
+                    metricItem?.failureCount ?? item.failureCount,
                   );
                   return (
                     <button
@@ -975,9 +1202,11 @@ export default function AdminMonitorPage() {
                           {formatRequestDomain(item.requestDomain)}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span>成功 {formatMetric(item.successCount)}</span>
-                          <span>失败 {formatMetric(item.failureCount)}</span>
-                          <span>总计 {formatMetric(item.total)}</span>
+                          <span>成功 {formatMetric(metricItem?.successCount)}</span>
+                          <span>
+                            失败 {formatMetric(metricItem?.failureCount ?? item.failureCount)}
+                          </span>
+                          <span>总计 {formatMetric(metricItem?.total)}</span>
                         </div>
                       </div>
                       <span className="ml-3 shrink-0">
