@@ -158,6 +158,42 @@ export interface RequestDomainQuery extends AggregateQuery {
   q?: string;
 }
 
+export type FeedbackType = 'bug' | 'feature' | 'other';
+export type FeedbackStatus = 'new' | 'reviewed' | 'resolved' | 'spam';
+
+export interface FeedbackItem {
+  id: string;
+  createdAt: string;
+  type: FeedbackType;
+  content: string;
+  contactEmail?: string;
+  status: FeedbackStatus;
+  requestId: string;
+  sourceOrigin?: string;
+  referer?: string;
+  userAgent?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface FeedbackFilters {
+  type?: FeedbackType;
+  status?: FeedbackStatus;
+  q?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface FeedbackData {
+  items: FeedbackItem[];
+  pagination: RequestPagination;
+  filters: FeedbackFilters;
+}
+
+export interface FeedbackQuery extends FeedbackFilters {
+  page?: number;
+  pageSize?: number;
+}
+
 interface StatsEnvelope<TData = Record<string, unknown>> {
   success: boolean;
   data: TData;
@@ -287,7 +323,7 @@ const appendQuery = (
 };
 
 const requestMonitorApi = async <T>(
-  target: 'health' | 'aggregate' | 'requests' | 'requestDomains',
+  target: 'health' | 'aggregate' | 'requests' | 'requestDomains' | 'feedback',
   options?: {
     query?: Record<string, string | number | boolean | undefined>;
   },
@@ -636,6 +672,87 @@ export const normalizeRequestDomainStats = (
   };
 };
 
+export const normalizeFeedbackData = (
+  data: unknown,
+  fallback: { page: number; pageSize: number },
+): FeedbackData => {
+  const record = toRecord(data);
+  const source = Array.isArray(record.items) ? record.items : [];
+  const items = source.map((entry, index): FeedbackItem => {
+    const row = toRecord(entry);
+    const type = toString(row.type, 'other');
+    const status = toString(row.status, 'new');
+
+    return {
+      id: toString(row.id, `${fallback.page}-${index}`),
+      createdAt: toString(row.createdAt) || '-',
+      type:
+        type === 'bug' || type === 'feature' || type === 'other'
+          ? type
+          : 'other',
+      content: toString(row.content),
+      contactEmail: toString(row.contactEmail) || undefined,
+      status:
+        status === 'new' ||
+        status === 'reviewed' ||
+        status === 'resolved' ||
+        status === 'spam'
+          ? status
+          : 'new',
+      requestId: toString(row.requestId, '-'),
+      sourceOrigin: toString(row.sourceOrigin) || undefined,
+      referer: toString(row.referer) || undefined,
+      userAgent: toString(row.userAgent) || undefined,
+      metadata: toOptionalRecord(row.metadata),
+    };
+  });
+  const paginationRecord = toRecord(record.pagination);
+  const page = toNumber(paginationRecord.page, fallback.page);
+  const pageSize = toNumber(paginationRecord.pageSize, fallback.pageSize);
+  const total = toNumber(
+    paginationRecord.total,
+    toNumber(paginationRecord.totalCount, items.length),
+  );
+  const totalPages = Math.max(
+    1,
+    toNumber(
+      paginationRecord.totalPages,
+      pageSize > 0 ? Math.ceil(total / pageSize) : 1,
+    ),
+  );
+  const filtersRecord = toRecord(record.filters);
+  const filterType = toString(filtersRecord.type);
+  const filterStatus = toString(filtersRecord.status);
+
+  return {
+    items,
+    pagination: {
+      page,
+      pageSize,
+      total,
+      totalPages,
+    },
+    filters: {
+      type:
+        filterType === 'bug' ||
+        filterType === 'feature' ||
+        filterType === 'other'
+          ? filterType
+          : undefined,
+      status:
+        filterStatus === 'new' ||
+        filterStatus === 'reviewed' ||
+        filterStatus === 'resolved' ||
+        filterStatus === 'spam'
+          ? filterStatus
+          : undefined,
+      q: toString(filtersRecord.q) || undefined,
+      startDate: toString(filtersRecord.startDate) || undefined,
+      endDate: toString(filtersRecord.endDate) || undefined,
+    },
+  };
+};
+
 export const fetchAdminAggregate = async (
   query?: AggregateQuery,
 ): Promise<OverviewStatsData> => {
@@ -714,6 +831,31 @@ export const fetchAdminRequestDomains = async (
   });
 
   return normalizeRequestDomainStats(result.data, {
+    page,
+    pageSize,
+  });
+};
+
+export const fetchAdminFeedback = async (
+  query: FeedbackQuery,
+): Promise<FeedbackData> => {
+  const page = query.page ?? 1;
+  const pageSize = query.pageSize ?? 20;
+  const result = await requestMonitorApi<
+    StatsEnvelope<Record<string, unknown>>
+  >('feedback', {
+    query: {
+      type: query.type,
+      status: query.status,
+      q: query.q,
+      startDate: query.startDate,
+      endDate: query.endDate,
+      page,
+      pageSize,
+    },
+  });
+
+  return normalizeFeedbackData(result.data, {
     page,
     pageSize,
   });

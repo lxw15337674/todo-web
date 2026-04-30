@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock3,
   ListFilter,
+  MessageSquare,
   RefreshCw,
   Server,
 } from 'lucide-react';
@@ -24,10 +25,15 @@ import { usePermission } from '@/hooks/usePermission';
 import {
   type DailyStatPoint,
   fetchAdminAggregate,
+  fetchAdminFeedback,
   fetchAdminRequestDomains,
   fetchAdminRequests,
   fetchHealth,
   type AggregateQuery,
+  type FeedbackData,
+  type FeedbackQuery,
+  type FeedbackStatus,
+  type FeedbackType,
   type HealthResponse,
   type MonitorPlatform,
   MonitorApiError,
@@ -76,10 +82,24 @@ const AUTO_REFRESH_INTERVAL_MS = 30_000;
 const SLOW_REQUEST_MS = 1_500;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 const REQUEST_DOMAIN_PAGE_SIZE = 12;
+const FEEDBACK_PAGE_SIZE = 10;
 const REQUEST_STATUS_OPTIONS = [
   { label: '全部状态', value: 'all' },
   { label: '仅成功', value: 'success' },
   { label: '仅失败', value: 'failure' },
+] as const;
+const FEEDBACK_TYPE_OPTIONS = [
+  { label: '全部类型', value: 'all' },
+  { label: 'Bug', value: 'bug' },
+  { label: '功能建议', value: 'feature' },
+  { label: '其他', value: 'other' },
+] as const;
+const FEEDBACK_STATUS_OPTIONS = [
+  { label: '全部状态', value: 'all' },
+  { label: '新反馈', value: 'new' },
+  { label: '已查看', value: 'reviewed' },
+  { label: '已解决', value: 'resolved' },
+  { label: '垃圾反馈', value: 'spam' },
 ] as const;
 const DAILY_STATS_CHART_CONFIG = {
   successCount: {
@@ -103,6 +123,8 @@ const PLATFORM_LABELS: Record<string, string> = {
 };
 
 type RequestStatusFilter = (typeof REQUEST_STATUS_OPTIONS)[number]['value'];
+type FeedbackTypeFilter = (typeof FEEDBACK_TYPE_OPTIONS)[number]['value'];
+type FeedbackStatusFilter = (typeof FEEDBACK_STATUS_OPTIONS)[number]['value'];
 
 const numberFormatter = new Intl.NumberFormat('zh-CN');
 
@@ -122,6 +144,17 @@ const emptyRequestDomains: RequestDomainStatsData = {
   pagination: {
     page: 1,
     pageSize: REQUEST_DOMAIN_PAGE_SIZE,
+    total: 0,
+    totalPages: 1,
+  },
+  filters: {},
+};
+
+const emptyFeedback: FeedbackData = {
+  items: [],
+  pagination: {
+    page: 1,
+    pageSize: FEEDBACK_PAGE_SIZE,
     total: 0,
     totalPages: 1,
   },
@@ -172,6 +205,80 @@ const formatRequestDomain = (value?: string) => {
 
 const formatPlatformLabel = (platform: string) => {
   return PLATFORM_LABELS[platform] || platform;
+};
+
+const formatFeedbackTypeLabel = (type: FeedbackType) => {
+  if (type === 'bug') {
+    return 'Bug';
+  }
+  if (type === 'feature') {
+    return '功能建议';
+  }
+  return '其他';
+};
+
+const formatFeedbackStatusLabel = (status: FeedbackStatus) => {
+  if (status === 'reviewed') {
+    return '已查看';
+  }
+  if (status === 'resolved') {
+    return '已解决';
+  }
+  if (status === 'spam') {
+    return '垃圾反馈';
+  }
+  return '新反馈';
+};
+
+const getFeedbackStatusVariant = (status: FeedbackStatus) => {
+  if (status === 'resolved') {
+    return 'default' as const;
+  }
+  if (status === 'spam') {
+    return 'destructive' as const;
+  }
+  if (status === 'reviewed') {
+    return 'outline' as const;
+  }
+  return 'secondary' as const;
+};
+
+const toMetadataRecord = (value: unknown): Record<string, unknown> => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  return value as Record<string, unknown>;
+};
+
+const formatNameVersion = (value: unknown) => {
+  const record = toMetadataRecord(value);
+  const name = typeof record.name === 'string' ? record.name : '';
+  const version = typeof record.version === 'string' ? record.version : '';
+
+  return [name, version].filter(Boolean).join(' ') || '-';
+};
+
+const formatFeedbackDeviceSummary = (
+  metadata: Record<string, unknown> | undefined,
+  userAgent: string | undefined,
+) => {
+  if (!metadata) {
+    return userAgent || '-';
+  }
+
+  const browser = formatNameVersion(metadata.browser);
+  const os = formatNameVersion(metadata.os);
+  const deviceType =
+    typeof metadata.deviceType === 'string' ? metadata.deviceType : '';
+  const viewport = toMetadataRecord(metadata.viewport);
+  const viewportText =
+    typeof viewport.width === 'number' && typeof viewport.height === 'number'
+      ? `${viewport.width}x${viewport.height}`
+      : '';
+
+  return [browser, os, deviceType, viewportText]
+    .filter((item) => item && item !== '-')
+    .join(' / ') || userAgent || '-';
 };
 
 const getTodayDateValue = () => {
@@ -293,6 +400,7 @@ export default function AdminMonitorPage() {
   const [requests, setRequests] = useState<RequestStatsData>(emptyRequests);
   const [requestDomains, setRequestDomains] =
     useState<RequestDomainStatsData>(emptyRequestDomains);
+  const [feedback, setFeedback] = useState<FeedbackData>(emptyFeedback);
   const [requestDomainMetrics, setRequestDomainMetrics] = useState<
     Record<string, RequestDomainStatsData['items'][number]>
   >({});
@@ -302,6 +410,7 @@ export default function AdminMonitorPage() {
   const [trendLoading, setTrendLoading] = useState(false);
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [requestDomainsLoading, setRequestDomainsLoading] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [requestDomainMetricsLoading, setRequestDomainMetricsLoading] =
     useState(false);
 
@@ -312,6 +421,7 @@ export default function AdminMonitorPage() {
   const [requestDomainsError, setRequestDomainsError] = useState<string | null>(
     null,
   );
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [requestDomainMetricsError, setRequestDomainMetricsError] = useState<
     string | null
   >(null);
@@ -322,6 +432,7 @@ export default function AdminMonitorPage() {
   const [requestDomainsStatusCode, setRequestDomainsStatusCode] = useState<
     number | null
   >(null);
+  const [feedbackStatusCode, setFeedbackStatusCode] = useState<number | null>(null);
   const [healthDurationMs, setHealthDurationMs] = useState<number | null>(null);
   const [aggregateDurationMs, setAggregateDurationMs] = useState<number | null>(null);
   const [trendDurationMs, setTrendDurationMs] = useState<number | null>(null);
@@ -329,6 +440,7 @@ export default function AdminMonitorPage() {
   const [requestDomainsDurationMs, setRequestDomainsDurationMs] = useState<
     number | null
   >(null);
+  const [feedbackDurationMs, setFeedbackDurationMs] = useState<number | null>(null);
 
   const [platform, setPlatform] = useState<'all' | MonitorPlatform>('all');
   const [urlFilter, setUrlFilter] = useState('');
@@ -341,6 +453,12 @@ export default function AdminMonitorPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(20);
   const [requestDomainPage, setRequestDomainPage] = useState(1);
+  const [feedbackType, setFeedbackType] = useState<FeedbackTypeFilter>('all');
+  const [feedbackStatus, setFeedbackStatus] = useState<FeedbackStatusFilter>('all');
+  const [feedbackSearch, setFeedbackSearch] = useState('');
+  const [feedbackStartDate, setFeedbackStartDate] = useState('');
+  const [feedbackEndDate, setFeedbackEndDate] = useState('');
+  const [feedbackPage, setFeedbackPage] = useState(1);
 
   const normalizedSharedFilter = useMemo(() => {
     return {
@@ -424,6 +542,25 @@ export default function AdminMonitorPage() {
       errorCode: requestStatus === 'success' ? undefined : errorCode.trim() || undefined,
     };
   }, [normalizedSharedFilter, requestStatus, page, pageSize, errorCode]);
+
+  const feedbackQuery = useMemo<FeedbackQuery>(() => {
+    return {
+      type: feedbackType === 'all' ? undefined : feedbackType,
+      status: feedbackStatus === 'all' ? undefined : feedbackStatus,
+      q: feedbackSearch.trim() || undefined,
+      startDate: feedbackStartDate || undefined,
+      endDate: feedbackEndDate || undefined,
+      page: feedbackPage,
+      pageSize: FEEDBACK_PAGE_SIZE,
+    };
+  }, [
+    feedbackEndDate,
+    feedbackPage,
+    feedbackSearch,
+    feedbackStartDate,
+    feedbackStatus,
+    feedbackType,
+  ]);
 
   const shouldLoadRequestDomainMetrics =
     requestStatus !== 'all' || errorCode.trim() !== '';
@@ -564,6 +701,26 @@ export default function AdminMonitorPage() {
     }
   }, []);
 
+  const loadFeedback = useCallback(async (query: FeedbackQuery) => {
+    const startTime = getRequestStartTime();
+    setFeedbackLoading(true);
+    setFeedbackError(null);
+
+    try {
+      const result = await fetchAdminFeedback(query);
+      setFeedback(result);
+      setFeedbackStatusCode(200);
+      setLastUpdatedAt(new Date().toISOString());
+    } catch (error) {
+      setFeedback(emptyFeedback);
+      setFeedbackStatusCode(error instanceof MonitorApiError ? error.status : null);
+      setFeedbackError(formatErrorMessage(error));
+    } finally {
+      setFeedbackLoading(false);
+      setFeedbackDurationMs(getRequestDuration(startTime));
+    }
+  }, []);
+
   const loadRequestDomainMetrics = useCallback(
     async (domains: string[], baseQuery: RequestDomainQuery) => {
       const currentLoadId = requestDomainMetricsLoadIdRef.current + 1;
@@ -653,6 +810,10 @@ export default function AdminMonitorPage() {
   }, [loadRequestDomains, refreshTick, requestDomainsQuery]);
 
   useEffect(() => {
+    void loadFeedback(feedbackQuery);
+  }, [feedbackQuery, loadFeedback, refreshTick]);
+
+  useEffect(() => {
     if (!shouldLoadRequestDomainMetrics || requestDomainsLoading) {
       if (!shouldLoadRequestDomainMetrics) {
         requestDomainMetricsLoadIdRef.current += 1;
@@ -693,6 +854,7 @@ export default function AdminMonitorPage() {
     1,
     requestDomains.pagination.totalPages || 1,
   );
+  const feedbackTotalPages = Math.max(1, feedback.pagination.totalPages || 1);
 
   const handleRefreshAll = () => {
     setRefreshTick((prev) => prev + 1);
@@ -710,6 +872,12 @@ export default function AdminMonitorPage() {
     setPage(1);
     setPageSize(20);
     setRequestDomainPage(1);
+    setFeedbackType('all');
+    setFeedbackStatus('all');
+    setFeedbackSearch('');
+    setFeedbackStartDate('');
+    setFeedbackEndDate('');
+    setFeedbackPage(1);
   };
 
   const healthStatusText = health?.status || 'unknown';
@@ -739,6 +907,7 @@ export default function AdminMonitorPage() {
                   trendLoading ||
                   requestsLoading ||
                   requestDomainsLoading ||
+                  feedbackLoading ||
                   requestDomainMetricsLoading
                 }
               >
@@ -1354,7 +1523,236 @@ export default function AdminMonitorPage() {
           </CardContent>
         </Card>
 
-        {(healthError || aggregateError || requestsError) && (
+        <Card>
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                反馈展示
+              </CardTitle>
+              <RequestMetaBadges
+                statusCode={feedbackStatusCode}
+                durationMs={feedbackDurationMs}
+                loading={feedbackLoading}
+              />
+            </div>
+            <CardDescription>
+              展示下载器反馈内容、联系方式和前端采集的浏览器/系统诊断信息。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {feedbackError && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {feedbackError}
+              </div>
+            )}
+
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              <div className="space-y-2">
+                <Label htmlFor="feedback-type-filter">类型</Label>
+                <Select
+                  value={feedbackType}
+                  onValueChange={(value: FeedbackTypeFilter) => {
+                    setFeedbackType(value);
+                    setFeedbackPage(1);
+                  }}
+                >
+                  <SelectTrigger id="feedback-type-filter">
+                    <SelectValue placeholder="选择类型" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FEEDBACK_TYPE_OPTIONS.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="feedback-status-filter">状态</Label>
+                <Select
+                  value={feedbackStatus}
+                  onValueChange={(value: FeedbackStatusFilter) => {
+                    setFeedbackStatus(value);
+                    setFeedbackPage(1);
+                  }}
+                >
+                  <SelectTrigger id="feedback-status-filter">
+                    <SelectValue placeholder="选择状态" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FEEDBACK_STATUS_OPTIONS.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="feedback-search">关键词</Label>
+                <Input
+                  id="feedback-search"
+                  placeholder="搜索内容或邮箱"
+                  value={feedbackSearch}
+                  onChange={(event) => {
+                    setFeedbackSearch(event.target.value);
+                    setFeedbackPage(1);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="feedback-start-date">开始日期</Label>
+                <Input
+                  id="feedback-start-date"
+                  type="date"
+                  value={feedbackStartDate}
+                  onChange={(event) => {
+                    setFeedbackStartDate(event.target.value);
+                    setFeedbackPage(1);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="feedback-end-date">结束日期</Label>
+                <Input
+                  id="feedback-end-date"
+                  type="date"
+                  value={feedbackEndDate}
+                  onChange={(event) => {
+                    setFeedbackEndDate(event.target.value);
+                    setFeedbackPage(1);
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>时间</TableHead>
+                    <TableHead>类型</TableHead>
+                    <TableHead>状态</TableHead>
+                    <TableHead>反馈内容</TableHead>
+                    <TableHead>联系邮箱</TableHead>
+                    <TableHead>浏览器 / 系统</TableHead>
+                    <TableHead>请求ID</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {feedbackLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-20 text-center">
+                        反馈加载中...
+                      </TableCell>
+                    </TableRow>
+                  ) : feedback.items.length > 0 ? (
+                    feedback.items.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                          {formatDateTime(item.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {formatFeedbackTypeLabel(item.type)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getFeedbackStatusVariant(item.status)}>
+                            {formatFeedbackStatusLabel(item.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="min-w-[260px] max-w-[420px] text-sm">
+                          <div className="space-y-2">
+                            <p className="whitespace-pre-wrap break-words leading-relaxed">
+                              {item.content || '-'}
+                            </p>
+                            {(item.referer || item.sourceOrigin) && (
+                              <p className="truncate text-xs text-muted-foreground">
+                                来源: {item.referer || item.sourceOrigin}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {item.contactEmail || '-'}
+                        </TableCell>
+                        <TableCell className="min-w-[220px] max-w-[320px] text-xs">
+                          <div className="space-y-1">
+                            <div className="break-words">
+                              {formatFeedbackDeviceSummary(
+                                item.metadata,
+                                item.userAgent,
+                              )}
+                            </div>
+                            {item.metadata && (
+                              <details className="text-muted-foreground">
+                                <summary className="cursor-pointer">
+                                  诊断详情
+                                </summary>
+                                <pre className="mt-1 max-h-40 overflow-auto rounded bg-muted p-2 text-[11px]">
+                                  {JSON.stringify(item.metadata, null, 2)}
+                                </pre>
+                              </details>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          {item.requestId}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-20 text-center">
+                        暂无反馈
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+              <div className="inline-flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                当前第 {feedback.pagination.page} 页，共 {feedbackTotalPages} 页，合计{' '}
+                {formatMetric(feedback.pagination.total)} 条
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={feedbackLoading || feedbackPage <= 1}
+                  onClick={() => setFeedbackPage((prev) => Math.max(1, prev - 1))}
+                >
+                  上一页
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={feedbackLoading || feedbackPage >= feedbackTotalPages}
+                  onClick={() =>
+                    setFeedbackPage((prev) =>
+                      Math.min(feedbackTotalPages, prev + 1),
+                    )
+                  }
+                >
+                  下一页
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {(healthError || aggregateError || requestsError || feedbackError) && (
           <div className="rounded-md border border-amber-300/60 bg-amber-100/40 px-4 py-3 text-sm text-amber-900 dark:border-amber-600/30 dark:bg-amber-900/20 dark:text-amber-200">
             <div className="flex items-start gap-2">
               <AlertTriangle className="mt-0.5 h-4 w-4" />

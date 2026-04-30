@@ -10,7 +10,7 @@ const MONITOR_API_ENV = 'MONITOR_API';
 const MONITOR_API_KEY_ENV = 'MONITOR_API_KEY';
 const MAX_UPSTREAM_PAGE_SIZE = 500;
 
-type MonitorTarget = 'health' | 'aggregate' | 'requests' | 'requestDomains';
+type MonitorTarget = 'health' | 'aggregate' | 'requests' | 'requestDomains' | 'feedback';
 
 type UpstreamErrorEnvelope = {
   success?: boolean;
@@ -159,12 +159,14 @@ const getBaseUrl = () => {
 };
 
 const buildUpstreamUrl = (
-  target: 'health' | 'stats' | 'statsAggregate' | 'statsOverview',
+  target: 'health' | 'stats' | 'statsAggregate' | 'statsOverview' | 'feedback',
   query?: Record<string, string | number | boolean | undefined>,
 ) => {
   const upstreamPath =
     target === 'health'
       ? '/api/health'
+      : target === 'feedback'
+        ? '/api/admin/feedback'
       : target === 'statsOverview'
         ? '/api/admin/stats/overview'
         : target === 'statsAggregate'
@@ -226,7 +228,7 @@ const proxyHealth = async () => {
 };
 
 const requestUpstreamJson = async <TPayload>(
-  target: 'stats' | 'statsAggregate' | 'statsOverview',
+  target: 'stats' | 'statsAggregate' | 'statsOverview' | 'feedback',
   query: Record<string, string | number | boolean | undefined>,
 ) => {
   const headers = new Headers({
@@ -497,6 +499,9 @@ const getTarget = (request: NextRequest): MonitorTarget | null => {
   }
   if (targetValue === 'requestDomains') {
     return 'requestDomains';
+  }
+  if (targetValue === 'feedback') {
+    return 'feedback';
   }
   if (targetValue === 'health') {
     return 'health';
@@ -825,6 +830,22 @@ const handleRequestDomainsRequest = async (request: NextRequest) => {
   return createJsonResponse({ success: true, data }, 200, result.requestId);
 };
 
+const handleFeedbackRequest = async (request: NextRequest) => {
+  const page = Number(request.nextUrl.searchParams.get('page') || '1');
+  const pageSize = Number(request.nextUrl.searchParams.get('pageSize') || '20');
+  const result = await requestUpstreamJson<Record<string, unknown>>('feedback', {
+    type: request.nextUrl.searchParams.get('type') || undefined,
+    status: request.nextUrl.searchParams.get('status') || undefined,
+    q: request.nextUrl.searchParams.get('q') || undefined,
+    startDate: request.nextUrl.searchParams.get('startDate') || undefined,
+    endDate: request.nextUrl.searchParams.get('endDate') || undefined,
+    page,
+    pageSize,
+  });
+
+  return createJsonResponse(result.payload, 200, result.requestId);
+};
+
 export async function GET(request: NextRequest) {
   const target = getTarget(request);
 
@@ -837,7 +858,7 @@ export async function GET(request: NextRequest) {
         requestId: 'monitor_proxy_invalid_target',
         details: {
           message:
-            'target 必须是 health、aggregate、requests 或 requestDomains',
+            'target 必须是 health、aggregate、requests、requestDomains 或 feedback',
         },
       },
       { status: 400 },
@@ -888,6 +909,10 @@ export async function GET(request: NextRequest) {
 
     if (target === 'requestDomains') {
       return await handleRequestDomainsRequest(request);
+    }
+
+    if (target === 'feedback') {
+      return await handleFeedbackRequest(request);
     }
 
     return await handleRequestsRequest(request);
