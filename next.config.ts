@@ -43,7 +43,7 @@ const nextConfig = withSerwist({
       },
       {
         source: '/bhwa233-api/:path*',
-        destination: 'https://bhwa233-api.vercel.app/api/:path*',
+        destination: 'https://api.bhwa233.com/api/:path*',
       }
     ];
   },

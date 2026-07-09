@@ -50,7 +50,7 @@ export default function Chat() {
     useEffect(() => {
         const fetchCommands = async () => {
             try {
-                const response = await axios.get('/bhwa233-api/command/hp');
+                const response = await axios.get('/bhwa233-api/command/list');
                 setCommands(response.data);
             } catch (error) {
                 console.error('Failed to fetch commands:', error);
