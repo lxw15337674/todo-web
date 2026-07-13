@@ -67,14 +67,14 @@ export default function BookmarkSidebar({ selectedTag, onSelectTag }: BookmarkSi
             {/* 移动端显示 */}
             <div className="lg:hidden">
                 <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                    <SheetTrigger asChild>
-                        <Button
+                    <SheetTrigger
+                        render={<Button
                             variant="ghost"
                             size="icon"
                             className="h-9 w-9 shrink-0"
-                        >
-                            <Menu className="h-4 w-4" />
-                        </Button>
+                        />}
+                    >
+                        <Menu />
                     </SheetTrigger>
                     <SheetContent side="left" className="w-[80%] sm:w-[385px] p-0">
                         <TagList />

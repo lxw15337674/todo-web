@@ -229,7 +229,7 @@ export function GalleryClient({
               `}</style>
               {Array.from({ length: 12 }).map((_, i) => (
                 <div key={i} className="mb-2 break-inside-avoid">
-                  <Skeleton className="aspect-[3/4] rounded-lg w-full" />
+                  <Skeleton className="aspect-3/4 rounded-lg w-full" />
                 </div>
               ))}
             </div>

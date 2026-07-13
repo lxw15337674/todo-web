@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -221,7 +222,8 @@ export function ProducerFormDialog({
     }
   };
 
-  const handleTypeChange = (value: ProducerType) => {
+  const handleTypeChange = (value: ProducerType | null) => {
+    if (!value) return;
     setFormData((prev) => ({ ...prev, type: value }));
   };
 
@@ -230,11 +232,8 @@ export function ProducerFormDialog({
     setFormData((prev) => ({ ...prev, tags: selectedTags }));
   };
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="sm:max-w-[500px]"
-        onPointerDownOutside={(e) => e.preventDefault()}
-      >
+    <Dialog open={open} onOpenChange={onOpenChange} disablePointerDismissal>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
             {mode === 'create' ? '添加制作者' : '编辑制作者'}
@@ -285,16 +284,22 @@ export function ProducerFormDialog({
             <label className="text-sm font-medium">
               类型 <span className="text-destructive">*</span>
             </label>
-            <Select value={formData.type} onValueChange={handleTypeChange}>
+            <Select
+              items={Object.values(ProducerType).map((type) => ({ value: type, label: PRODUCER_TYPE_NAMES[type] }))}
+              value={formData.type}
+              onValueChange={handleTypeChange}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Object.values(ProducerType).map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {PRODUCER_TYPE_NAMES[type]}
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  {Object.values(ProducerType).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {PRODUCER_TYPE_NAMES[type]}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>

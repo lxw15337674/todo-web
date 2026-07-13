@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useConfigStore from '../../../store/config'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MediaType } from "@/api/gallery/type"
@@ -71,6 +71,27 @@ export function FilterControls({
   const selectedTag = initialState.tags?.[0]
     ? tags.find(t => t.id === initialState?.tags?.[0])
     : null
+  const producerItems = [
+    { value: 'all', label: '全部生产者' },
+    ...producers.map((producer) => ({
+      value: producer.id,
+      label: `${producer.name} (${producer.mediaCount})`,
+    })),
+  ]
+  const sortItems = [
+    { value: 'desc', label: '最新优先' },
+    { value: 'asc', label: '最早优先' },
+    { value: 'random', label: '随机排序' },
+  ]
+  const mediaTypeItems = [
+    { value: MediaType.image, label: '图片' },
+    { value: MediaType.video, label: '视频' },
+    { value: MediaType.livephoto, label: '实况照片' },
+  ]
+  const tagItems = [
+    { value: 'all', label: '全部标签' },
+    ...tags.map((tag) => ({ value: tag.id, label: tag.name })),
+  ]
 
   return (
     <>
@@ -79,19 +100,22 @@ export function FilterControls({
         <div className="space-y-2">
           <label className="text-sm font-medium">生产者</label>
           <Select
+            items={producerItems}
             value={initialState.producer || 'all'}
-            onValueChange={(value) => updateSearchParams({ producer: value === 'all' ? null : value })}
+            onValueChange={(value) => updateSearchParams({ producer: !value || value === 'all' ? null : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="选择生产者" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">全部生产者</SelectItem>
-              {producers.map((producer) => (
-                <SelectItem key={producer.id} value={producer.id}>
-                  {producer.name} ({producer.mediaCount})
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectItem value="all">全部生产者</SelectItem>
+                {producers.map((producer) => (
+                  <SelectItem key={producer.id} value={producer.id}>
+                    {producer.name} ({producer.mediaCount})
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -100,16 +124,19 @@ export function FilterControls({
         <div className="space-y-2">
           <label className="text-sm font-medium">排序</label>
           <Select
+            items={sortItems}
             value={initialState.sort}
-            onValueChange={(value) => updateSearchParams({ sort: value })}
+            onValueChange={(value) => value && updateSearchParams({ sort: value })}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="desc">最新优先</SelectItem>
-              <SelectItem value="asc">最早优先</SelectItem>
-              <SelectItem value="random">随机排序</SelectItem>
+              <SelectGroup>
+                <SelectItem value="desc">最新优先</SelectItem>
+                <SelectItem value="asc">最早优先</SelectItem>
+                <SelectItem value="random">随机排序</SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -118,16 +145,19 @@ export function FilterControls({
         <div className="space-y-2">
           <label className="text-sm font-medium">类型</label>
           <Select
+            items={mediaTypeItems}
             value={initialState.type}
-            onValueChange={(value) => updateSearchParams({ type: value })}
+            onValueChange={(value) => value && updateSearchParams({ type: value })}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={MediaType.image}>图片</SelectItem>
-              <SelectItem value={MediaType.video}>视频</SelectItem>
-              <SelectItem value={MediaType.livephoto}>实况照片</SelectItem>
+              <SelectGroup>
+                <SelectItem value={MediaType.image}>图片</SelectItem>
+                <SelectItem value={MediaType.video}>视频</SelectItem>
+                <SelectItem value={MediaType.livephoto}>实况照片</SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -136,19 +166,22 @@ export function FilterControls({
         <div className="space-y-2">
           <label className="text-sm font-medium">标签</label>
           <Select
+            items={tagItems}
             value={initialState.tags?.[0] || 'all'}
-            onValueChange={(value) => updateSearchParams({ tags: value === 'all' ? null : value })}
+            onValueChange={(value) => updateSearchParams({ tags: !value || value === 'all' ? null : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="选择标签" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">全部标签</SelectItem>
-              {tags.map((tag) => (
-                <SelectItem key={tag.id} value={tag.id}>
-                  {tag.name}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectItem value="all">全部标签</SelectItem>
+                {tags.map((tag) => (
+                  <SelectItem key={tag.id} value={tag.id}>
+                    {tag.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>

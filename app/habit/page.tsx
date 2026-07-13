@@ -48,7 +48,7 @@ export default function TaskManagement() {
         <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
             <div className="flex flex-col space-y-4 sm:space-y-6">
                 <div className="flex flex-col space-y-4">
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-card rounded-lg border shadow-sm">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-card rounded-lg border shadow-xs">
                         <div className="flex-1">
                             <Input
                                 value={newTask.name}

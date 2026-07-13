@@ -2,8 +2,12 @@
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
-  palette: {
-    mode: 'dark',
+  colorSchemes: {
+    light: true,
+    dark: true,
+  },
+  cssVariables: {
+    colorSchemeSelector: 'class',
   },
 });
 

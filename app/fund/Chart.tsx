@@ -54,9 +54,13 @@ export function Chart({ assets }: ChartProps) {
                         dataKey="name"
                         position="outside"
                         fontSize={12}
-                        formatter={(value: keyof typeof config) =>
-                            config[value]?.label || value
-                        }
+                        formatter={(value) => {
+                            const key = String(value) as keyof typeof config;
+                            const label = config[key]?.label;
+                            return typeof label === 'string' || typeof label === 'number'
+                                ? label
+                                : String(value ?? '');
+                        }}
                     />
                 </Pie>
                 <Legend />

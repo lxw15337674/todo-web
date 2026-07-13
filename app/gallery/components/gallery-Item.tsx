@@ -82,7 +82,7 @@ export const GalleryItem = ({ image }: Props) => {
                             onLoadedData={() => setIsLoading(false)}
                         />
                     )}
-                    <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm p-1.5 rounded-full">
+                    <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-xs p-1.5 rounded-full">
                         <Video className="text-white w-4 h-4" />
                     </div>
                     {isLoading && (
@@ -112,7 +112,7 @@ export const GalleryItem = ({ image }: Props) => {
             )}
 
             <div className={cn(
-                "absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/50 to-transparent",
+                "absolute inset-x-0 bottom-0 p-3 bg-linear-to-t from-black/80 via-black/50 to-transparent",
                 "transition-opacity duration-300",
                 isHovered ? "opacity-100" : "opacity-0"
             )}>
@@ -139,7 +139,7 @@ export const GalleryItem = ({ image }: Props) => {
                     size="icon"
                     variant="secondary"
                     className={cn(
-                        "absolute top-2 right-2 bg-black/50 hover:bg-black/70 backdrop-blur-sm",
+                        "absolute top-2 right-2 bg-black/50 hover:bg-black/70 backdrop-blur-xs",
                         "transition-all duration-300 rounded-full",
                         isHovered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
                     )}

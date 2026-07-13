@@ -14,6 +14,7 @@ import { Priority, Task } from '@prisma/client';
 import {
     Select,
     SelectContent,
+    SelectGroup,
     SelectItem,
     SelectTrigger,
     SelectValue,
@@ -127,7 +128,7 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
                           <Checkbox
                               checked={checked}
                               onCheckedChange={() => toggleTask(task.id)}
-                              className="focus:outline-none focus-visible:outline-none shrink-0 mt-1.5"
+                              className="focus:outline-hidden focus-visible:outline-hidden shrink-0 mt-1.5"
                           />
                           <AutosizeTextarea
                               value={taskName}
@@ -161,16 +162,22 @@ export function TaskCard({ task, setTasks }: TaskCardProps) {
                               </div>
                           )}
                           <div className="flex items-center gap-2 shrink-0">
-                              <Select value={task.priority || Priority.NOT_IMPORTANT_NOT_URGENT} onValueChange={handlePriorityChange}>
+                              <Select
+                                  items={Object.entries(priorityConfig).map(([value, config]) => ({ value, label: config.label }))}
+                                  value={task.priority || Priority.NOT_IMPORTANT_NOT_URGENT}
+                                  onValueChange={(value) => value && handlePriorityChange(value)}
+                              >
                                   <SelectTrigger className={cn("h-7 w-[120px] text-xs", task.priority && priorityConfig[task.priority]?.color)}>
                                       <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                      {Object.entries(priorityConfig).map(([value, config]) => (
-                                          <SelectItem key={value} value={value} className={cn("text-xs", config.color)}>
-                                              {config.label}
-                                          </SelectItem>
-                                      ))}
+                                      <SelectGroup>
+                                          {Object.entries(priorityConfig).map(([value, config]) => (
+                                              <SelectItem key={value} value={value} className={cn("text-xs", config.color)}>
+                                                  {config.label}
+                                              </SelectItem>
+                                          ))}
+                                      </SelectGroup>
                                   </SelectContent>
                               </Select>
                               <span className="text-sm text-muted-foreground whitespace-nowrap">

@@ -35,7 +35,7 @@ export function GalleryFilters({
 }: GalleryFiltersProps) {
   return (
     <div className="p-4 border-b bg-background">
-      <div className="max-w-screen-2xl mx-auto">
+      <div className="max-w-(--breakpoint-2xl) mx-auto">
         <FilterControls
           producers={producers}
           tags={tags}

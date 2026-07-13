@@ -59,6 +59,7 @@ import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -884,7 +885,7 @@ export default function AdminMonitorPage() {
   const isHealthy = healthStatusText.toLowerCase().includes('healthy');
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-[calc(100vh-56px)] bg-linear-to-b from-background via-background to-muted/20">
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6 md:py-8">
         <Card className="border-dashed">
           <CardHeader>
@@ -1152,8 +1153,10 @@ export default function AdminMonitorPage() {
               <div className="space-y-2">
                 <Label htmlFor="platform-filter">平台</Label>
                 <Select
+                  items={platformOptions}
                   value={platform}
-                  onValueChange={(value: 'all' | MonitorPlatform) => {
+                  onValueChange={(value) => {
+                    if (!value) return;
                     setPlatform(value);
                     setPage(1);
                     setRequestDomainPage(1);
@@ -1163,11 +1166,13 @@ export default function AdminMonitorPage() {
                     <SelectValue placeholder="选择平台" />
                   </SelectTrigger>
                   <SelectContent>
-                    {platformOptions.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      {platformOptions.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
@@ -1202,8 +1207,10 @@ export default function AdminMonitorPage() {
               <div className="space-y-2">
                 <Label htmlFor="request-status-filter">状态</Label>
                 <Select
+                  items={REQUEST_STATUS_OPTIONS}
                   value={requestStatus}
-                  onValueChange={(value: RequestStatusFilter) => {
+                  onValueChange={(value) => {
+                    if (!value) return;
                     setRequestStatus(value);
                     if (value === 'success') {
                       setErrorCode('');
@@ -1216,11 +1223,13 @@ export default function AdminMonitorPage() {
                     <SelectValue placeholder="选择状态" />
                   </SelectTrigger>
                   <SelectContent>
-                    {REQUEST_STATUS_OPTIONS.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      {REQUEST_STATUS_OPTIONS.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
@@ -1271,6 +1280,7 @@ export default function AdminMonitorPage() {
               <div className="space-y-2">
                 <Label htmlFor="page-size">每页数量</Label>
                 <Select
+                  items={PAGE_SIZE_OPTIONS.map((size) => ({ label: `${size}`, value: `${size}` }))}
                   value={`${pageSize}`}
                   onValueChange={(value) => {
                     setPageSize(Number(value));
@@ -1281,11 +1291,13 @@ export default function AdminMonitorPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {PAGE_SIZE_OPTIONS.map((size) => (
-                      <SelectItem key={size} value={`${size}`}>
-                        {size}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      {PAGE_SIZE_OPTIONS.map((size) => (
+                        <SelectItem key={size} value={`${size}`}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
@@ -1551,8 +1563,10 @@ export default function AdminMonitorPage() {
               <div className="space-y-2">
                 <Label htmlFor="feedback-type-filter">类型</Label>
                 <Select
+                  items={FEEDBACK_TYPE_OPTIONS}
                   value={feedbackType}
-                  onValueChange={(value: FeedbackTypeFilter) => {
+                  onValueChange={(value) => {
+                    if (!value) return;
                     setFeedbackType(value);
                     setFeedbackPage(1);
                   }}
@@ -1561,11 +1575,13 @@ export default function AdminMonitorPage() {
                     <SelectValue placeholder="选择类型" />
                   </SelectTrigger>
                   <SelectContent>
-                    {FEEDBACK_TYPE_OPTIONS.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      {FEEDBACK_TYPE_OPTIONS.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
@@ -1573,8 +1589,10 @@ export default function AdminMonitorPage() {
               <div className="space-y-2">
                 <Label htmlFor="feedback-status-filter">状态</Label>
                 <Select
+                  items={FEEDBACK_STATUS_OPTIONS}
                   value={feedbackStatus}
-                  onValueChange={(value: FeedbackStatusFilter) => {
+                  onValueChange={(value) => {
+                    if (!value) return;
                     setFeedbackStatus(value);
                     setFeedbackPage(1);
                   }}
@@ -1583,11 +1601,13 @@ export default function AdminMonitorPage() {
                     <SelectValue placeholder="选择状态" />
                   </SelectTrigger>
                   <SelectContent>
-                    {FEEDBACK_STATUS_OPTIONS.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      {FEEDBACK_STATUS_OPTIONS.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
@@ -1670,7 +1690,7 @@ export default function AdminMonitorPage() {
                         </TableCell>
                         <TableCell className="min-w-[260px] max-w-[420px] text-sm">
                           <div className="space-y-2">
-                            <p className="whitespace-pre-wrap break-words leading-relaxed">
+                            <p className="whitespace-pre-wrap wrap-break-word leading-relaxed">
                               {item.content || '-'}
                             </p>
                             {(item.referer || item.sourceOrigin) && (
@@ -1685,7 +1705,7 @@ export default function AdminMonitorPage() {
                         </TableCell>
                         <TableCell className="min-w-[220px] max-w-[320px] text-xs">
                           <div className="space-y-1">
-                            <div className="break-words">
+                            <div className="wrap-break-word">
                               {formatFeedbackDeviceSummary(
                                 item.metadata,
                                 item.userAgent,
