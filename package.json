@@ -2,6 +2,7 @@
   "name": "todo-web",
   "version": "2.0.0",
   "private": true,
+  "packageManager": "pnpm@11.1.0",
   "author": "",
   "license": "MIT",
   "keywords": [
