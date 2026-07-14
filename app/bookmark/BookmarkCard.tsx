@@ -32,7 +32,7 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
     };
 
     return (
-        <Card className="hover:bg-accent/50 transition-colors "
+        <Card className="hover:bg-accent/50 transition-colors py-0 gap-0"
         >
             <CardHeader className="p-0">
                 <div className="w-full">

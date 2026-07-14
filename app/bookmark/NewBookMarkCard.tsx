@@ -99,7 +99,7 @@ export default function NewBookmarkCard({ onSubmit }: BookmarkCardProps) {
     });
 
     return (
-        <Card className="min-h-[200px] flex flex-col space-y-4 p-4">
+        <Card className="min-h-[200px] flex flex-col space-y-4 p-4 gap-0">
             <CardContent className="flex flex-col space-y-2 flex-1">
                 <Textarea
                     autoFocus

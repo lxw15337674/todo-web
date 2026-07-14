@@ -32,7 +32,7 @@ export const formatTime = (timestamp?: string) => {
 const DailyHotCard = ({ data }: Props) => {
   const date = formatTime(data.updateTime)
   return (
-    <Card className="w-full max-w-2xl bg-zinc-900 text-white">
+    <Card className="w-full max-w-2xl bg-zinc-900 text-white py-0 gap-0">
       <div className="p-2 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <Image

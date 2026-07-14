@@ -341,7 +341,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
             onMouseLeave={endPressing}
             onTouchStart={startPressing}
             onTouchEnd={endPressing}
-            className={`relative transition-all duration-200 cursor-pointer p-2
+            className={`relative transition-all duration-200 cursor-pointer p-2 gap-0
                       hover:bg-accent/50 hover:shadow-lg
                       ${isTaskCompletedToday ? 'border-2 border-green-400/50 bg-green-400/5' : ''} 
                       ${pressing && !isTaskCompletedToday ? 'scale-[0.98] shadow-xs' : 'shadow-md'}`}

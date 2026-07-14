@@ -12,7 +12,7 @@ const AnniversaryCard = ({ anniversary, onClick }: AnniversaryCardProps) => {
     const day = dayjs(anniversary.date)
     const gapDay = dayjs(day).diff(dayjs(), 'day');
     return (
-        <Card className="overflow-hidden" onClick={() => {
+        <Card className="overflow-hidden py-0 gap-0" onClick={() => {
             onClick()
         }}>
             <CardContent className="flex py-2">

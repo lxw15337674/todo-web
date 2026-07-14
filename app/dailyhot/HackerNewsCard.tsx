@@ -107,7 +107,7 @@ const HackerNewsCard = async ({ label, name }: HackerNewsCardProps) => {
 
     if (stories.length === 0) {
         return (
-            <Card className="w-full max-w-2xl bg-zinc-900 text-white">
+            <Card className="w-full max-w-2xl bg-zinc-900 text-white py-0 gap-0">
                 <div className="p-2 border-b border-zinc-800">
                     <div className="flex items-center gap-2">
                         <Image
@@ -133,7 +133,7 @@ const HackerNewsCard = async ({ label, name }: HackerNewsCardProps) => {
     }
 
     return (
-        <Card className="w-full max-w-2xl bg-zinc-900 text-white">
+        <Card className="w-full max-w-2xl bg-zinc-900 text-white py-0 gap-0">
             <div className="p-2 border-b border-zinc-800">
                 <div className="flex items-center gap-2">
                     <Image
