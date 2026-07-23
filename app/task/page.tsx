@@ -28,7 +28,6 @@ import { useThrottleFn } from 'ahooks'
 import {
     Select,
     SelectContent,
-    SelectGroup,
     SelectItem,
     SelectTrigger,
     SelectValue,
@@ -197,27 +196,24 @@ export default function Page() {
                 {/* 减少按钮行的垂直内边距 */}
                 <div className="flex items-center justify-between gap-2 pt-1"> {/* 增加顶部内边距 */} 
                     <Select
-                        items={Object.entries(priorityConfig).map(([value, config]) => ({ value, label: config.label }))}
                         value={newTask.priority || Priority.NOT_IMPORTANT_NOT_URGENT}
-                        onValueChange={(value) => {
-                            if (!value) return;
+                        onValueChange={(value: Priority) =>
                             setNewTask(draft => {
                                 draft.priority = value;
-                            });
-                        }}
+                            })
+                        }
                     >
                         {/* 减小 SelectTrigger 的高度 h-9 -> h-8 */}
                         <SelectTrigger className="w-[140px] h-8"> 
                             <SelectValue placeholder="优先级" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectGroup>
-                                {Object.entries(priorityConfig).map(([value, config]: [string, { label: string; color: string }]) => (
-                                    <SelectItem key={value} value={value} className={cn("text-xs", config.color)}>
-                                        {config.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
+                            {/* 使用 priorityConfig 动态生成选项，并明确类型 */} 
+                            {Object.entries(priorityConfig).map(([value, config]: [string, { label: string; color: string }]) => (
+                                <SelectItem key={value} value={value} className={cn("text-xs", config.color)}>
+                                    {config.label}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                     {/* ... 添加任务和标签管理按钮 ... */} 
@@ -227,8 +223,11 @@ export default function Page() {
                             <Plus className="w-4 h-4" />
                         </Button>
                         <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
-                            <DialogTrigger render={<Button variant="outline" size="sm" />}>
-                                <Tag />
+                            <DialogTrigger asChild>
+                                {/* 减小 Button 的尺寸 size="icon" -> size="sm" */}
+                                <Button variant="outline" size="sm">
+                                    <Tag className="w-4 h-4" />
+                                </Button>
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
@@ -281,12 +280,12 @@ export default function Page() {
                     <Collapsible key={priority} defaultOpen>
                         {/* 减小 CollapsibleTrigger 的垂直内边距 p-2 -> py-1 px-2 */}
                         <CollapsibleTrigger className='flex w-full items-center text-sm py-1 px-2 font-medium rounded-md hover:bg-accent transition-colors'>
-                            <ChevronsUpDown className="h-4 w-4 mr-2 shrink-0" />
+                            <ChevronsUpDown className="h-4 w-4 mr-2 flex-shrink-0" /> 
                             <div className="sr-only">Toggle</div>
                             <span className={cn("font-semibold truncate", priorityConfig[priority as Priority]?.color)}> 
                                 {priorityConfig[priority as Priority]?.label || '未知优先级'}
                             </span>
-                            <span className="ml-auto text-xs text-muted-foreground shrink-0">({tasksInGroup.length})</span>
+                            <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">({tasksInGroup.length})</span> 
                         </CollapsibleTrigger>
                         {/* 移除 CollapsibleContent 的上边距 pt-1 */}
                         <CollapsibleContent>
@@ -310,10 +309,10 @@ export default function Page() {
                     <Collapsible defaultOpen>
                         {/* 减小 CollapsibleTrigger 的垂直内边距 p-2 -> py-1 px-2 */}
                         <CollapsibleTrigger className='flex w-full items-center text-sm py-1 px-2 font-medium rounded-md hover:bg-accent transition-colors'>
-                            <ChevronsUpDown className="h-4 w-4 mr-2 shrink-0" />
+                            <ChevronsUpDown className="h-4 w-4 mr-2 flex-shrink-0" /> 
                             <div className="sr-only">Toggle</div>
                             已完成
-                            <span className="ml-auto text-xs text-muted-foreground shrink-0">({filteredTasks.completed.length})</span>
+                            <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">({filteredTasks.completed.length})</span> 
                         </CollapsibleTrigger>
                         {/* 移除 CollapsibleContent 的上边距 pt-1 */}
                         <CollapsibleContent>
@@ -335,3 +334,4 @@ export default function Page() {
         </div>
     );
 }
+

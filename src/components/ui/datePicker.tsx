@@ -13,7 +13,6 @@ import {
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -58,8 +57,7 @@ export function DatePicker({ date, setDate }: DatePickerProps) {
     }
   }, [date]);
 
-  const handleYearChange = (selectedYear: string | null) => {
-    if (!selectedYear) return;
+  const handleYearChange = (selectedYear: string) => {
     const newYear = parseInt(selectedYear, 10);
     setYear(newYear);
     if (date) {
@@ -69,8 +67,7 @@ export function DatePicker({ date, setDate }: DatePickerProps) {
     }
   };
 
-  const handleMonthChange = (selectedMonth: string | null) => {
-    if (!selectedMonth) return;
+  const handleMonthChange = (selectedMonth: string) => {
     const newMonth = parseInt(selectedMonth, 10);
     setMonth(newMonth);
     if (date) {
@@ -84,59 +81,47 @@ export function DatePicker({ date, setDate }: DatePickerProps) {
 
   return (
     <Popover>
-      <PopoverTrigger
-        render={<Button
+      <PopoverTrigger asChild>
+        <Button
           variant={'outline'}
           className={cn(
             'w-full justify-start text-left font-normal',
             !date && 'text-muted-foreground',
           )}
-        />}
-      >
-        <CalendarIcon data-icon="inline-start" />
-        {date ? format(date, 'PPP', { locale: zhCN }) : <span>选择日期</span>}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {date ? format(date, 'PPP', { locale: zhCN }) : <span>选择日期</span>}
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <div className="flex justify-between p-2 space-x-1">
-          <Select
-            items={years.map((item) => ({ value: item.toString(), label: `${item}年` }))}
-            onValueChange={handleYearChange}
-            value={year.toString()}
-          >
+          <Select onValueChange={handleYearChange} value={year.toString()}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="年份" />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>
-                {years.map((y) => (
-                  <SelectItem key={y} value={y.toString()}>
-                    {y}年
-                  </SelectItem>
-                ))}
-              </SelectGroup>
+              {years.map((y) => (
+                <SelectItem key={y} value={y.toString()}>
+                  {y}年
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Select
-            items={months.map((item, index) => ({ value: index.toString(), label: format(item, 'MMMM', { locale: zhCN }) }))}
-            onValueChange={handleMonthChange}
-            value={month.toString()}
-          >
+          <Select onValueChange={handleMonthChange} value={month.toString()}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="月份" />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>
-                {months.map((m, index) => (
-                  <SelectItem key={index} value={index.toString()}>
-                    {format(m, 'MMMM', { locale: zhCN })}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
+              {months.map((m, index) => (
+                <SelectItem key={index} value={index.toString()}>
+                  {format(m, 'MMMM', { locale: zhCN })}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
         <Calendar
-          captionLayout="dropdown"
+          captionLayout="dropdown-buttons"
           mode="single"
           selected={date}
           onSelect={setDate}
@@ -146,6 +131,7 @@ export function DatePicker({ date, setDate }: DatePickerProps) {
             setMonth(newMonth.getMonth());
             setYear(newMonth.getFullYear());
           }}
+          initialFocus
         />
       </PopoverContent>
     </Popover>

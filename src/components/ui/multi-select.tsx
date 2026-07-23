@@ -198,8 +198,8 @@ export const MultiSelect = React.forwardRef<
         onOpenChange={setIsPopoverOpen}
         modal={modalPopover}
       >
-        <PopoverTrigger
-          render={<Button
+        <PopoverTrigger asChild>
+          <Button
             ref={ref}
             {...props}
             onClick={handleTogglePopover}
@@ -207,8 +207,7 @@ export const MultiSelect = React.forwardRef<
               'flex w-full p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto',
               className,
             )}
-          />}
-        >
+          >
             {selectedValues.length > 0 ? (
               <div className="flex justify-between items-center w-full">
                 <div className="flex flex-wrap items-center">
@@ -281,10 +280,12 @@ export const MultiSelect = React.forwardRef<
                 <ChevronDown className="h-4 cursor-pointer text-muted-foreground mx-2" />
               </div>
             )}
+          </Button>
         </PopoverTrigger>
         <PopoverContent
           className="w-auto p-0"
           align="start"
+          onEscapeKeyDown={() => setIsPopoverOpen(false)}
         >
           <Command
             filter={(value, search) => {

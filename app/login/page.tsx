@@ -71,8 +71,8 @@ export default function Login() {
     }
 
     return (
-        <Dialog open={true} onOpenChange={handleOpenChange} disablePointerDismissal>
-            <DialogContent className="sm:max-w-[400px]">
+        <Dialog open={true} onOpenChange={handleOpenChange}>
+            <DialogContent className="sm:max-w-[400px]" onInteractOutside={(e) => e.preventDefault()}>
                 <DialogHeader className="flex flex-col items-center space-y-2 text-center sm:text-center">
                     <div className="rounded-full bg-muted p-3">
                         <Lock className="h-6 w-6 text-primary" />

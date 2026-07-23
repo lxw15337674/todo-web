@@ -48,4 +48,3 @@ public/sw*
 public/swe-worker*
 .vercel
 .env*.local
-.env*
