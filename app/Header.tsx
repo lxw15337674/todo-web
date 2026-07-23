@@ -57,16 +57,10 @@ export default function Header() {
         <div className="mr-4 flex items-center space-x-2">
 
           <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="打开应用菜单"
-                />
-              }
-            >
-              <LayoutGrid />
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <LayoutGrid />
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[300px] p-4">
               <div className="grid grid-cols-3 gap-4">
@@ -113,7 +107,6 @@ export default function Header() {
         <div className='space-x-2'>
           <ScrollToTop scrollTo={10} variant="outline"
             size="icon"
-            aria-label="回到顶部"
           >
             <ArrowUpToLine />
           </ScrollToTop>
@@ -121,7 +114,6 @@ export default function Header() {
           <Button
             variant="outline"
             size="icon"
-            aria-label="打开 GitHub 仓库"
             onClick={() => {
               window.open('https://github.com/lxw15337674/todo-web', '_blank')
             }}
@@ -130,16 +122,10 @@ export default function Header() {
           </Button>
           {role !== 'none' ? (
             <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label="打开账户菜单"
-                  />
-                }
-              >
-                <User />
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <User className="h-4 w-4" />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem disabled>
@@ -154,12 +140,7 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="登录"
-              onClick={handleLogin}
-            >
+            <Button variant="outline" size="icon" onClick={handleLogin}>
               <LogIn className="h-4 w-4" />
             </Button>
           )}

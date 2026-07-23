@@ -230,8 +230,10 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                 <SheetTitle className="flex justify-between items-center text-2xl">
                   <span className="font-semibold">{task.name}</span>
                   <DropdownMenu>
-                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="hover:bg-destructive/10" />}>
-                      <Ellipsis />
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="hover:bg-destructive/10">
+                        <Ellipsis className="w-4 h-4" />
+                      </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
@@ -248,7 +250,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
               <ScrollArea className="h-[calc(100vh-120px)] rounded-md">
                 <div className="space-y-4 pr-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <Card className="bg-primary/5 border-none shadow-xs hover:bg-primary/10 transition-colors">
+                    <Card className="bg-primary/5 border-none shadow-sm hover:bg-primary/10 transition-colors">
                       <CardContent className="p-4">
                         <div className="text-sm text-muted-foreground font-medium mb-1">总打卡</div>
                         <div className="text-2xl font-bold text-primary">
@@ -257,7 +259,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                         </div>
                       </CardContent>
                     </Card>
-                    <Card className="bg-primary/5 border-none shadow-xs hover:bg-primary/10 transition-colors">
+                    <Card className="bg-primary/5 border-none shadow-sm hover:bg-primary/10 transition-colors">
                       <CardContent className="p-4">
                         <div className="text-sm text-muted-foreground font-medium mb-1">当月打卡</div>
                         <div className="text-2xl font-bold text-primary">
@@ -267,7 +269,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                       </CardContent>
                     </Card>
                   </div>
-                  <Card className="border-none shadow-xs">
+                  <Card className="border-none shadow-sm">
                     <CardHeader className="pb-2 pt-4">
                       <div className="flex justify-between items-center">
                         <CardTitle className="text-base font-medium">打卡记录</CardTitle>
@@ -283,7 +285,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                     </CardHeader>
                   </Card>
 
-                  <Card className="border-none shadow-xs">
+                  <Card className="border-none shadow-sm">
                     <CardHeader className="pb-2 pt-4">
                       <CardTitle className="text-base font-medium">打卡记录</CardTitle>
                     </CardHeader>
@@ -341,10 +343,10 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
             onMouseLeave={endPressing}
             onTouchStart={startPressing}
             onTouchEnd={endPressing}
-            className={`relative transition-all duration-200 cursor-pointer p-2 gap-0
+            className={`relative transition-all duration-200 cursor-pointer p-2
                       hover:bg-accent/50 hover:shadow-lg
                       ${isTaskCompletedToday ? 'border-2 border-green-400/50 bg-green-400/5' : ''} 
-                      ${pressing && !isTaskCompletedToday ? 'scale-[0.98] shadow-xs' : 'shadow-md'}`}
+                      ${pressing && !isTaskCompletedToday ? 'scale-[0.98] shadow-sm' : 'shadow-md'}`}
           >
             <CardHeader className="px-0 py-0">
               <CardTitle
@@ -356,7 +358,7 @@ const HabitCard = ({ task, setTasks }: HabitCardProps) => {
                   value={taskName}
                   onChange={(e) => setTaskName(e.target.value)}
                   onBlur={renameTask}
-                  className="bg-transparent border-none outline-hidden text-foreground flex-1
+                  className="bg-transparent border-none outline-none text-foreground flex-1 
                            hover:bg-accent/30 px-2 py-1 rounded transition-colors
                            focus:ring-2 focus:ring-primary/20"
                 />

@@ -7,6 +7,7 @@ import { startConfettiAnimation } from '../../src/lib/utils'
 import { createNewAnniversary, deleteAnniversary, getAnniversary, NewAnniversary } from '../../src/api/anniversary'
 import useLocalStorageRequest from '../../src/hooks/useLocalStorageRequest'
 import { useToast } from '../../src/hooks/use-toast'
+import { ToastAction } from '../../src/components/ui/toast'
 import { DatePicker } from '../../src/components/ui/datePicker'
 import dayjs from 'dayjs';
 import AnniversaryCard from './anniversaryCard';
@@ -85,17 +86,19 @@ export default function TaskManagement() {
                                     title: "删除确认",
                                     description: `是否删除纪念日 ${anniversary.name}`,
                                     variant: "destructive",
-                                    action: {
-                                        label: '删除',
-                                        onClick: () => {
-                                            deleteAnniversary(anniversary.id)
-                                            toast({
-                                                title: "删除成功",
-                                                description: `纪念日 ${anniversary.name} 删除成功`
-                                            });
-                                            refresh()
-                                        },
-                                    },
+                                    action: (
+                                        <ToastAction altText="删除"
+                                            onClick={() => {
+                                                deleteAnniversary(anniversary.id)
+                                                toast({
+                                                    title: "删除成功",
+                                                    description: `纪念日 ${anniversary.name} 删除成功`
+                                                });
+                                                refresh()
+                                            }}>
+                                            删除
+                                        </ToastAction>
+                                    ),
                                 })
                             }}
                         />
@@ -105,3 +108,4 @@ export default function TaskManagement() {
         </div>
     )
 }
+

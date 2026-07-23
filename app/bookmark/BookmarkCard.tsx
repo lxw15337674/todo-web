@@ -32,21 +32,21 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
     };
 
     return (
-        <Card className="hover:bg-accent/50 transition-colors py-0 gap-0"
+        <Card className="hover:bg-accent/50 transition-colors "
         >
             <CardHeader className="p-0">
                 <div className="w-full">
                     <HoverCard>
-                        <HoverCardTrigger
-                            render={<Image
+                        <HoverCardTrigger asChild>
+                            <Image
                                 src={bookmark?.image || `https://placehold.co/600x400`}
                                 alt={bookmark.title ?? 'Bookmark Image'}
                                 width={400}
                                 height={600}
                                 className="object-cover h-48 w-full  cursor-pointer"
                                 onClick={() => window.open(bookmark.url, '_blank')}
-                            />}
-                        />
+                            />
+                        </HoverCardTrigger>
                         <HoverCardContent>
                             <div >
                                 <p className="text-sm text-muted-foreground">{bookmark?.summary ?? '加载中...'}</p>
@@ -72,8 +72,10 @@ export function BookmarkCard({ bookmark, setBookmarks }: BookmarkCardProps) {
                     <span className="mx-2">•</span>
                     <span>{dayjs(bookmark.createTime).format('YYYY-MM-DD')}</span>
                     <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="ml-auto" />}>
-                            <Ellipsis />
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="ml-auto">
+                                <Ellipsis className="w-6 mx-auto " />
+                            </Button>
                         </DropdownMenuTrigger>                        <DropdownMenuContent>
                             <>
                                 <DropdownMenuItem

@@ -93,7 +93,7 @@ const MaoyanMovieCard = async ({ label, name }: { label: string; name: string })
 
   if (!movieData || !movieData.data) {
     return (
-      <Card className="w-full max-w-2xl bg-zinc-900 text-white py-0 gap-0">
+      <Card className="w-full max-w-2xl bg-zinc-900 text-white">
         <div className="p-2 border-b border-zinc-800">
           <div className="flex items-center gap-2">
             <Image
@@ -123,7 +123,7 @@ const MaoyanMovieCard = async ({ label, name }: { label: string; name: string })
   const date = formatTime(movieData.data.updated_at.toString());
 
   return (
-    <Card className="w-full max-w-2xl bg-zinc-900 text-white py-0 gap-0">
+    <Card className="w-full max-w-2xl bg-zinc-900 text-white">
       <div className="p-2 border-b border-zinc-800">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
